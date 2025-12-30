@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: evenly
+      POSTGRES_PASSWORD: evenly
+      POSTGRES_DB: evenly
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  evenly-core:
+    build: ./evenly-core
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/evenly
+      DB_USER: evenly
+      DB_PASSWORD: evenly
+      JWT_SECRET: fe97b7ab529670b6f9ea2378a0ea6ad8
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+  evenly-webapp:
+    build: ./evenly-webapp
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:8080
+    depends_on:
+      - evenly-core
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata: {}

@@ -1,0 +1,31 @@
+# Node / Nuxt
+node_modules
+.nuxt
+.output
+dist
+
+# Java / Maven
+target
+
+# Env / logs
+.env
+.env.local
+.env.development
+.env.production
+*.log
+
+# OS
+.DS_Store
+
+# Maven
+.m2repo
+
+# IDEs
+.idea
+.vscode
+
+# Helidon
+helidon
+.helidon
+
+REQUIREMENTS.md

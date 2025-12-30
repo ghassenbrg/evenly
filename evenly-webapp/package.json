@@ -1,0 +1,27 @@
+{
+  "name": "evenly-webapp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --hostname 0.0.0.0 --port 3000",
+    "build": "nuxt build",
+    "start": "node .output/server/index.mjs",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.5.1",
+    "@vite-pwa/nuxt": "^0.5.0",
+    "chart.js": "^4.4.1",
+    "nuxt": "^3.10.0",
+    "pinia": "^2.1.7",
+    "vue-chartjs": "^5.3.1"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.11.2",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3"
+  }
+}
