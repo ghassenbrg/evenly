@@ -1,0 +1,11 @@
+[
+  {
+    "id": "user-1",
+    "email": "user@example.com",
+    "displayName": "User",
+    "preferredCurrency": "JPY",
+    "locale": "en-US",
+    "timezone": "UTC",
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/workspaces",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      },
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    }
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*"
+    },
+    "jsonBody": {
+      "id": "ws-{{randomValue type='UUID'}}",
+      "name": "{{jsonPath request.body '$.name'}}",
+      "defaultSplitMode": "{{jsonPath request.body '$.defaultSplitMode'}}",
+      "currency": "JPY",
+      "createdAt": "{{now}}",
+      "updatedAt": "{{now}}"
+    },
+    "transformers": ["response-template"]
+  }
+}
+

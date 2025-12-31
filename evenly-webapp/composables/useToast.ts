@@ -1,0 +1,45 @@
+export interface Toast {
+  id: string
+  message: string
+  type: 'success' | 'error' | 'info'
+  duration?: number
+}
+
+export const useToast = () => {
+  const toasts = ref<Toast[]>([])
+
+  const show = (message: string, type: Toast['type'] = 'info', duration = 3000) => {
+    const id = Date.now().toString()
+    const toast: Toast = { id, message, type, duration }
+    toasts.value.push(toast)
+
+    if (duration > 0) {
+      setTimeout(() => {
+        remove(id)
+      }, duration)
+    }
+
+    return id
+  }
+
+  const success = (message: string, duration?: number) => show(message, 'success', duration)
+  const error = (message: string, duration?: number) => show(message, 'error', duration)
+  const info = (message: string, duration?: number) => show(message, 'info', duration)
+
+  const remove = (id: string) => {
+    const index = toasts.value.findIndex(t => t.id === id)
+    if (index !== -1) {
+      toasts.value.splice(index, 1)
+    }
+  }
+
+  return {
+    toasts: readonly(toasts),
+    show,
+    success,
+    error,
+    info,
+    remove
+  }
+}
+

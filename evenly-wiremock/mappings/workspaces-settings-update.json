@@ -1,0 +1,31 @@
+{
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/settings",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      },
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*"
+    },
+    "jsonBody": {
+      "id": "{{request.pathSegments.[1]}}",
+      "name": "{{jsonPath request.body '$.name'}}",
+      "defaultSplitMode": "{{jsonPath request.body '$.defaultSplitMode'}}",
+      "currency": "JPY",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "{{now}}"
+    },
+    "transformers": ["response-template"]
+  }
+}
+

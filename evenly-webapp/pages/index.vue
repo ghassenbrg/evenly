@@ -21,16 +21,34 @@
 
       <!-- CTA Buttons -->
       <div class="space-y-3 pt-4">
-        <button class="w-full bg-emerald-500 text-white font-semibold py-4 rounded-xl hover:bg-emerald-600 transition-colors">
+        <NuxtLink
+          to="/register"
+          class="block w-full bg-emerald-500 text-white font-semibold py-4 rounded-xl hover:bg-emerald-600 transition-colors text-center"
+        >
           Get Started
-        </button>
-        <button class="w-full bg-slate-800 text-white font-medium py-4 rounded-xl border border-slate-700 hover:bg-slate-700 transition-colors">
+        </NuxtLink>
+        <NuxtLink
+          to="/login"
+          class="block w-full bg-slate-800 text-white font-medium py-4 rounded-xl border border-slate-700 hover:bg-slate-700 transition-colors text-center"
+        >
           Sign In
-        </button>
+        </NuxtLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: false
+})
+
+const { isAuthenticated } = useAuth()
+
+// Redirect if already authenticated
+watchEffect(() => {
+  if (isAuthenticated.value) {
+    navigateTo('/dashboard')
+  }
+})
 </script>
