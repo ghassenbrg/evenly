@@ -1,8 +1,19 @@
 [
   {
-    "id": "user-1",
-    "email": "user@example.com",
-    "displayName": "User",
+    "id": "user-bob",
+    "email": "bob@example.com",
+    "displayName": "Bob",
+    "username": "bob",
+    "preferredCurrency": "JPY",
+    "locale": "en-US",
+    "timezone": "UTC",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "user-alice",
+    "email": "alice@example.com",
+    "displayName": "Alice",
+    "username": "alice",
     "preferredCurrency": "JPY",
     "locale": "en-US",
     "timezone": "UTC",

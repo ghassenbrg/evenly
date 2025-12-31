@@ -8,12 +8,12 @@ export const useAuthStore = defineStore('auth', () => {
   const currentUser = computed(() => user.value)
   const authenticated = computed(() => isAuthenticated.value)
 
-  const loginUser = async (email: string, password: string) => {
-    await login({ email, password })
+  const loginUser = async (username: string, password: string) => {
+    await login({ username, password })
   }
 
-  const registerUser = async (email: string, password: string, displayName: string) => {
-    await register({ email, password, displayName })
+  const registerUser = async (email: string, password: string, displayName: string, username: string, preferredCurrency: string) => {
+    await register({ email, password, displayName, username, preferredCurrency })
   }
 
   const logout = () => {

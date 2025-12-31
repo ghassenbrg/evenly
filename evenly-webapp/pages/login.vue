@@ -17,13 +17,13 @@
       <!-- Form -->
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Email or Username</label>
           <input
-            v-model="email"
-            type="email"
+            v-model="username"
+            type="text"
             required
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder="you@example.com"
+            placeholder="you@example.com or username"
           />
         </div>
 
@@ -71,14 +71,14 @@ const authStore = useAuthStore()
 const { success, error } = useToast()
 const router = useRouter()
 
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const loading = ref(false)
 
 const handleLogin = async () => {
   try {
     loading.value = true
-    await authStore.loginUser(email.value, password.value)
+    await authStore.loginUser(username.value, password.value)
     success('Welcome back!')
     
     // Wait for next tick and a small delay to ensure token cookie is set
@@ -91,7 +91,25 @@ const handleLogin = async () => {
     
     await router.push('/dashboard')
   } catch (err: any) {
-    error(err.message || 'Login failed')
+    console.error('Login error:', err)
+    let errorMessage = 'Invalid email/username or password'
+    
+    // Try to extract error message from various possible structures
+    if (err?.message) {
+      errorMessage = err.message
+    } else if (err?.error) {
+      // Handle case where error.error is an object with message property
+      if (typeof err.error === 'object' && err.error.message) {
+        errorMessage = err.error.message
+      } else if (typeof err.error === 'object' && err.error.error) {
+        errorMessage = err.error.error
+      } else if (typeof err.error === 'string') {
+        errorMessage = err.error
+      }
+    }
+    
+    console.log('Showing error toast with message:', errorMessage)
+    error(errorMessage)
   } finally {
     loading.value = false
   }

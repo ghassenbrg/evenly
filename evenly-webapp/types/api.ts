@@ -4,10 +4,17 @@ export type SplitMode = 'EQUAL' | 'WEIGHTED'
 export type MemberRole = 'OWNER' | 'MEMBER'
 export type ExpenseStatus = 'ACTIVE' | 'SETTLED'
 
+export interface Currency {
+  code: string
+  name: string
+  symbol: string
+}
+
 export interface User {
   id: string
   email: string
   displayName: string
+  username?: string
   avatarUrl?: string
   preferredCurrency?: string
   locale?: string
@@ -137,10 +144,12 @@ export interface RegisterRequest {
   email: string
   password: string
   displayName: string
+  username: string
+  preferredCurrency: string
 }
 
 export interface LoginRequest {
-  email: string
+  username: string
   password: string
 }
 

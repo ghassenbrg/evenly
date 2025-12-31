@@ -22,16 +22,22 @@ export const useApi = () => {
     try {
       const res = await fetch(`${config.public.apiBase}${path}`, { ...options, headers })
       
-      if (res.status === 401) {
-        token.value = null
-        await navigateTo('/login')
-        throw new Error('Unauthorized')
-      }
-
       if (!res.ok) {
         const error: ApiError = await res.json().catch(() => ({}))
         error.status = res.status
-        throw error
+        
+        // Only redirect to login on 401 for authenticated requests (not during login itself)
+        if (res.status === 401 && path !== '/auth/login' && token.value) {
+          token.value = null
+          await navigateTo('/login')
+          throw new Error('Unauthorized')
+        }
+        
+        const errorMessage = error.message || error.error || 'Request failed'
+        const apiError = new Error(errorMessage)
+        ;(apiError as any).status = res.status
+        ;(apiError as any).error = error
+        throw apiError
       }
 
       return res.status === 204 ? null as T : await res.json()

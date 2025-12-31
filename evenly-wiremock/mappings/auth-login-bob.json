@@ -1,5 +1,5 @@
 {
-  "priority": 1,
+  "priority": 10,
   "request": {
     "method": "POST",
     "urlPath": "/auth/login",
@@ -10,12 +10,12 @@
     },
     "bodyPatterns": [
       {
-        "matchesJsonPath": "$[?(@.username != 'bob' || @.password != 'pass')]"
+        "matchesJsonPath": "$[?(@.username == 'bob' && @.password == 'pass')]"
       }
     ]
   },
   "response": {
-    "status": 401,
+    "status": 200,
     "headers": {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -23,8 +23,18 @@
       "Access-Control-Allow-Headers": "Content-Type, Authorization"
     },
     "jsonBody": {
-      "error": "Invalid credentials",
-      "message": "Invalid email/username or password"
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bob",
+      "user": {
+        "id": "user-bob",
+        "email": "bob@example.com",
+        "displayName": "Bob",
+        "username": "Bob",
+        "preferredCurrency": "JPY",
+        "locale": "en-US",
+        "timezone": "UTC",
+        "createdAt": "2024-01-01T00:00:00Z"
+      }
     }
   }
 }
+

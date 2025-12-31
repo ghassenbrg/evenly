@@ -1,12 +1,8 @@
 {
+  "priority": 1,
   "request": {
     "method": "GET",
-    "urlPath": "/api/workspaces",
-    "headers": {
-      "Authorization": {
-        "matches": "Bearer .+"
-      }
-    }
+    "urlPath": "/api/workspaces"
   },
   "response": {
     "status": 200,
@@ -14,7 +10,28 @@
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*"
     },
-    "bodyFileName": "workspaces.json"
+    "jsonBody": [
+      {
+        "id": "ws-bob-personal",
+        "name": "Personal",
+        "defaultSplitMode": "EQUAL",
+        "monthlySharedLimit": null,
+        "isPersonal": true,
+        "currency": "JPY",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-01T00:00:00Z"
+      },
+      {
+        "id": "ws-couple",
+        "name": "Bob & Alice",
+        "defaultSplitMode": "EQUAL",
+        "monthlySharedLimit": 100000,
+        "isPersonal": false,
+        "currency": "JPY",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-01T00:00:00Z"
+      }
+    ]
   }
 }
 

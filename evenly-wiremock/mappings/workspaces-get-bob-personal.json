@@ -1,8 +1,8 @@
 {
-  "priority": 1,
+  "priority": 10,
   "request": {
     "method": "GET",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)"
+    "urlPath": "/api/workspaces/ws-bob-personal"
   },
   "response": {
     "status": 200,
@@ -11,15 +11,15 @@
       "Access-Control-Allow-Origin": "*"
     },
     "jsonBody": {
-      "id": "{{request.pathSegments.[1]}}",
-      "name": "Workspace",
+      "id": "ws-bob-personal",
+      "name": "Personal",
       "defaultSplitMode": "EQUAL",
       "monthlySharedLimit": null,
-      "isPersonal": false,
+      "isPersonal": true,
       "currency": "JPY",
       "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "{{now}}"
-    },
-    "transformers": ["response-template"]
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
   }
 }
+

@@ -28,6 +28,17 @@
         </div>
 
         <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+          <input
+            v-model="username"
+            type="text"
+            required
+            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="johndoe"
+          />
+        </div>
+
+        <div>
           <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
           <input
             v-model="email"
@@ -36,6 +47,25 @@
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="you@example.com"
           />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Preferred Currency</label>
+          <select
+            v-model="preferredCurrency"
+            required
+            :disabled="currenciesLoading"
+            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="">{{ currenciesLoading ? 'Loading currencies...' : 'Select currency' }}</option>
+            <option
+              v-for="currency in currencies"
+              :key="currency.code"
+              :value="currency.code"
+            >
+              {{ currency.code }} - {{ currency.name }} ({{ currency.symbol }})
+            </option>
+          </select>
         </div>
 
         <div>
@@ -74,6 +104,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Currency } from '~/types/api'
+
 definePageMeta({
   middleware: 'guest',
   layout: false
@@ -82,16 +114,44 @@ definePageMeta({
 const authStore = useAuthStore()
 const { success, error } = useToast()
 const router = useRouter()
+const api = useApi()
 
 const displayName = ref('')
+const username = ref('')
 const email = ref('')
+const preferredCurrency = ref('JPY')
 const password = ref('')
 const loading = ref(false)
+const currencies = ref<Currency[]>([])
+const currenciesLoading = ref(false)
+
+// Fetch currencies on mount
+onMounted(async () => {
+  try {
+    currenciesLoading.value = true
+    currencies.value = await api.get<Currency[]>('/api/currencies')
+    // Set default to JPY if available, otherwise first currency
+    if (currencies.value.length > 0) {
+      const jpyCurrency = currencies.value.find((c: Currency) => c.code === 'JPY')
+      preferredCurrency.value = jpyCurrency?.code || currencies.value[0].code
+    }
+  } catch (err) {
+    console.error('Failed to load currencies:', err)
+    // Fallback to default list if API fails
+    currencies.value = [
+      { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
+      { code: 'USD', name: 'US Dollar', symbol: '$' },
+      { code: 'EUR', name: 'Euro', symbol: '€' }
+    ]
+  } finally {
+    currenciesLoading.value = false
+  }
+})
 
 const handleRegister = async () => {
   try {
     loading.value = true
-    await authStore.registerUser(email.value, password.value, displayName.value)
+    await authStore.registerUser(email.value, password.value, displayName.value, username.value, preferredCurrency.value)
     success('Account created!')
     
     // Wait for next tick and a small delay to ensure token cookie is set

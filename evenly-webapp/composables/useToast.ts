@@ -5,9 +5,10 @@ export interface Toast {
   duration?: number
 }
 
-export const useToast = () => {
-  const toasts = ref<Toast[]>([])
+// Shared state - singleton pattern
+const toasts = ref<Toast[]>([])
 
+export const useToast = () => {
   const show = (message: string, type: Toast['type'] = 'info', duration = 3000) => {
     const id = Date.now().toString()
     const toast: Toast = { id, message, type, duration }

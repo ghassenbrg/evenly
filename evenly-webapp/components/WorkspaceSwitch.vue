@@ -31,8 +31,19 @@
               :class="workspace.id === activeWorkspaceId ? 'bg-slate-700/50' : ''"
             >
               <div class="flex-1 min-w-0">
-                <p class="text-white font-medium truncate">{{ workspace.name }}</p>
-                <p class="text-xs text-slate-400">{{ workspace.defaultSplitMode }}</p>
+                <div class="flex items-center space-x-2">
+                  <p class="text-white font-medium truncate">{{ workspace.name }}</p>
+                  <span
+                    v-if="workspace.isPersonal"
+                    class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full"
+                    title="Personal workspace - cannot add members or configure splits"
+                  >
+                    Personal
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400">
+                  {{ workspace.isPersonal ? 'Personal workspace' : workspace.defaultSplitMode }}
+                </p>
               </div>
               <svg
                 v-if="workspace.id === activeWorkspaceId"
