@@ -10,11 +10,16 @@ export default defineNuxtConfig({
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1' },
         { name: 'theme-color', content: '#1e293b' },
-        { name: 'description', content: 'Evenly - Smart expense splitting made simple' }
+        { name: 'description', content: 'Evenly - Smart expense splitting made simple' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'apple-mobile-web-app-title', content: 'Evenly' }
       ],
       link: [
         { rel: 'manifest', href: '/manifest.webmanifest' },
-        { rel: 'icon', type: 'image/png', href: '/icons/favicon.png' }
+        { rel: 'icon', type: 'image/png', href: '/icons/favicon.png' },
+        { rel: 'apple-touch-icon', href: '/icons/favicon.png' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/icons/favicon.png' }
       ]
     },
     pageTransition: { name: 'page', mode: 'out-in' }
@@ -35,8 +40,10 @@ export default defineNuxtConfig({
       background_color: '#1e293b',
       theme_color: '#1e293b',
       icons: [
-        { src: '/icons/favicon.png', sizes: '192x192', type: 'image/png' },
-        { src: '/icons/favicon.png', sizes: '512x512', type: 'image/png' }
+        { src: '/icons/favicon.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: '/icons/favicon.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: '/icons/favicon.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+        { src: '/icons/favicon.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
       ]
     },
     workbox: {
