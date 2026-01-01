@@ -1,0 +1,112 @@
+{
+  "app": {
+    "name": "Evenly",
+    "description": "スマートな費用分担を簡単に"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "cancel": "キャンセル",
+    "create": "作成",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次へ",
+    "done": "完了",
+    "select": "選択",
+    "optional": "任意"
+  },
+  "navigation": {
+    "dashboard": "ダッシュボード",
+    "expenses": "支出",
+    "history": "履歴",
+    "settings": "設定"
+  },
+  "auth": {
+    "login": {
+      "title": "おかえりなさい",
+      "subtitle": "アカウントにサインイン",
+      "emailOrUsername": "メールアドレスまたはユーザー名",
+      "emailOrUsernamePlaceholder": "メールアドレスまたはユーザー名",
+      "password": "パスワード",
+      "passwordPlaceholder": "••••••••",
+      "submit": "サインイン",
+      "submitting": "サインイン中...",
+      "noAccount": "アカウントをお持ちでない方は？",
+      "signUp": "新規登録",
+      "welcomeBack": "おかえりなさい！",
+      "invalidCredentials": "メールアドレス/ユーザー名またはパスワードが正しくありません"
+    },
+    "register": {
+      "title": "アカウント作成",
+      "subtitle": "Evenlyを始める",
+      "displayName": "表示名",
+      "displayNamePlaceholder": "山田 太郎",
+      "username": "ユーザー名",
+      "usernamePlaceholder": "yamada",
+      "email": "メールアドレス",
+      "emailPlaceholder": "you{'@'}example.com",
+      "preferredCurrency": "希望通貨",
+      "selectCurrency": "通貨を選択",
+      "loadingCurrencies": "通貨を読み込み中...",
+      "password": "パスワード",
+      "passwordPlaceholder": "••••••••",
+      "submit": "アカウント作成",
+      "submitting": "アカウント作成中...",
+      "hasAccount": "既にアカウントをお持ちの方は？",
+      "signIn": "サインイン",
+      "accountCreated": "アカウントを作成しました！",
+      "registrationFailed": "登録に失敗しました"
+    },
+    "logout": "ログアウト"
+  },
+  "landing": {
+    "title": "Evenly",
+    "tagline": "公平に費用を分担",
+    "description": "共有の費用を追跡し、請求書を分割し、友達やルームメイトと精算しましょう。",
+    "getStarted": "始める",
+    "signIn": "サインイン"
+  },
+  "account": {
+    "title": "アカウント",
+    "name": "名前",
+    "email": "メールアドレス"
+  },
+  "workspace": {
+    "title": "ワークスペース",
+    "noWorkspace": "ワークスペースなし",
+    "personal": "個人",
+    "personalDescription": "個人ワークスペース",
+    "personalTooltip": "個人ワークスペース - メンバーを追加したり分割を設定したりできません",
+    "create": "ワークスペースを作成",
+    "created": "ワークスペースを作成しました！",
+    "createFailed": "ワークスペースの作成に失敗しました",
+    "name": "ワークスペース名",
+    "namePlaceholder": "例：アパート共有",
+    "splitMode": "分割モード",
+    "splitModeEqual": "均等",
+    "splitModeWeighted": "重み付け",
+    "monthlyBudget": "月間共有予算",
+    "monthlyBudgetPlaceholder": "100000",
+    "creating": "作成中..."
+  },
+  "join": {
+    "title": "ワークスペースに参加",
+    "placeholder": "プレースホルダーページ"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "languageDescription": "希望する言語を選択",
+    "en": "English",
+    "ja": "日本語"
+  },
+  "placeholders": {
+    "dashboard": "ダッシュボードプレースホルダー",
+    "expenses": "支出プレースホルダー",
+    "history": "履歴プレースホルダー"
+  }
+}
+

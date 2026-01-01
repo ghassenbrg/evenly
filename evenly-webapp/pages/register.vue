@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-slate-900">
+    <LanguageSwitcher />
     <div class="w-full max-w-md space-y-8">
       <!-- Logo -->
       <div class="flex justify-center">
@@ -10,54 +11,54 @@
 
       <!-- Title -->
       <div class="text-center space-y-2">
-        <h1 class="text-3xl font-bold text-white">Create Account</h1>
-        <p class="text-slate-400">Get started with Evenly</p>
+        <h1 class="text-3xl font-bold text-white">{{ t('auth.register.title') }}</h1>
+        <p class="text-slate-400">{{ t('auth.register.subtitle') }}</p>
       </div>
 
       <!-- Form -->
       <form @submit.prevent="handleRegister" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Display Name</label>
+          <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('auth.register.displayName') }}</label>
           <input
             v-model="displayName"
             type="text"
             required
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder="John Doe"
+            :placeholder="t('auth.register.displayNamePlaceholder')"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+          <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('auth.register.username') }}</label>
           <input
             v-model="username"
             type="text"
             required
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder="johndoe"
+            :placeholder="t('auth.register.usernamePlaceholder')"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+          <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('auth.register.email') }}</label>
           <input
             v-model="email"
             type="email"
             required
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder="you@example.com"
+            :placeholder="t('auth.register.emailPlaceholder')"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Preferred Currency</label>
+          <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('auth.register.preferredCurrency') }}</label>
           <select
             v-model="preferredCurrency"
             required
             :disabled="currenciesLoading"
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">{{ currenciesLoading ? 'Loading currencies...' : 'Select currency' }}</option>
+            <option value="">{{ currenciesLoading ? t('auth.register.loadingCurrencies') : t('auth.register.selectCurrency') }}</option>
             <option
               v-for="currency in currencies"
               :key="currency.code"
@@ -69,14 +70,14 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+          <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('auth.register.password') }}</label>
           <input
             v-model="password"
             type="password"
             required
             minlength="6"
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder="••••••••"
+            :placeholder="t('auth.register.passwordPlaceholder')"
           />
         </div>
 
@@ -85,17 +86,17 @@
           :disabled="loading"
           class="w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span v-if="!loading">Create Account</span>
-          <span v-else>Creating account...</span>
+          <span v-if="!loading">{{ t('auth.register.submit') }}</span>
+          <span v-else>{{ t('auth.register.submitting') }}</span>
         </button>
       </form>
 
       <!-- Login Link -->
       <div class="text-center">
         <p class="text-slate-400">
-          Already have an account?
+          {{ t('auth.register.hasAccount') }}
           <NuxtLink to="/login" class="text-emerald-500 hover:text-emerald-400 font-medium">
-            Sign in
+            {{ t('auth.register.signIn') }}
           </NuxtLink>
         </p>
       </div>
@@ -148,11 +149,13 @@ onMounted(async () => {
   }
 })
 
+const { t } = useI18n()
+
 const handleRegister = async () => {
   try {
     loading.value = true
     await authStore.registerUser(email.value, password.value, displayName.value, username.value, preferredCurrency.value)
-    success('Account created!')
+    success(t('auth.register.accountCreated'))
     
     // Wait for next tick and a small delay to ensure token cookie is set
     await nextTick()
@@ -164,7 +167,7 @@ const handleRegister = async () => {
     
     await router.push('/dashboard')
   } catch (err: any) {
-    error(err.message || 'Registration failed')
+    error(err.message || t('auth.register.registrationFailed'))
   } finally {
     loading.value = false
   }

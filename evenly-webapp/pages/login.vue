@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-slate-900">
+    <LanguageSwitcher />
     <div class="w-full max-w-md space-y-8">
       <!-- Logo -->
       <div class="flex justify-center">
@@ -10,31 +11,31 @@
 
       <!-- Title -->
       <div class="text-center space-y-2">
-        <h1 class="text-3xl font-bold text-white">Welcome Back</h1>
-        <p class="text-slate-400">Sign in to your account</p>
+        <h1 class="text-3xl font-bold text-white">{{ t('auth.login.title') }}</h1>
+        <p class="text-slate-400">{{ t('auth.login.subtitle') }}</p>
       </div>
 
       <!-- Form -->
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Email or Username</label>
+          <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('auth.login.emailOrUsername') }}</label>
           <input
             v-model="username"
             type="text"
             required
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder="you@example.com or username"
+            :placeholder="t('auth.login.emailOrUsernamePlaceholder')"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+          <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('auth.login.password') }}</label>
           <input
             v-model="password"
             type="password"
             required
             class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder="••••••••"
+            :placeholder="t('auth.login.passwordPlaceholder')"
           />
         </div>
 
@@ -43,17 +44,17 @@
           :disabled="loading"
           class="w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span v-if="!loading">Sign In</span>
-          <span v-else>Signing in...</span>
+          <span v-if="!loading">{{ t('auth.login.submit') }}</span>
+          <span v-else>{{ t('auth.login.submitting') }}</span>
         </button>
       </form>
 
       <!-- Register Link -->
       <div class="text-center">
         <p class="text-slate-400">
-          Don't have an account?
+          {{ t('auth.login.noAccount') }}
           <NuxtLink to="/register" class="text-emerald-500 hover:text-emerald-400 font-medium">
-            Sign up
+            {{ t('auth.login.signUp') }}
           </NuxtLink>
         </p>
       </div>
@@ -75,11 +76,13 @@ const username = ref('')
 const password = ref('')
 const loading = ref(false)
 
+const { t } = useI18n()
+
 const handleLogin = async () => {
   try {
     loading.value = true
     await authStore.loginUser(username.value, password.value)
-    success('Welcome back!')
+    success(t('auth.login.welcomeBack'))
     
     // Wait for next tick and a small delay to ensure token cookie is set
     await nextTick()
@@ -92,7 +95,7 @@ const handleLogin = async () => {
     await router.push('/dashboard')
   } catch (err: any) {
     console.error('Login error:', err)
-    let errorMessage = 'Invalid email/username or password'
+    let errorMessage = t('auth.login.invalidCredentials')
     
     // Try to extract error message from various possible structures
     if (err?.message) {

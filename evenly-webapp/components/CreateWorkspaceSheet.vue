@@ -1,19 +1,19 @@
 <template>
-  <BottomSheet :model-value="modelValue" @update:model-value="(val) => emit('update:modelValue', val)" title="Create Workspace">
+  <BottomSheet :model-value="modelValue" @update:model-value="(val) => emit('update:modelValue', val)" :title="t('workspace.create')">
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">Workspace Name</label>
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.name') }}</label>
         <input
           v-model="form.name"
           type="text"
           required
           class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          placeholder="e.g. Apartment Share"
+          :placeholder="t('workspace.namePlaceholder')"
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">Split Mode</label>
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.splitMode') }}</label>
         <div class="grid grid-cols-2 gap-3">
           <button
             type="button"
@@ -21,7 +21,7 @@
             :class="form.defaultSplitMode === 'EQUAL' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-300'"
             class="px-4 py-3 rounded-xl font-medium transition-colors"
           >
-            Equal
+            {{ t('workspace.splitModeEqual') }}
           </button>
           <button
             type="button"
@@ -29,20 +29,20 @@
             :class="form.defaultSplitMode === 'WEIGHTED' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-300'"
             class="px-4 py-3 rounded-xl font-medium transition-colors"
           >
-            Weighted
+            {{ t('workspace.splitModeWeighted') }}
           </button>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">Monthly Shared Budget (optional)</label>
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.monthlyBudget') }} ({{ t('common.optional') }})</label>
         <input
           v-model.number="form.monthlySharedLimit"
           type="number"
           min="0"
           step="1000"
           class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          placeholder="100000"
+          :placeholder="t('workspace.monthlyBudgetPlaceholder')"
         />
       </div>
     </form>
@@ -53,15 +53,15 @@
           @click="emit('update:modelValue', false)"
           class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition-colors"
         >
-          Cancel
+          {{ t('common.cancel') }}
         </button>
         <button
           @click="handleSubmit"
           :disabled="loading"
           class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span v-if="!loading">Create</span>
-          <span v-else>Creating...</span>
+          <span v-if="!loading">{{ t('common.create') }}</span>
+          <span v-else>{{ t('workspace.creating') }}</span>
         </button>
       </div>
     </template>
@@ -102,15 +102,17 @@ watch(() => props.modelValue, (newVal) => {
   }
 })
 
+const { t } = useI18n()
+
 const handleSubmit = async () => {
   try {
     loading.value = true
     await workspacesStore.createWorkspace(form.value)
-    success('Workspace created!')
+    success(t('workspace.created'))
     emit('created')
     emit('update:modelValue', false)
   } catch (err: any) {
-    error(err.message || 'Failed to create workspace')
+    error(err.message || t('workspace.createFailed'))
   } finally {
     loading.value = false
   }

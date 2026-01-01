@@ -11,6 +11,7 @@
     "prepare": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxtjs/i18n": "^10.2.1",
     "@pinia/nuxt": "^0.5.1",
     "@vite-pwa/nuxt": "^0.5.0",
     "chart.js": "^4.4.1",

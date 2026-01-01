@@ -4,7 +4,7 @@
       @click="showMenu = !showMenu"
       class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
     >
-      <span class="text-sm font-medium max-w-[120px] truncate">{{ activeWorkspace?.name || 'No workspace' }}</span>
+      <span class="text-sm font-medium max-w-[120px] truncate">{{ activeWorkspace?.name || t('workspace.noWorkspace') }}</span>
       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
@@ -19,7 +19,7 @@
       >
         <div class="py-2">
           <div class="px-4 py-2 border-b border-slate-700">
-            <p class="text-xs font-semibold text-slate-400 uppercase">Workspaces</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase">{{ t('workspace.title') }}</p>
           </div>
           
           <div v-if="workspaces.length > 0" class="max-h-48 overflow-y-auto">
@@ -36,13 +36,13 @@
                   <span
                     v-if="workspace.isPersonal"
                     class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full"
-                    title="Personal workspace - cannot add members or configure splits"
+                    :title="t('workspace.personalTooltip')"
                   >
-                    Personal
+                    {{ t('workspace.personal') }}
                   </span>
                 </div>
                 <p class="text-xs text-slate-400">
-                  {{ workspace.isPersonal ? 'Personal workspace' : workspace.defaultSplitMode }}
+                  {{ workspace.isPersonal ? t('workspace.personalDescription') : workspace.defaultSplitMode }}
                 </p>
               </div>
               <svg
@@ -65,7 +65,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
-              <span>Create Workspace</span>
+              <span>{{ t('workspace.create') }}</span>
             </button>
           </div>
         </div>
@@ -81,6 +81,7 @@
 </template>
 
 <script setup lang="ts">
+  const { t } = useI18n()
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspacesStore)
 
