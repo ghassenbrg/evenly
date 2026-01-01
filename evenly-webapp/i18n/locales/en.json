@@ -107,6 +107,15 @@
     "dashboard": "Dashboard placeholder",
     "expenses": "Expenses placeholder",
     "history": "History placeholder"
+  },
+  "dashboard": {
+    "totalBalance": "Total Balance",
+    "budget": "Budget",
+    "setUp": "Set up",
+    "expenseSnapshot": "Expense Snapshot",
+    "expense": "expense",
+    "expenses": "expenses",
+    "others": "Others"
   }
 }
 

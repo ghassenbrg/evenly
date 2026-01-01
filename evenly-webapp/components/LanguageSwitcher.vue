@@ -48,11 +48,18 @@
 </template>
 
 <script setup lang="ts">
+const route = useRoute()
 const { locale, locales, setLocale, t } = useI18n()
 const showMenu = ref(false)
 
 const currentLocale = computed(() => locale.value)
 const availableLocales = computed(() => locales.value)
+
+// Only show on public pages (no layout = public pages)
+const isPublicPage = computed(() => {
+  const publicPaths = ['/', '/login', '/register']
+  return publicPaths.includes(route.path)
+})
 
 // Close menu when clicking outside
 onMounted(() => {

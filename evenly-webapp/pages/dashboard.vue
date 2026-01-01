@@ -1,8 +1,17 @@
 <template>
-  <div class="p-4">
-    <div class="flex flex-col items-center justify-center py-12 text-center">
-      <p class="text-slate-400">{{ t('placeholders.dashboard') }}</p>
-    </div>
+  <div class="p-4 space-y-4">
+    <DashboardBalanceCard
+      :balance="-38500"
+      :spent="88100"
+      :limit="200000"
+    />
+    <button
+      type="button"
+      class="btn btn-green w-full py-3"
+    >
+      {{ t('dashboard.setUp') }}
+    </button>
+    <DashboardExpenseSnapshotCard />
   </div>
 </template>
 

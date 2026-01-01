@@ -107,6 +107,15 @@
     "dashboard": "ダッシュボードプレースホルダー",
     "expenses": "支出プレースホルダー",
     "history": "履歴プレースホルダー"
+  },
+  "dashboard": {
+    "totalBalance": "残高",
+    "budget": "予算",
+    "setUp": "設定",
+    "expenseSnapshot": "支出スナップショット",
+    "expense": "支出",
+    "expenses": "支出",
+    "others": "その他"
   }
 }
 

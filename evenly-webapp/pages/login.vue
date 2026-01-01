@@ -42,7 +42,7 @@
         <button
           type="submit"
           :disabled="loading"
-          class="w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="btn btn-green w-full py-3"
         >
           <span v-if="!loading">{{ t('auth.login.submit') }}</span>
           <span v-else>{{ t('auth.login.submitting') }}</span>
@@ -92,7 +92,8 @@ const handleLogin = async () => {
     const workspacesStore = useWorkspacesStore()
     await workspacesStore.fetchWorkspaces()
     
-    await router.push('/dashboard')
+    // Use replace to avoid stacking pages in history
+    await navigateTo('/dashboard', { replace: true })
   } catch (err: any) {
     console.error('Login error:', err)
     let errorMessage = t('auth.login.invalidCredentials')

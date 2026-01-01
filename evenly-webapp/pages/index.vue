@@ -24,7 +24,7 @@
       <div class="space-y-3 pt-4">
         <NuxtLink
           to="/register"
-          class="block w-full bg-emerald-500 text-white font-semibold py-4 rounded-xl hover:bg-emerald-600 transition-colors text-center"
+          class="btn btn-green w-full py-4 text-center"
         >
           {{ t('landing.getStarted') }}
         </NuxtLink>

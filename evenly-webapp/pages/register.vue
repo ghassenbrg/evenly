@@ -84,7 +84,7 @@
         <button
           type="submit"
           :disabled="loading"
-          class="w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="btn btn-green w-full py-3"
         >
           <span v-if="!loading">{{ t('auth.register.submit') }}</span>
           <span v-else>{{ t('auth.register.submitting') }}</span>

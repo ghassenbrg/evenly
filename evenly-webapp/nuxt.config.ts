@@ -13,7 +13,8 @@ export default defineNuxtConfig({
         { name: 'description', content: 'Evenly - Smart expense splitting made simple' }
       ],
       link: [
-        { rel: 'manifest', href: '/manifest.webmanifest' }
+        { rel: 'manifest', href: '/manifest.webmanifest' },
+        { rel: 'icon', type: 'image/png', href: '/icons/favicon.png' }
       ]
     },
     pageTransition: { name: 'page', mode: 'out-in' }
@@ -34,8 +35,8 @@ export default defineNuxtConfig({
       background_color: '#1e293b',
       theme_color: '#1e293b',
       icons: [
-        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }
+        { src: '/icons/favicon.png', sizes: '192x192', type: 'image/png' },
+        { src: '/icons/favicon.png', sizes: '512x512', type: 'image/png' }
       ]
     },
     workbox: {

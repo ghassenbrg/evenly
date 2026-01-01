@@ -58,7 +58,7 @@
         <button
           @click="handleSubmit"
           :disabled="loading"
-          class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="btn btn-green flex-1 py-3"
         >
           <span v-if="!loading">{{ t('common.create') }}</span>
           <span v-else>{{ t('workspace.creating') }}</span>
