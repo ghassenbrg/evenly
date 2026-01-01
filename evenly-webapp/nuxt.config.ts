@@ -70,7 +70,6 @@ export default defineNuxtConfig({
         file: 'ja.json'
       }
     ],
-    lazy: true,
     langDir: 'locales',
     defaultLocale: 'en',
     strategy: 'no_prefix',
