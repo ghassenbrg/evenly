@@ -60,15 +60,15 @@
     <!-- Indicators Row -->
     <div class="grid grid-cols-3 gap-3 mb-3">
       <div>
-        <p class="text-[10px] text-white/40 mb-0.5">Expenses</p>
+        <p class="text-[10px] text-white/40 mb-0.5">{{ t('expenses.expensesLabel') }}</p>
         <p class="text-sm font-semibold text-white/80">{{ expenseCount }}</p>
       </div>
       <div>
-        <p class="text-[10px] text-white/40 mb-0.5">Avg/Day</p>
+        <p class="text-[10px] text-white/40 mb-0.5">{{ t('expenses.avgPerDay') }}</p>
         <p class="text-sm font-semibold text-white/80">{{ formattedAverage }}</p>
       </div>
       <div>
-        <p class="text-[10px] text-white/40 mb-0.5">Largest</p>
+        <p class="text-[10px] text-white/40 mb-0.5">{{ t('expenses.largest') }}</p>
         <p class="text-sm font-semibold text-white/80">{{ formattedLargest }}</p>
       </div>
     </div>
@@ -144,12 +144,18 @@ const componentId = Math.random().toString(36).substring(7)
 // Period options
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
-const periodOptions = [
-  { value: 'month' as PeriodType, label: 'This Month' },
-  { value: 'week' as PeriodType, label: 'This Week' },
-  { value: 'all' as PeriodType, label: 'All Time' },
-  { value: 'custom' as PeriodType, label: 'Custom' }
-]
+const emit = defineEmits<{
+  'period-change': [period: PeriodType, dateRange?: { start: string | null; end: string | null }]
+}>()
+
+const { t } = useI18n()
+
+const periodOptions = computed(() => [
+  { value: 'month' as PeriodType, label: t('expenses.thisMonth') },
+  { value: 'week' as PeriodType, label: t('expenses.thisWeek') },
+  { value: 'all' as PeriodType, label: t('expenses.allTime') },
+  { value: 'custom' as PeriodType, label: t('expenses.custom') }
+])
 
 const selectedPeriod = ref<PeriodType>('month')
 const showDropdown = ref(false)
@@ -157,21 +163,21 @@ const customStartDate = ref<string>('')
 const customEndDate = ref<string>('')
 
 const selectedPeriodLabel = computed(() => {
-  return periodOptions.find(opt => opt.value === selectedPeriod.value)?.label || 'This Month'
+  return periodOptions.value.find(opt => opt.value === selectedPeriod.value)?.label || t('expenses.thisMonth')
 })
 
 const periodLabel = computed(() => {
   switch (selectedPeriod.value) {
     case 'month':
-      return 'Total Expenses This Month'
+      return t('expenses.totalExpensesThisMonth')
     case 'week':
-      return 'Total Expenses This Week'
+      return t('expenses.totalExpensesThisWeek')
     case 'all':
-      return 'Total Expenses'
+      return t('expenses.totalExpenses')
     case 'custom':
-      return 'Total Expenses (Custom)'
+      return t('expenses.totalExpensesCustom')
     default:
-      return 'Total Expenses'
+      return t('expenses.totalExpenses')
   }
 })
 
@@ -189,11 +195,20 @@ const selectPeriod = (period: PeriodType) => {
       customEndDate.value = end.toISOString().split('T')[0]
     }
   }
+  
+  // Emit period change with date range
+  emit('period-change', period, {
+    start: customStartDate.value,
+    end: customEndDate.value
+  })
 }
 
 const handleCustomRangeApply = (range: { start: string | null; end: string | null }) => {
   customStartDate.value = range.start || ''
   customEndDate.value = range.end || ''
+  
+  // Emit period change with custom date range
+  emit('period-change', 'custom', range)
 }
 
 // Get date range based on selected period

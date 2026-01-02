@@ -16,7 +16,10 @@
     "next": "次へ",
     "done": "完了",
     "select": "選択",
-    "optional": "任意"
+    "optional": "任意",
+    "today": "今日",
+    "yesterday": "昨日",
+    "noMoreItems": "これ以上の支出はありません"
   },
   "navigation": {
     "dashboard": "ダッシュボード",
@@ -121,6 +124,35 @@
     "recentExpenses": "最近の支出",
     "viewAll": "すべて表示",
     "paidBy": "支払者"
+  },
+  "expenses": {
+    "loadingMore": "さらに読み込み中...",
+    "monthlyPayment": "月額支払い",
+    "totalExpensesThisMonth": "今月の総支出",
+    "totalExpensesThisWeek": "今週の総支出",
+    "totalExpenses": "総支出",
+    "totalExpensesCustom": "総支出（カスタム）",
+    "thisMonth": "今月",
+    "thisWeek": "今週",
+    "allTime": "すべて",
+    "custom": "カスタム",
+    "expensesLabel": "支出",
+    "avgPerDay": "1日平均",
+    "largest": "最大",
+    "start": "開始",
+    "end": "終了",
+    "apply": "適用",
+    "clear": "クリア",
+    "category": {
+      "groceries": "食料品",
+      "dining": "外食",
+      "transportation": "交通費",
+      "rent": "家賃",
+      "bills": "公共料金",
+      "internet": "インターネット",
+      "mobile": "携帯電話",
+      "other": "その他"
+    }
   }
 }
 

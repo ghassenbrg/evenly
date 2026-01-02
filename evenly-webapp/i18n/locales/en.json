@@ -16,7 +16,10 @@
     "next": "Next",
     "done": "Done",
     "select": "Select",
-    "optional": "optional"
+    "optional": "optional",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "noMoreItems": "No more expenses"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -121,6 +124,35 @@
     "recentExpenses": "Recent Expenses",
     "viewAll": "View all",
     "paidBy": "Paid by"
+  },
+  "expenses": {
+    "loadingMore": "Loading more...",
+    "monthlyPayment": "Monthly payment",
+    "totalExpensesThisMonth": "Total Expenses This Month",
+    "totalExpensesThisWeek": "Total Expenses This Week",
+    "totalExpenses": "Total Expenses",
+    "totalExpensesCustom": "Total Expenses (Custom)",
+    "thisMonth": "This Month",
+    "thisWeek": "This Week",
+    "allTime": "All Time",
+    "custom": "Custom",
+    "expensesLabel": "Expenses",
+    "avgPerDay": "Avg/Day",
+    "largest": "Largest",
+    "start": "Start",
+    "end": "End",
+    "apply": "Apply",
+    "clear": "Clear",
+    "category": {
+      "groceries": "Groceries",
+      "dining": "Dining Out",
+      "transportation": "Transportation",
+      "rent": "Rent",
+      "bills": "Utility Bills",
+      "internet": "Internet",
+      "mobile": "Mobile Phone",
+      "other": "Other Expense"
+    }
   }
 }
 

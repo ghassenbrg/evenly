@@ -84,12 +84,12 @@
       <div v-if="startDate && endDate" class="mt-3 pt-3 border-t border-white/10">
         <div class="flex items-center justify-between text-xs">
           <div>
-            <p class="text-white/50 mb-0.5">Start</p>
+            <p class="text-white/50 mb-0.5">{{ t('expenses.start') }}</p>
             <p class="text-white font-medium">{{ formatDate(startDate) }}</p>
           </div>
           <div class="text-white/30">→</div>
           <div>
-            <p class="text-white/50 mb-0.5">End</p>
+            <p class="text-white/50 mb-0.5">{{ t('expenses.end') }}</p>
             <p class="text-white font-medium">{{ formatDate(endDate) }}</p>
           </div>
         </div>
@@ -101,14 +101,14 @@
           @click="clearSelection"
           class="flex-1 px-3 py-2 bg-slate-700/50 hover:bg-slate-700 text-xs text-white/70 rounded-lg transition-colors"
         >
-          Clear
+          {{ t('expenses.clear') }}
         </button>
         <button
           @click="applySelection"
           :disabled="!startDate || !endDate"
           class="flex-1 px-3 py-2 bg-emerald-500/80 hover:bg-emerald-500 disabled:bg-slate-700/50 disabled:text-white/40 text-xs font-medium text-white rounded-lg transition-colors"
         >
-          Apply
+          {{ t('expenses.apply') }}
         </button>
       </div>
       </div>
@@ -136,6 +136,8 @@ const emit = defineEmits<{
   'update:modelValue': [{ start: string | null; end: string | null }]
   'apply': [{ start: string | null; end: string | null }]
 }>()
+
+const { t } = useI18n()
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
