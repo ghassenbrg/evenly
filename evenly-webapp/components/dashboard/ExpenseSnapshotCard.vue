@@ -169,7 +169,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  filterLabel: 'Unsettled',
+  filterLabel: 'All',
   othersCount: 2,
   othersPercent: 6,
   othersColor: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',

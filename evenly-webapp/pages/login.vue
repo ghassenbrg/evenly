@@ -2,11 +2,13 @@
   <div class="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-slate-900">
     <LanguageSwitcher />
     <div class="w-full max-w-md space-y-8">
-      <!-- Logo -->
+      <!-- Boarding Image -->
       <div class="flex justify-center">
-        <div class="w-20 h-20 rounded-2xl bg-emerald-500 flex items-center justify-center">
-          <span class="text-4xl text-white">¥</span>
-        </div>
+        <img
+          src="/images/boarding.png"
+          alt="Evenly"
+          class="w-full max-w-sm h-auto object-contain"
+        />
       </div>
 
       <!-- Title -->

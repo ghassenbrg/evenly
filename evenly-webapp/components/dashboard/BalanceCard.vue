@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between">
       <div class="flex flex-col">
         <span class="text-sm text-gray-400 mb-1">{{ t('dashboard.totalBalance') }}</span>
-        <span :class="balance < 0 ? 'text-rose-400' : 'text-white'" class="text-3xl font-semibold">
+        <span :class="getBalanceColorClass" class="text-3xl font-semibold">
           {{ formatCurrency(balance) }}
         </span>
       </div>
@@ -44,9 +44,12 @@ interface Props {
   balance: number
   spent: number
   limit: number
+  isPersonal?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  isPersonal: false
+})
 
 const { formatCurrency } = useFormatting()
 const { t } = useI18n()
@@ -54,6 +57,16 @@ const { t } = useI18n()
 const progressPercentage = computed(() => {
   if (props.limit <= 0) return 0
   return Math.min((props.spent / props.limit) * 100, 100)
+})
+
+const getBalanceColorClass = computed(() => {
+  if (props.balance < 0) {
+    return 'text-rose-400'
+  }
+  if (!props.isPersonal && props.balance > 0) {
+    return 'text-emerald-400'
+  }
+  return 'text-white'
 })
 </script>
 
