@@ -115,7 +115,9 @@
     "expenseSnapshot": "Expense Snapshot",
     "expense": "expense",
     "expenses": "expenses",
-    "others": "Others"
+    "others": "Others",
+    "categoriesBreakdown": "Categories Breakdown",
+    "allCategories": "All categories"
   }
 }
 

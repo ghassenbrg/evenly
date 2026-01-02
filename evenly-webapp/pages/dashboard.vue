@@ -12,6 +12,7 @@
       {{ t('dashboard.setUp') }}
     </button>
     <DashboardExpenseSnapshotCard />
+    <DashboardCategoriesBreakdownCard />
   </div>
 </template>
 

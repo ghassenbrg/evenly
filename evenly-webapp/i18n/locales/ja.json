@@ -115,7 +115,9 @@
     "expenseSnapshot": "支出スナップショット",
     "expense": "支出",
     "expenses": "支出",
-    "others": "その他"
+    "others": "その他",
+    "categoriesBreakdown": "カテゴリ内訳",
+    "allCategories": "すべてのカテゴリ"
   }
 }
 
