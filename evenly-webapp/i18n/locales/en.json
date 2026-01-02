@@ -117,7 +117,10 @@
     "expenses": "expenses",
     "others": "Others",
     "categoriesBreakdown": "Categories Breakdown",
-    "allCategories": "All categories"
+    "allCategories": "All categories",
+    "recentExpenses": "Recent Expenses",
+    "viewAll": "View all",
+    "paidBy": "Paid by"
   }
 }
 

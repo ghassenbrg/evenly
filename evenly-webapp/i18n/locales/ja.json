@@ -117,7 +117,10 @@
     "expenses": "支出",
     "others": "その他",
     "categoriesBreakdown": "カテゴリ内訳",
-    "allCategories": "すべてのカテゴリ"
+    "allCategories": "すべてのカテゴリ",
+    "recentExpenses": "最近の支出",
+    "viewAll": "すべて表示",
+    "paidBy": "支払者"
   }
 }
 

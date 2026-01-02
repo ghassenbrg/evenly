@@ -13,6 +13,7 @@
     </button>
     <DashboardExpenseSnapshotCard />
     <DashboardCategoriesBreakdownCard />
+    <DashboardRecentExpensesCard />
   </div>
 </template>
 

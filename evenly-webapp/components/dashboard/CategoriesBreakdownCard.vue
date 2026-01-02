@@ -120,7 +120,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  filterLabel: 'ALL',
+  filterLabel: 'All',
   totalCategories: 12,
   items: () => [
     {

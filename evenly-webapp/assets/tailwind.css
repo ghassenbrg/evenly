@@ -11,21 +11,12 @@
 /* Page transitions */
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .page-enter-from,
 .page-leave-to {
   opacity: 0;
-}
-
-/* Ensure leaving page doesn't take up space */
-.page-leave-active {
-  position: absolute;
-  width: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
 }
 
 /* Safe area support */

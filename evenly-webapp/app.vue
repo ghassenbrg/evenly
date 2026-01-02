@@ -2,9 +2,7 @@
   <div>
     <ToastContainer />
     <NuxtLayout>
-      <div class="relative">
-        <NuxtPage />
-      </div>
+      <NuxtPage />
     </NuxtLayout>
   </div>
 </template>
