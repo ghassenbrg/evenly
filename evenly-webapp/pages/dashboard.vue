@@ -24,6 +24,26 @@
         :spent="summary.sharedBudgetUsage?.spent || 0"
         :limit="summary.sharedBudgetUsage?.limit || 0"
         :is-personal="activeWorkspace?.isPersonal || false"
+        :workspace-id="activeWorkspaceId || undefined"
+        @settle-up="showSettleUp = true"
+      />
+      
+      <DashboardSettleUpSheet
+        v-if="activeWorkspaceId"
+        v-model="showSettleUp"
+        :workspace-id="activeWorkspaceId"
+        @settled="loadDashboard()"
+        @open-payment="handleOpenPayment"
+      />
+      
+      <DashboardPaymentSheet
+        v-if="activeWorkspaceId && selectedBalance"
+        v-model="showPaymentSheet"
+        :workspace-id="activeWorkspaceId"
+        :balance="selectedBalance"
+        :current-user-balance="selectedCurrentUserBalance"
+        :current-user-total-balance="summary?.total"
+        @payment-completed="handlePaymentCompleted"
       />
       
       <DashboardExpenseSnapshotCard
@@ -55,7 +75,7 @@ import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useCategories } from '~/composables/useCategories'
 import { useFormatting } from '~/composables/useFormatting'
-import type { Expense } from '~/types/api'
+import type { Expense, Balance } from '~/types/api'
 
 const { t } = useI18n()
 const workspacesStore = useWorkspacesStore()
@@ -63,6 +83,24 @@ const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspacesStore)
 const { summary, categoryAnalytics, recentExpenses, loading, error, fetchSummary, fetchCategoryAnalytics, fetchRecentExpenses, clear } = useAnalytics()
 const { categories, fetchCategories } = useCategories()
 const { formatCurrency } = useFormatting()
+
+const showSettleUp = ref(false)
+const showPaymentSheet = ref(false)
+const selectedBalance = ref<Balance | null>(null)
+
+const selectedCurrentUserBalance = ref<Balance | null>(null)
+
+const handleOpenPayment = (balance: Balance, currentUserBalance?: Balance | null) => {
+  selectedBalance.value = balance
+  selectedCurrentUserBalance.value = currentUserBalance || null
+  showPaymentSheet.value = true
+}
+
+const handlePaymentCompleted = () => {
+  // Reload dashboard data after payment
+  loadDashboard()
+  // Optionally reload balances if needed
+}
 
 const getDateRange = (period: 'month' | 'week' | 'all' | 'custom', customRange?: { start: string | null; end: string | null }) => {
   const now = new Date()

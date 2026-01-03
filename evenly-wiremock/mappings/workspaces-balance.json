@@ -1,0 +1,59 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/balance"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": [
+      {
+        "userId": "user-1",
+        "paid": 120000,
+        "expected": 81500,
+        "balance": 38500,
+        "user": {
+          "id": "user-1",
+          "email": "alice@example.com",
+          "displayName": "Alice",
+          "username": "alice",
+          "createdAt": "2024-01-01T00:00:00Z"
+        }
+      },
+      {
+        "userId": "user-2",
+        "paid": 50000,
+        "expected": 81500,
+        "balance": -31500,
+        "user": {
+          "id": "user-2",
+          "email": "bob@example.com",
+          "displayName": "Bob",
+          "username": "bob",
+          "createdAt": "2024-01-01T00:00:00Z"
+        }
+      },
+      {
+        "userId": "user-3",
+        "paid": 75000,
+        "expected": 81500,
+        "balance": -6500,
+        "user": {
+          "id": "user-3",
+          "email": "charlie@example.com",
+          "displayName": "Charlie",
+          "username": "charlie",
+          "createdAt": "2024-01-01T00:00:00Z"
+        }
+      }
+    ]
+  }
+}
+
