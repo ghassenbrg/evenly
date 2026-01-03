@@ -1,7 +1,8 @@
 {
+  "priority": 1,
   "request": {
     "method": "PUT",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/settings",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/categories/([a-z0-9-]+)",
     "headers": {
       "Authorization": {
         "matches": "Bearer .+"
@@ -21,10 +22,14 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "id": "{{request.pathSegments.[1]}}",
+      "id": "{{request.pathSegments.[2]}}",
+      "workspaceId": "{{request.pathSegments.[1]}}",
       "name": "{{jsonPath request.body '$.name'}}",
-      "defaultSplitMode": "{{jsonPath request.body '$.defaultSplitMode'}}",
-      "currency": "JPY",
+      "slug": "{{lowercase (jsonPath request.body '$.name')}}",
+      "icon": "{{jsonPath request.body '$.icon'}}",
+      "color": "{{jsonPath request.body '$.color'}}",
+      "isActive": true,
+      "sortOrder": 1,
       "createdAt": "2024-01-01T00:00:00Z",
       "updatedAt": "{{now}}"
     },

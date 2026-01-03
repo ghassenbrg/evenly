@@ -14,11 +14,11 @@
     <div class="flex justify-between items-start gap-4">
       <!-- Left Column: Category List -->
       <div class="flex-1 space-y-3">
-        <div
-          v-for="item in items"
-          :key="item.key"
-          class="flex items-center gap-3"
-        >
+          <div
+            v-for="item in displayItems"
+            :key="item.key"
+            class="flex items-center gap-3"
+          >
           <!-- Icon Circle -->
           <div
             class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
@@ -138,7 +138,7 @@
               class="w-3 h-3 rounded-sm"
               :style="{ background: othersColor }"
             ></div>
-            <span class="text-xs font-medium text-gray-200">{{ t('dashboard.others') }} {{ othersPercent }}%</span>
+            <span class="text-xs font-medium text-gray-200">{{ t('dashboard.others') }} {{ displayOthersPercent }}%</span>
           </div>
         </div>
       </div>
@@ -147,6 +147,9 @@
 </template>
 
 <script setup lang="ts">
+import { useWorkspacesStore } from '~/stores/workspaces'
+import { useAnalytics } from '~/composables/useAnalytics'
+
 interface ExpenseItem {
   key: string
   label: string
@@ -168,49 +171,20 @@ type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
 const props = withDefaults(defineProps<Props>(), {
   filterLabel: 'All',
-  othersCount: 2,
-  othersPercent: 6,
+  othersCount: 0,
+  othersPercent: 0,
   othersColor: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
-  items: () => [
-    {
-      key: 'groceries',
-      label: 'Groceries',
-      percent: 53,
-      count: 4,
-      color: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-      icon: 'groceries' as const
-    },
-    {
-      key: 'rent',
-      label: 'Rent',
-      percent: 18,
-      count: 2,
-      color: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-      icon: 'rent' as const
-    },
-    {
-      key: 'bills',
-      label: 'Bills',
-      percent: 17,
-      count: 3,
-      color: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-      icon: 'bills' as const
-    },
-    {
-      key: 'internet',
-      label: 'Internet',
-      percent: 6,
-      count: 1,
-      color: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-      icon: 'internet' as const
-    }
-  ]
+  items: () => []
 })
 
 const { t } = useI18n()
 const emit = defineEmits<{
   'period-change': [period: PeriodType, range?: { start: string | null; end: string | null }]
 }>()
+
+const workspacesStore = useWorkspacesStore()
+const { activeWorkspaceId } = storeToRefs(workspacesStore)
+const { categoryAnalytics, fetchCategoryAnalytics } = useAnalytics()
 
 const chartSize = 180
 const radius = 80
@@ -221,13 +195,113 @@ const centerY = 0
 const selectedPeriod = ref<PeriodType>('month')
 const customRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
 
-const handlePeriodChange = (period: PeriodType, range?: { start: string | null; end: string | null }) => {
+const getDateRange = (period: PeriodType, customRange?: { start: string | null; end: string | null }) => {
+  const now = new Date()
+  let start: Date
+  let end: Date = new Date(now)
+
+  switch (period) {
+    case 'month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1)
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      break
+    case 'week':
+      const dayOfWeek = now.getDay()
+      const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+      start = new Date(now.getFullYear(), now.getMonth(), diff)
+      start.setHours(0, 0, 0, 0)
+      end = new Date(now)
+      end.setHours(23, 59, 59, 999)
+      break
+    case 'all':
+      start = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      break
+    case 'custom':
+      if (customRange?.start && customRange?.end) {
+        start = new Date(customRange.start)
+        start.setHours(0, 0, 0, 0)
+        end = new Date(customRange.end)
+        end.setHours(23, 59, 59, 999)
+      } else {
+        start = new Date(now.getFullYear(), now.getMonth(), 1)
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      }
+      break
+    default:
+      start = new Date(now.getFullYear(), now.getMonth(), 1)
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+  }
+
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0]
+  }
+}
+
+const handlePeriodChange = async (period: PeriodType, range?: { start: string | null; end: string | null }) => {
   selectedPeriod.value = period
   if (range) {
     customRange.value = range
   }
+  
+  // Fetch data for this card only
+  if (activeWorkspaceId.value) {
+    const { start, end } = getDateRange(period, range)
+    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+  }
+  
   emit('period-change', period, range)
 }
+
+// Compute items from fetched categoryAnalytics
+const computedItems = computed(() => {
+  if (!categoryAnalytics.value.length) return []
+  
+  const total = categoryAnalytics.value.reduce((sum, item) => sum + item.total, 0)
+  return categoryAnalytics.value
+    .slice(0, 4)
+    .map(item => ({
+      key: item.categoryId,
+      label: item.category?.name || 'Unknown',
+      percent: total > 0 ? Math.round((item.total / total) * 100) : 0,
+      count: item.count,
+      color: item.category?.color ? `linear-gradient(135deg, ${item.category.color} 0%, ${item.category.color} 100%)` : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+      icon: (item.category?.icon || 'others') as 'groceries' | 'rent' | 'bills' | 'internet' | 'others'
+    }))
+})
+
+const computedOthersCount = computed(() => {
+  if (categoryAnalytics.value.length <= 4) return 0
+  return categoryAnalytics.value.slice(4).reduce((sum, item) => sum + item.count, 0)
+})
+
+const computedOthersPercent = computed(() => {
+  if (!categoryAnalytics.value.length) return 0
+  const total = categoryAnalytics.value.reduce((sum, item) => sum + item.total, 0)
+  const topTotal = categoryAnalytics.value.slice(0, 4).reduce((sum, item) => sum + item.total, 0)
+  return total > 0 ? Math.round(((total - topTotal) / total) * 100) : 0
+})
+
+// Use computed values if available, otherwise fall back to props
+const displayItems = computed(() => computedItems.value.length > 0 ? computedItems.value : props.items)
+const displayOthersCount = computed(() => computedItems.value.length > 0 ? computedOthersCount.value : props.othersCount)
+const displayOthersPercent = computed(() => computedItems.value.length > 0 ? computedOthersPercent.value : props.othersPercent)
+
+// Load initial data
+onMounted(async () => {
+  if (activeWorkspaceId.value) {
+    const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
+    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+  }
+})
+
+watch(activeWorkspaceId, async () => {
+  if (activeWorkspaceId.value) {
+    const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
+    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+  }
+})
 
 const gradients = computed(() => {
   const itemGradients = props.items.map((item, index) => {
@@ -264,7 +338,7 @@ const gradients = computed(() => {
 const chartSegments = computed(() => {
   let currentAngle = -90 // Start from top
   // Use actual percentages without normalization to match displayed values
-  const items = [...props.items]
+  const items = [...displayItems.value]
   
   // Add Others as a segment
   const allSegments = items.map((item, index) => {
@@ -304,8 +378,8 @@ const chartSegments = computed(() => {
   })
   
   // Add Others segment
-  if (props.othersPercent > 0) {
-    const sliceAngle = (props.othersPercent / 100) * 360
+  if (displayOthersPercent.value > 0) {
+    const sliceAngle = (displayOthersPercent.value / 100) * 360
     const startAngle = currentAngle
     const endAngle = currentAngle + sliceAngle - gapAngle
 
@@ -333,7 +407,7 @@ const chartSegments = computed(() => {
     allSegments.push({
       path: path.trim(),
       fill,
-      percent: props.othersPercent
+      percent: displayOthersPercent.value
     })
   }
   

@@ -1,0 +1,81 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/analytics/categories"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": [
+      {
+        "categoryId": "cat-groceries",
+        "category": {
+          "id": "cat-groceries",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Groceries",
+          "slug": "groceries",
+          "icon": "groceries",
+          "color": "#10b981",
+          "isActive": true,
+          "sortOrder": 1
+        },
+        "total": 100000,
+        "count": 4
+      },
+      {
+        "categoryId": "cat-rent",
+        "category": {
+          "id": "cat-rent",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Rent",
+          "slug": "rent",
+          "icon": "rent",
+          "color": "#f43f5e",
+          "isActive": true,
+          "sortOrder": 4
+        },
+        "total": 260000,
+        "count": 3
+      },
+      {
+        "categoryId": "cat-bills",
+        "category": {
+          "id": "cat-bills",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Bills",
+          "slug": "bills",
+          "icon": "bills",
+          "color": "#f59e0b",
+          "isActive": true,
+          "sortOrder": 5
+        },
+        "total": 32000,
+        "count": 1
+      },
+      {
+        "categoryId": "cat-mobile",
+        "category": {
+          "id": "cat-mobile",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Mobile",
+          "slug": "mobile",
+          "icon": "mobile",
+          "color": "#6366f1",
+          "isActive": true,
+          "sortOrder": 6
+        },
+        "total": 6280,
+        "count": 1
+      }
+    ],
+    "transformers": ["response-template"]
+  }
+}
+

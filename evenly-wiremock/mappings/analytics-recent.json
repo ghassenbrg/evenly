@@ -1,0 +1,96 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/analytics/recent"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": [
+      {
+        "id": "exp-1",
+        "workspaceId": "{{request.pathSegments.[1]}}",
+        "amount": 4700,
+        "paidByUserId": "user-alice",
+        "categoryId": "cat-groceries",
+        "date": "{{now offset='-2 days' format='yyyy-MM-dd'}}",
+        "note": "Weekly shopping at supermarket",
+        "status": "ACTIVE",
+        "settlementId": null,
+        "createdByUserId": "user-alice",
+        "createdAt": "{{now offset='-2 days'}}",
+        "updatedAt": "{{now offset='-2 days'}}",
+        "paidBy": {
+          "id": "user-alice",
+          "email": "alice@example.com",
+          "displayName": "Alice"
+        },
+        "category": {
+          "id": "cat-groceries",
+          "name": "Groceries",
+          "slug": "groceries",
+          "icon": "groceries"
+        }
+      },
+      {
+        "id": "exp-2",
+        "workspaceId": "{{request.pathSegments.[1]}}",
+        "amount": 7800,
+        "paidByUserId": "user-bob",
+        "categoryId": "cat-dining",
+        "date": "{{now offset='-4 days' format='yyyy-MM-dd'}}",
+        "note": "Dinner at Italian restaurant",
+        "status": "ACTIVE",
+        "settlementId": null,
+        "createdByUserId": "user-bob",
+        "createdAt": "{{now offset='-4 days'}}",
+        "updatedAt": "{{now offset='-4 days'}}",
+        "paidBy": {
+          "id": "user-bob",
+          "email": "bob@example.com",
+          "displayName": "Bob"
+        },
+        "category": {
+          "id": "cat-dining",
+          "name": "Dining Out",
+          "slug": "dining",
+          "icon": "dining"
+        }
+      },
+      {
+        "id": "exp-3",
+        "workspaceId": "{{request.pathSegments.[1]}}",
+        "amount": 15000,
+        "paidByUserId": "user-alice",
+        "categoryId": "cat-transportation",
+        "date": "{{now offset='-10 days' format='yyyy-MM-dd'}}",
+        "note": "Train tickets for weekend trip",
+        "status": "ACTIVE",
+        "settlementId": null,
+        "createdByUserId": "user-alice",
+        "createdAt": "{{now offset='-10 days'}}",
+        "updatedAt": "{{now offset='-10 days'}}",
+        "paidBy": {
+          "id": "user-alice",
+          "email": "alice@example.com",
+          "displayName": "Alice"
+        },
+        "category": {
+          "id": "cat-transportation",
+          "name": "Transportation",
+          "slug": "transportation",
+          "icon": "transportation"
+        }
+      }
+    ],
+    "transformers": ["response-template"]
+  }
+}
+

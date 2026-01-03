@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div class="relative" ref="dropdownRef">
     <button
       type="button"
       @click="toggleDropdown"
@@ -73,6 +73,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const open = ref(false)
+const dropdownRef = ref<HTMLElement | null>(null)
 const internalRange = reactive<{ start: string | null; end: string | null }>({
   start: props.range.start,
   end: props.range.end
@@ -127,9 +128,30 @@ if (process.client) {
   onMounted(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement
-      if (!target.closest('.relative')) {
-        closeDropdown()
+      
+      // Check if click is within the dropdown container
+      if (dropdownRef.value && dropdownRef.value.contains(target)) {
+        return
       }
+      
+      // Check if click is within the DateRangePicker calendar (teleported to body)
+      // The calendar has z-index 9999 and is positioned fixed
+      let element: HTMLElement | null = target
+      while (element && element !== document.body) {
+        const styles = window.getComputedStyle(element)
+        const zIndex = styles.zIndex
+        
+        // Check if this element is the calendar (has z-index 9999, is fixed, and has calendar-like classes)
+        if (zIndex === '9999' && 
+            styles.position === 'fixed' && 
+            (element.classList.contains('bg-slate-800') || element.querySelector('.grid.grid-cols-7'))) {
+          return
+        }
+        element = element.parentElement
+      }
+      
+      // If none of the above, close the dropdown
+      closeDropdown()
     }
     document.addEventListener('click', handleClickOutside)
     onUnmounted(() => {

@@ -1,7 +1,8 @@
 {
+  "priority": 1,
   "request": {
     "method": "PUT",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/settings",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/expenses/([a-z0-9-]+)",
     "headers": {
       "Authorization": {
         "matches": "Bearer .+"
@@ -21,11 +22,17 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "id": "{{request.pathSegments.[1]}}",
-      "name": "{{jsonPath request.body '$.name'}}",
-      "defaultSplitMode": "{{jsonPath request.body '$.defaultSplitMode'}}",
-      "currency": "JPY",
-      "createdAt": "2024-01-01T00:00:00Z",
+      "id": "{{request.pathSegments.[2]}}",
+      "workspaceId": "{{request.pathSegments.[1]}}",
+      "amount": 0,
+      "paidByUserId": "user-bob",
+      "categoryId": "cat-groceries",
+      "date": "{{now format='yyyy-MM-dd'}}",
+      "note": null,
+      "status": "ACTIVE",
+      "settlementId": null,
+      "createdByUserId": "user-bob",
+      "createdAt": "{{now offset='-7 days'}}",
       "updatedAt": "{{now}}"
     },
     "transformers": ["response-template"]

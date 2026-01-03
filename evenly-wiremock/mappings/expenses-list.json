@@ -1,0 +1,228 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/expenses"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": [
+      {
+        "id": "exp-1",
+        "workspaceId": "{{request.pathSegments.[1]}}",
+        "amount": 45000,
+        "paidByUserId": "user-bob",
+        "categoryId": "cat-groceries",
+        "date": "{{now offset='-2 days' format='yyyy-MM-dd'}}",
+        "note": "Weekly shopping",
+        "status": "ACTIVE",
+        "settlementId": null,
+        "createdByUserId": "user-bob",
+        "createdAt": "{{now offset='-2 days'}}",
+        "updatedAt": "{{now offset='-2 days'}}",
+        "paidBy": {
+          "id": "user-bob",
+          "email": "bob@example.com",
+          "displayName": "Bob",
+          "username": "bob",
+          "preferredCurrency": "JPY"
+        },
+        "category": {
+          "id": "cat-groceries",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Groceries",
+          "slug": "groceries",
+          "icon": "groceries",
+          "color": "#10b981",
+          "isActive": true,
+          "sortOrder": 1
+        },
+        "participants": [
+          {
+            "userId": "user-bob",
+            "user": {
+              "id": "user-bob",
+              "email": "bob@example.com",
+              "displayName": "Bob"
+            }
+          },
+          {
+            "userId": "user-alice",
+            "user": {
+              "id": "user-alice",
+              "email": "alice@example.com",
+              "displayName": "Alice"
+            }
+          }
+        ]
+      },
+      {
+        "id": "exp-2",
+        "workspaceId": "{{request.pathSegments.[1]}}",
+        "amount": 12000,
+        "paidByUserId": "user-alice",
+        "categoryId": "cat-dining",
+        "date": "{{now offset='-2 days' format='yyyy-MM-dd'}}",
+        "note": "Dinner at restaurant",
+        "status": "ACTIVE",
+        "settlementId": null,
+        "createdByUserId": "user-alice",
+        "createdAt": "{{now offset='-2 days'}}",
+        "updatedAt": "{{now offset='-2 days'}}",
+        "paidBy": {
+          "id": "user-alice",
+          "email": "alice@example.com",
+          "displayName": "Alice",
+          "username": "alice",
+          "preferredCurrency": "JPY"
+        },
+        "category": {
+          "id": "cat-dining",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Dining Out",
+          "slug": "dining",
+          "icon": "dining",
+          "color": "#f43f5e",
+          "isActive": true,
+          "sortOrder": 2
+        },
+        "participants": [
+          {
+            "userId": "user-bob",
+            "user": {
+              "id": "user-bob",
+              "email": "bob@example.com",
+              "displayName": "Bob"
+            }
+          },
+          {
+            "userId": "user-alice",
+            "user": {
+              "id": "user-alice",
+              "email": "alice@example.com",
+              "displayName": "Alice"
+            }
+          }
+        ]
+      },
+      {
+        "id": "exp-3",
+        "workspaceId": "{{request.pathSegments.[1]}}",
+        "amount": 32000,
+        "paidByUserId": "user-bob",
+        "categoryId": "cat-dining",
+        "date": "{{now offset='-4 days' format='yyyy-MM-dd'}}",
+        "status": "ACTIVE",
+        "settlementId": null,
+        "createdByUserId": "user-bob",
+        "createdAt": "{{now offset='-4 days'}}",
+        "updatedAt": "{{now offset='-4 days'}}",
+        "paidBy": {
+          "id": "user-bob",
+          "email": "bob@example.com",
+          "displayName": "Bob"
+        },
+        "category": {
+          "id": "cat-dining",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Dining Out",
+          "slug": "dining",
+          "icon": "dining",
+          "color": "#f43f5e",
+          "isActive": true,
+          "sortOrder": 2
+        },
+        "participants": [
+          {
+            "userId": "user-bob"
+          },
+          {
+            "userId": "user-alice"
+          }
+        ]
+      },
+      {
+        "id": "exp-4",
+        "workspaceId": "{{request.pathSegments.[1]}}",
+        "amount": 28000,
+        "paidByUserId": "user-alice",
+        "categoryId": "cat-transportation",
+        "date": "{{now offset='-6 days' format='yyyy-MM-dd'}}",
+        "status": "ACTIVE",
+        "settlementId": null,
+        "createdByUserId": "user-alice",
+        "createdAt": "{{now offset='-6 days'}}",
+        "updatedAt": "{{now offset='-6 days'}}",
+        "paidBy": {
+          "id": "user-alice",
+          "email": "alice@example.com",
+          "displayName": "Alice"
+        },
+        "category": {
+          "id": "cat-transportation",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Transportation",
+          "slug": "transportation",
+          "icon": "transportation",
+          "color": "#3b82f6",
+          "isActive": true,
+          "sortOrder": 3
+        },
+        "participants": [
+          {
+            "userId": "user-bob"
+          },
+          {
+            "userId": "user-alice"
+          }
+        ]
+      },
+      {
+        "id": "exp-5",
+        "workspaceId": "{{request.pathSegments.[1]}}",
+        "amount": 55000,
+        "paidByUserId": "user-bob",
+        "categoryId": "cat-rent",
+        "date": "{{now offset='-16 days' format='yyyy-MM-dd'}}",
+        "note": "Monthly rent payment",
+        "status": "ACTIVE",
+        "settlementId": null,
+        "createdByUserId": "user-bob",
+        "createdAt": "{{now offset='-16 days'}}",
+        "updatedAt": "{{now offset='-16 days'}}",
+        "paidBy": {
+          "id": "user-bob",
+          "email": "bob@example.com",
+          "displayName": "Bob"
+        },
+        "category": {
+          "id": "cat-rent",
+          "workspaceId": "{{request.pathSegments.[1]}}",
+          "name": "Rent",
+          "slug": "rent",
+          "icon": "rent",
+          "color": "#f43f5e",
+          "isActive": true,
+          "sortOrder": 4
+        },
+        "participants": [
+          {
+            "userId": "user-bob"
+          },
+          {
+            "userId": "user-alice"
+          }
+        ]
+      }
+    ],
+    "transformers": ["response-template"]
+  }
+}
+

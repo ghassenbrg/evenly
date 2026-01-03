@@ -1,7 +1,8 @@
 {
+  "priority": 1,
   "request": {
     "method": "PUT",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/settings",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/members/weights",
     "headers": {
       "Authorization": {
         "matches": "Bearer .+"
@@ -12,23 +13,13 @@
     }
   },
   "response": {
-    "status": 200,
+    "status": 204,
     "headers": {
-      "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Credentials": "true",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
-    },
-    "jsonBody": {
-      "id": "{{request.pathSegments.[1]}}",
-      "name": "{{jsonPath request.body '$.name'}}",
-      "defaultSplitMode": "{{jsonPath request.body '$.defaultSplitMode'}}",
-      "currency": "JPY",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "{{now}}"
-    },
-    "transformers": ["response-template"]
+    }
   }
 }
 

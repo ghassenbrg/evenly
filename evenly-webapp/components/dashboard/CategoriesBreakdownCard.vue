@@ -12,7 +12,7 @@
 
     <!-- Category List -->
     <div class="space-y-0">
-      <template v-for="(item, index) in items" :key="item.id">
+      <template v-for="(item, index) in displayItems" :key="item.id">
         <button
           type="button"
           @click="emit('openCategory', item.id)"
@@ -78,7 +78,7 @@
         </button>
         <!-- Separator Line (except last) -->
         <div
-          v-if="index < items.length - 1"
+          v-if="index < displayItems.length - 1"
           class="h-px bg-white/10 ml-14 mr-0"
         ></div>
       </template>
@@ -90,7 +90,7 @@
       @click="emit('openAllCategories')"
       class="w-full py-3 px-4 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-gray-200 font-medium flex items-center justify-center gap-2 transition-colors ring-1 ring-white/10"
     >
-      <span>{{ t('dashboard.allCategories') }} ({{ totalCategories }})</span>
+      <span>{{ t('dashboard.allCategories') }} ({{ displayTotalCategories }})</span>
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
@@ -99,6 +99,10 @@
 </template>
 
 <script setup lang="ts">
+import { useWorkspacesStore } from '~/stores/workspaces'
+import { useAnalytics } from '~/composables/useAnalytics'
+import { useCategories } from '~/composables/useCategories'
+
 interface CategoryItem {
   id: string
   name: string
@@ -118,41 +122,8 @@ type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
 const props = withDefaults(defineProps<Props>(), {
   filterLabel: 'All',
-  totalCategories: 12,
-  items: () => [
-    {
-      id: 'groceries',
-      name: 'Groceries',
-      icon: 'groceries' as const,
-      expenseCount: 4,
-      totalAmount: 100000,
-      accent: 'green' as const
-    },
-    {
-      id: 'rent',
-      name: 'Rent',
-      icon: 'rent' as const,
-      expenseCount: 3,
-      totalAmount: 260000,
-      accent: 'rose' as const
-    },
-    {
-      id: 'bills',
-      name: 'Bills',
-      icon: 'bills' as const,
-      expenseCount: 1,
-      totalAmount: 32000,
-      accent: 'sky' as const
-    },
-    {
-      id: 'mobile',
-      name: 'Mobile',
-      icon: 'mobile' as const,
-      expenseCount: 1,
-      totalAmount: 6280,
-      accent: 'indigo' as const
-    }
-  ]
+  totalCategories: 0,
+  items: () => []
 })
 
 const emit = defineEmits<{
@@ -165,16 +136,104 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { formatCurrency } = useFormatting()
 
+const workspacesStore = useWorkspacesStore()
+const { activeWorkspaceId } = storeToRefs(workspacesStore)
+const { categoryAnalytics, fetchCategoryAnalytics } = useAnalytics()
+const { categories, fetchCategories } = useCategories()
+
 const selectedPeriod = ref<PeriodType>('month')
 const customRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
 
-const handlePeriodChange = (period: PeriodType, range?: { start: string | null; end: string | null }) => {
+const getDateRange = (period: PeriodType, customRange?: { start: string | null; end: string | null }) => {
+  const now = new Date()
+  let start: Date
+  let end: Date = new Date(now)
+
+  switch (period) {
+    case 'month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1)
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      break
+    case 'week':
+      const dayOfWeek = now.getDay()
+      const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+      start = new Date(now.getFullYear(), now.getMonth(), diff)
+      start.setHours(0, 0, 0, 0)
+      end = new Date(now)
+      end.setHours(23, 59, 59, 999)
+      break
+    case 'all':
+      start = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      break
+    case 'custom':
+      if (customRange?.start && customRange?.end) {
+        start = new Date(customRange.start)
+        start.setHours(0, 0, 0, 0)
+        end = new Date(customRange.end)
+        end.setHours(23, 59, 59, 999)
+      } else {
+        start = new Date(now.getFullYear(), now.getMonth(), 1)
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      }
+      break
+    default:
+      start = new Date(now.getFullYear(), now.getMonth(), 1)
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+  }
+
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0]
+  }
+}
+
+const getAccentFromColor = (color: string): 'green' | 'rose' | 'sky' | 'indigo' => {
+  if (color.includes('10b981') || color.includes('059669')) return 'green'
+  if (color.includes('f43f5e') || color.includes('e11d48')) return 'rose'
+  if (color.includes('0ea5e9') || color.includes('0284c7')) return 'sky'
+  if (color.includes('6366f1') || color.includes('4f46e5')) return 'indigo'
+  return 'green'
+}
+
+const handlePeriodChange = async (period: PeriodType, range?: { start: string | null; end: string | null }) => {
   selectedPeriod.value = period
   if (range) {
     customRange.value = range
   }
+  
+  // Fetch data for this card only
+  if (activeWorkspaceId.value) {
+    const { start, end } = getDateRange(period, range)
+    await Promise.all([
+      fetchCategoryAnalytics(activeWorkspaceId.value, start, end),
+      fetchCategories(activeWorkspaceId.value)
+    ])
+  }
+  
   emit('period-change', period, range)
 }
+
+// Compute items from fetched categoryAnalytics
+const computedItems = computed(() => {
+  return [...categoryAnalytics.value]
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 4)
+    .map(item => ({
+      id: item.categoryId,
+      name: item.category?.name || 'Unknown',
+      icon: (item.category?.icon || 'other') as 'groceries' | 'rent' | 'bills' | 'mobile',
+      expenseCount: item.count,
+      totalAmount: item.total,
+      accent: getAccentFromColor(item.category?.color || '#64748b')
+    }))
+})
+
+const computedTotalCategories = computed(() => categories.value.length)
+
+// Use computed values if available, otherwise fall back to props
+const displayItems = computed(() => computedItems.value.length > 0 ? computedItems.value : props.items)
+const displayTotalCategories = computed(() => computedTotalCategories.value > 0 ? computedTotalCategories.value : props.totalCategories)
 
 const getCategoryGradient = (accent: string): string => {
   const gradients: Record<string, string> = {
@@ -185,4 +244,25 @@ const getCategoryGradient = (accent: string): string => {
   }
   return gradients[accent] || gradients.green
 }
+
+// Load initial data
+onMounted(async () => {
+  if (activeWorkspaceId.value) {
+    const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
+    await Promise.all([
+      fetchCategoryAnalytics(activeWorkspaceId.value, start, end),
+      fetchCategories(activeWorkspaceId.value)
+    ])
+  }
+})
+
+watch(activeWorkspaceId, async () => {
+  if (activeWorkspaceId.value) {
+    const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
+    await Promise.all([
+      fetchCategoryAnalytics(activeWorkspaceId.value, start, end),
+      fetchCategories(activeWorkspaceId.value)
+    ])
+  }
+})
 </script>

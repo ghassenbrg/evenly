@@ -1,7 +1,8 @@
 {
+  "priority": 1,
   "request": {
-    "method": "PUT",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/settings",
+    "method": "POST",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/categories",
     "headers": {
       "Authorization": {
         "matches": "Bearer .+"
@@ -12,7 +13,7 @@
     }
   },
   "response": {
-    "status": 200,
+    "status": 201,
     "headers": {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -21,11 +22,15 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "id": "{{request.pathSegments.[1]}}",
+      "id": "cat-{{randomValue type='UUID'}}",
+      "workspaceId": "{{request.pathSegments.[1]}}",
       "name": "{{jsonPath request.body '$.name'}}",
-      "defaultSplitMode": "{{jsonPath request.body '$.defaultSplitMode'}}",
-      "currency": "JPY",
-      "createdAt": "2024-01-01T00:00:00Z",
+      "slug": "{{lowercase (jsonPath request.body '$.name')}}",
+      "icon": "{{jsonPath request.body '$.icon'}}",
+      "color": "{{jsonPath request.body '$.color'}}",
+      "isActive": true,
+      "sortOrder": 10,
+      "createdAt": "{{now}}",
       "updatedAt": "{{now}}"
     },
     "transformers": ["response-template"]

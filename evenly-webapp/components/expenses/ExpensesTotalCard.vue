@@ -74,13 +74,7 @@
 <script setup lang="ts">
 import PeriodDropdown from '~/components/PeriodDropdown.vue'
 
-interface Expense {
-  id: string
-  workspaceId: string
-  amount: number
-  dateISO?: string
-  date?: string
-}
+import type { Expense } from '~/types/api'
 
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
@@ -201,7 +195,7 @@ const filteredExpenses = computed(() => {
   const { start, end } = dateRange.value
   
   let filtered = props.expenses.filter(expense => {
-    const expenseDate = expense.dateISO || expense.date
+    const expenseDate = expense.date
     if (!expenseDate) return false
     
     const expenseDateObj = new Date(expenseDate)
@@ -262,7 +256,7 @@ const trendData = computed(() => {
   const dailyTotals = new Map<number, number>()
   
   filteredExpenses.value.forEach(expense => {
-    const expenseDate = expense.dateISO || expense.date
+    const expenseDate = expense.date
     if (!expenseDate) return
     
     const expenseDateObj = new Date(expenseDate)

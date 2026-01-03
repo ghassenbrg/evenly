@@ -1,8 +1,8 @@
 {
-  "priority": 10,
+  "priority": 1,
   "request": {
     "method": "GET",
-    "urlPath": "/api/workspaces/ws-couple"
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/analytics/summary"
   },
   "response": {
     "status": 200,
@@ -14,14 +14,16 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "id": "ws-couple",
-      "name": "Bob & Alice",
-      "defaultSplitMode": "EQUAL",
-      "monthlySharedLimit": 100000,
-      "isPersonal": false,
-      "currency": "JPY",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "total": -38500,
+      "youOwe": 38500,
+      "youAreOwed": 0,
+      "sharedBudgetUsage": {
+        "limit": 200000,
+        "spent": 88100,
+        "percentage": 44.05,
+        "warning": false
+      },
+      "personalBudgetUsage": null
     }
   }
 }

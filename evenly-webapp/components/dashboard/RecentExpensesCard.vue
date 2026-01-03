@@ -25,7 +25,7 @@
           <!-- Left Icon -->
           <div
             class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
-            :style="{ background: getCategoryGradient(expense.category) }"
+            :style="{ background: getCategoryGradient(expense.category as string) }"
           >
             <svg
               v-if="expense.category === 'groceries'"
@@ -128,16 +128,7 @@
 </template>
 
 <script setup lang="ts">
-interface Expense {
-  id: string
-  workspaceId: string
-  category: 'groceries' | 'dining' | 'rent' | 'bills' | 'internet' | 'mobile' | 'transportation' | 'other'
-  title: string
-  dateISO: string
-  paidBy: string
-  amount: number
-  note?: string
-}
+import type { Expense } from '~/types/api'
 
 interface Props {
   expenses?: Expense[]
@@ -159,7 +150,7 @@ const formatDate = (dateISO: string): string => {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date)
 }
 
-const getCategoryGradient = (category: string): string => {
+const getCategoryGradient = (categorySlug: string): string => {
   const gradients: Record<string, string> = {
     groceries: 'linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.8) 100%)',
     dining: 'linear-gradient(135deg, rgba(244, 63, 94, 0.8) 0%, rgba(225, 29, 72, 0.8) 100%)',
@@ -170,46 +161,22 @@ const getCategoryGradient = (category: string): string => {
     mobile: 'linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(79, 70, 229, 0.8) 100%)',
     other: 'linear-gradient(135deg, rgba(100, 116, 139, 0.8) 0%, rgba(71, 85, 105, 0.8) 100%)'
   }
-  return gradients[category] || gradients.other
+  return gradients[categorySlug] || gradients.other
 }
 
 const displayedExpenses = computed(() => {
-  if (props.expenses.length > 0) {
-    return props.expenses
-      .sort((a, b) => new Date(b.dateISO).getTime() - new Date(a.dateISO).getTime())
-      .slice(0, 3)
-  }
-  
-  // Default demo data
-  return [
-    {
-      id: '1',
-      category: 'groceries' as const,
-      title: 'Groceries',
-      dateISO: '2026-01-09',
-      paidBy: 'Kana',
-      amount: 4700,
-      note: 'Weekly shopping at supermarket'
-    },
-    {
-      id: '2',
-      category: 'dining' as const,
-      title: 'Dining Out',
-      dateISO: '2026-01-04',
-      paidBy: 'Ghassen',
-      amount: 7800,
-      note: 'Dinner at Italian restaurant'
-    },
-    {
-      id: '3',
-      category: 'transportation' as const,
-      title: 'Transportation',
-      dateISO: '2025-12-23',
-      paidBy: 'Kana',
-      amount: 15000,
-      note: 'Train tickets for weekend trip'
-    }
-  ]
+  return [...props.expenses]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3)
+    .map(expense => ({
+      id: expense.id,
+      category: expense.category?.slug || 'other',
+      title: expense.category?.name || 'Other',
+      dateISO: expense.date,
+      paidBy: expense.paidBy?.displayName || expense.paidByUserId,
+      amount: expense.amount,
+      note: expense.note
+    }))
 })
 </script>
 

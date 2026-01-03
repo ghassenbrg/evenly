@@ -1,7 +1,8 @@
 {
+  "priority": 1,
   "request": {
-    "method": "PUT",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/settings",
+    "method": "POST",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/invites",
     "headers": {
       "Authorization": {
         "matches": "Bearer .+"
@@ -12,7 +13,7 @@
     }
   },
   "response": {
-    "status": 200,
+    "status": 201,
     "headers": {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -21,12 +22,13 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "id": "{{request.pathSegments.[1]}}",
-      "name": "{{jsonPath request.body '$.name'}}",
-      "defaultSplitMode": "{{jsonPath request.body '$.defaultSplitMode'}}",
-      "currency": "JPY",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "{{now}}"
+      "id": "invite-{{randomValue type='UUID'}}",
+      "workspaceId": "{{request.pathSegments.[1]}}",
+      "code": "{{randomValue length=6 type='ALPHANUMERIC'}}",
+      "maxUses": 10,
+      "usesCount": 0,
+      "expiresAt": "{{now offset='7 days'}}",
+      "createdAt": "{{now}}"
     },
     "transformers": ["response-template"]
   }

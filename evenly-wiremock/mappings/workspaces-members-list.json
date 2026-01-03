@@ -1,0 +1,53 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/members"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": [
+      {
+        "userId": "user-bob",
+        "role": "OWNER",
+        "weightPercent": 60,
+        "personalMonthlyLimit": null,
+        "user": {
+          "id": "user-bob",
+          "email": "bob@example.com",
+          "displayName": "Bob",
+          "username": "bob",
+          "preferredCurrency": "JPY",
+          "locale": "en-US",
+          "timezone": "UTC",
+          "createdAt": "2024-01-01T00:00:00Z"
+        }
+      },
+      {
+        "userId": "user-alice",
+        "role": "MEMBER",
+        "weightPercent": 40,
+        "personalMonthlyLimit": null,
+        "user": {
+          "id": "user-alice",
+          "email": "alice@example.com",
+          "displayName": "Alice",
+          "username": "alice",
+          "preferredCurrency": "JPY",
+          "locale": "en-US",
+          "timezone": "UTC",
+          "createdAt": "2024-01-01T00:00:00Z"
+        }
+      }
+    ],
+    "transformers": ["response-template"]
+  }
+}
+
