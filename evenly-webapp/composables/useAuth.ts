@@ -85,7 +85,11 @@ export const useAuth = () => {
       } as User
     } catch (err: any) {
       // If profile loading fails (CORS, 401, etc.), try to extract info from token
-      console.warn('Failed to load user profile from Keycloak, using token info:', err)
+      // This is expected when Keycloak's /account endpoint has CORS restrictions
+      // Silently fall back to token info - only log if it's not a CORS/network error
+      if (!err?.message?.includes('Failed to fetch') && !err?.message?.includes('CORS')) {
+        console.warn('Failed to load user profile from Keycloak, using token info:', err)
+      }
       
       try {
         // Decode token to get user info (JWT token contains user info)

@@ -8,8 +8,16 @@
 </template>
 
 <script setup lang="ts">
+// Clear hash before Vue Router processes it
+if (process.client && window.location.hash) {
+  const urlWithoutHash = window.location.pathname + window.location.search
+  window.history.replaceState(null, '', urlWithoutHash)
+}
+
 definePageMeta({
-  layout: false
+  layout: false,
+  // Disable scroll behavior to prevent Vue Router from trying to scroll to hash fragments
+  scrollToTop: false
 })
 
 const { loadUserProfile, isAuthenticated } = useAuth()
@@ -20,6 +28,8 @@ const { t } = useI18n()
 onMounted(async () => {
   try {
     // Wait for Keycloak plugin to initialize and process the callback
+    // Keycloak needs the hash fragment to extract the authorization code
+    // (Already processed by the plugin before this page mounted)
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Wait for next tick to ensure Keycloak is ready

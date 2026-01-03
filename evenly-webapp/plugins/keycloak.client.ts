@@ -29,6 +29,12 @@ export default defineNuxtPlugin(async () => {
         enableLogging: false,
         redirectUri: window.location.origin + '/keycloak-callback'
       })
+      
+      // Immediately clear hash after Keycloak processes it to prevent Vue Router warnings
+      // Vue Router tries to parse hash fragments as CSS selectors during navigation
+      if (isCallback && window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
     } catch (initError: any) {
       // Handle CSP or other initialization errors gracefully
       // If it's a CSP error, it's expected when Keycloak tries to use iframes
