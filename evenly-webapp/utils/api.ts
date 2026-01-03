@@ -9,14 +9,26 @@ export interface ApiError {
 export const useApi = () => {
   const config = useRuntimeConfig()
   const token = useCookie<string | null>('token', { default: () => null })
+  const { $keycloak } = useNuxtApp()
+
+  const getAuthToken = (): string | null => {
+    // Prefer Keycloak token if available
+    if (process.client && $keycloak && $keycloak.authenticated && $keycloak.token) {
+      return $keycloak.token
+    }
+    // Fallback to cookie token
+    return token.value
+  }
 
   const request = async <T = any>(path: string, options: RequestInit = {}): Promise<T> => {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> || {})
     }
-    if (token.value) {
-      headers.Authorization = `Bearer ${token.value}`
+    
+    const authToken = getAuthToken()
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`
     }
 
     try {
@@ -27,9 +39,14 @@ export const useApi = () => {
         error.status = res.status
         
         // Only redirect to login on 401 for authenticated requests (not during login itself)
-        if (res.status === 401 && path !== '/auth/login' && token.value) {
+        if (res.status === 401 && path !== '/auth/login' && authToken) {
           token.value = null
-          await navigateTo('/login')
+          // If using Keycloak, logout and redirect to login
+          if (process.client && $keycloak) {
+            await $keycloak.logout({ redirectUri: window.location.origin + '/login' })
+          } else {
+            await navigateTo('/login')
+          }
           throw new Error('Unauthorized')
         }
         
@@ -63,5 +80,5 @@ export const useApi = () => {
   })
   const del = <T = any>(path: string) => request<T>(path, { method: 'DELETE' })
 
-  return { request, get, post, put, delete: del, token }
+  return { request, get, post, put, delete: del, token: readonly(token) }
 }

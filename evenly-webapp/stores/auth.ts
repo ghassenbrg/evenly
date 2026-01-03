@@ -3,28 +3,23 @@ import type { User } from '~/types/api'
 import { useAuth } from '~/composables/useAuth'
 
 export const useAuthStore = defineStore('auth', () => {
-  const { user, isAuthenticated, login, register, logout: logoutComposable } = useAuth()
+  const { user, isAuthenticated, login, logout: logoutComposable } = useAuth()
 
   const currentUser = computed(() => user.value)
   const authenticated = computed(() => isAuthenticated.value)
 
-  const loginUser = async (username: string, password: string) => {
-    await login({ username, password })
+  const loginUser = async () => {
+    await login()
   }
 
-  const registerUser = async (email: string, password: string, displayName: string, username: string, preferredCurrency: string) => {
-    await register({ email, password, displayName, username, preferredCurrency })
-  }
-
-  const logout = () => {
-    logoutComposable()
+  const logout = async () => {
+    await logoutComposable()
   }
 
   return {
     currentUser,
     authenticated,
     loginUser,
-    registerUser,
     logout
   }
 })

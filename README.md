@@ -1,25 +1,37 @@
 # Evenly – Mobile-First Expense Splitting App
 
-A complete mobile-first PWA for tracking and splitting expenses with friends and roommates. Built with Nuxt 3 frontend and WireMock-mocked backend API.
+A complete mobile-first PWA for tracking and splitting expenses with friends and roommates. Built with Nuxt 3 frontend, Keycloak authentication, and WireMock-mocked backend API.
 
 ## Quick Start
 
-1. **Copy environment variables:**
+1. **Navigate to the webapp directory:**
    ```bash
-   cp .env.example .env
+   cd evenly-webapp
    ```
-   
-   Edit `.env` if you need to customize ports, database credentials, or API URLs.
 
-2. **Start the application:**
+2. **Create environment file:**
    ```bash
-   docker compose up --build
+   # Create .env file with the following variables:
+   NUXT_PUBLIC_API_BASE=http://localhost:8080
+   NUXT_PUBLIC_KEYCLOAK_URL=https://auth.ghassen.io
+   NUXT_PUBLIC_KEYCLOAK_REALM=pockito
+   NUXT_PUBLIC_KEYCLOAK_CLIENT_ID=pockito-web
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+4. **Start the development server:**
+   ```bash
+   npm run dev
    ```
 
 Then open:
 - **Webapp**: http://localhost:3000
-- **WireMock API**: http://localhost:8080
-- **WireMock Admin**: http://localhost:8080/__admin
+- **WireMock API**: http://localhost:8080 (if using docker-compose)
+- **WireMock Admin**: http://localhost:8080/__admin (if using docker-compose)
 
 ## Architecture
 
@@ -29,6 +41,8 @@ Then open:
 - **Pinia** for state management
 - **Tailwind CSS** for styling
 - **PWA** support (installable, service worker, offline shell)
+- **Keycloak** authentication integration
+- **i18n** internationalization (English/Japanese)
 - **Mobile-first** design (optimized for 360-430px width)
 
 ### Backend Mocking (`evenly-wiremock`)
@@ -45,9 +59,11 @@ Then open:
 ## Features
 
 ✅ **Authentication**
-- User registration and login
-- JWT token management
-- Protected routes
+- **Keycloak** SSO integration
+- OAuth 2.0 / OpenID Connect
+- PKCE flow for security
+- Automatic token refresh
+- Protected routes with middleware
 
 ✅ **Workspaces**
 - Create and manage workspaces
@@ -63,10 +79,14 @@ Then open:
 
 ✅ **Expenses**
 - Add shared or personal expenses
-- Filter by type
+- Filter by type and date range
 - Participant selection
 - Edit/delete active expenses
 - Locked settled expenses
+- Grouped by day (Today, Yesterday, Weekday, Full Date)
+- Lazy loading with infinite scroll
+- Category icons and visual indicators
+- Notes and metadata support
 
 ✅ **Balance & Settlement**
 - Real-time balance calculation
@@ -74,11 +94,15 @@ Then open:
 - Settlement history
 - View settled expenses
 
-✅ **Analytics**
+✅ **Analytics & Dashboard**
 - Dashboard with balance summary
-- Category breakdown
+- Category breakdown with visual indicators
+- Recent expenses list
+- Monthly/weekly/custom period expense tracking
+- Interactive SVG charts (no external dependencies)
 - Budget progress tracking
 - Shared vs personal totals
+- Expense trends and statistics
 
 ✅ **Mobile-First UI**
 - Bottom tab navigation
@@ -87,6 +111,10 @@ Then open:
 - Toast notifications
 - iOS safe-area support
 - Native-like transitions
+- Dark mode optimized
+- Responsive date range picker
+- Infinite scroll for expense lists
+- Grouped expense timeline view
 
 ## Project Structure
 
@@ -95,13 +123,21 @@ Then open:
 ├── docker-compose.yml          # Orchestrates WireMock + frontend
 ├── evenly-webapp/              # Nuxt 3 frontend
 │   ├── components/             # Vue components
-│   ├── composables/            # Composables (useAuth, useToast)
+│   │   ├── dashboard/         # Dashboard cards (Balance, Categories, Recent Expenses)
+│   │   ├── expenses/           # Expense components (MonthlyTotalCard, ExpenseItem)
+│   │   └── DateRangePicker.vue # Reusable date range picker
+│   ├── composables/            # Composables (useAuth, useToast, useFormatting)
+│   ├── i18n/                   # Internationalization (en.json, ja.json)
 │   ├── layouts/                # Layout templates
-│   ├── middleware/             # Route middleware
+│   ├── middleware/             # Route middleware (auth, guest)
 │   ├── pages/                  # Route pages
-│   ├── stores/                 # Pinia stores
+│   │   └── keycloak-callback.vue # Keycloak OAuth callback handler
+│   ├── plugins/                # Nuxt plugins
+│   │   └── keycloak.client.ts  # Keycloak initialization
+│   ├── stores/                 # Pinia stores (auth, workspaces)
 │   ├── types/                  # TypeScript types
 │   └── utils/                  # Utilities (API client)
+├── evenly-core/                # Helidon backend (Java)
 └── evenly-wiremock/            # WireMock mocks
     ├── mappings/               # API endpoint mappings
     └── __files/                # Mock data files
@@ -112,8 +148,9 @@ Then open:
 All endpoints from REQUIREMENTS.md are available via WireMock:
 
 ### Auth
-- `POST /auth/register` - Register new user
-- `POST /auth/login` - Login user
+- Authentication is handled via **Keycloak** (OAuth 2.0 / OpenID Connect)
+- No direct API endpoints for login/register
+- Token-based API authentication using Keycloak access tokens
 
 ### Workspaces
 - `GET /api/workspaces` - List workspaces
@@ -156,6 +193,37 @@ npm install
 npm run dev
 ```
 
+The app will be available at http://localhost:3000
+
+### Environment Variables
+
+Create a `.env` file in `evenly-webapp/` directory:
+
+```env
+NUXT_PUBLIC_API_BASE=http://localhost:8080
+NUXT_PUBLIC_KEYCLOAK_URL=https://auth.ghassen.io
+NUXT_PUBLIC_KEYCLOAK_REALM=pockito
+NUXT_PUBLIC_KEYCLOAK_CLIENT_ID=pockito-web
+```
+
+**Important:** After updating `.env` file, restart the dev server for changes to take effect.
+
+### Keycloak Configuration
+
+The app uses Keycloak for authentication. Make sure to configure the Keycloak client:
+
+1. **Valid Redirect URIs:**
+   - `http://localhost:3000/keycloak-callback`
+   - `http://localhost:3000/*` (or use wildcard)
+
+2. **Web Origins:**
+   - `http://localhost:3000`
+
+3. **Client Settings:**
+   - Access Type: `public`
+   - Standard Flow Enabled: `ON`
+   - PKCE Code Challenge Method: `S256`
+
 ### Using Real Backend
 
 To use the real Helidon backend instead of WireMock:
@@ -173,14 +241,17 @@ Update `NUXT_PUBLIC_API_BASE` in `.env` if backend runs on different port.
 
 ## Testing the UI
 
-1. Start the app: `docker compose up --build`
+1. Start the app: `cd evenly-webapp && npm run dev`
 2. Open http://localhost:3000
-3. Register a new account (or use: alice@example.com / any password)
-4. Explore the mobile-first interface:
-   - Dashboard shows balance and analytics
+3. Click "Sign In" to authenticate via Keycloak
+4. After authentication, explore the mobile-first interface:
+   - **Dashboard**: Balance summary, category breakdown, recent expenses
+   - **Expenses**: Monthly totals with charts, filtered expense lists
+   - **History**: Settlement history and past expenses
+   - **Settings**: Workspace management, categories, language selection
    - Add expenses via FAB button
-   - View history and settlements
-   - Manage categories in Settings
+   - Switch between workspaces
+   - View analytics and trends
 
 ## Mobile Testing
 
@@ -191,13 +262,35 @@ The app is optimized for mobile devices (360-430px width). To test:
 3. Select iPhone SE or similar small device
 4. Test touch interactions, bottom sheets, and navigation
 
+## Key Technologies
+
+- **Nuxt 3** - Vue.js framework with SSR capabilities
+- **Vue 3** - Progressive JavaScript framework
+- **TypeScript** - Type-safe JavaScript
+- **Pinia** - State management
+- **Tailwind CSS** - Utility-first CSS framework
+- **Keycloak** - Identity and access management
+- **keycloak-js** - Keycloak JavaScript adapter
+- **@nuxtjs/i18n** - Internationalization plugin
+- **@vite-pwa/nuxt** - PWA support
+- **Chart.js** - Chart library (for future use)
+
+## Internationalization
+
+The app supports multiple languages:
+- **English** (en) - Default
+- **Japanese** (ja) - 日本語
+
+Language can be switched via the language switcher in the UI. All user-facing strings are translatable.
+
 ## Next Steps
 
 The frontend is complete and ready for backend integration. When the real Helidon backend is ready:
 
 1. Remove WireMock from docker-compose.yml
 2. Update `NUXT_PUBLIC_API_BASE` in `.env` if needed
-3. The frontend will work with the real API without changes
+3. Ensure Keycloak is properly configured for production
+4. The frontend will work with the real API without changes
 
 All API contracts match REQUIREMENTS.md exactly.
 

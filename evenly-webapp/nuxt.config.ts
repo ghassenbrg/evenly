@@ -1,9 +1,16 @@
 import { defineNuxtConfig } from 'nuxt/config'
 
 export default defineNuxtConfig({
+  compatibilityDate: '2026-01-03',
   ssr: false,
   devtools: { enabled: false },
   modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss', '@vite-pwa/nuxt', '@nuxtjs/i18n'],
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {}
+    }
+  },
   app: {
     head: {
       title: 'Evenly',
@@ -27,7 +34,12 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080',
+      keycloak: {
+        url: process.env.NUXT_PUBLIC_KEYCLOAK_URL || 'http://localhost:9090',
+        realm: process.env.NUXT_PUBLIC_KEYCLOAK_REALM || 'evenly',
+        clientId: process.env.NUXT_PUBLIC_KEYCLOAK_CLIENT_ID || 'evenly-web'
+      }
     }
   },
   css: ['~/assets/tailwind.css'],
@@ -49,6 +61,7 @@ export default defineNuxtConfig({
     },
     workbox: {
       navigateFallback: '/',
+      navigateFallbackDenylist: [/^\/api/, /^\/_nuxt/],
       runtimeCaching: [
         {
           urlPattern: ({ url }) => url.pathname.startsWith('/api'),
@@ -56,6 +69,13 @@ export default defineNuxtConfig({
           options: {
             cacheName: 'api-cache',
             networkTimeoutSeconds: 5
+          }
+        },
+        {
+          urlPattern: ({ url }) => url.pathname === '/',
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'root-cache'
           }
         }
       ]

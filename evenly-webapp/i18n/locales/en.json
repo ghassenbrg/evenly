@@ -40,7 +40,8 @@
       "noAccount": "Don't have an account?",
       "signUp": "Sign up",
       "welcomeBack": "Welcome back!",
-      "invalidCredentials": "Invalid email/username or password"
+      "invalidCredentials": "Invalid email/username or password",
+      "authenticating": "Authenticating..."
     },
     "register": {
       "title": "Create Account",
