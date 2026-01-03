@@ -3,16 +3,11 @@
     <!-- Header Row -->
     <div class="flex items-center justify-between">
       <h2 class="text-base font-semibold text-gray-100">{{ t('dashboard.categoriesBreakdown') }}</h2>
-      <button
-        type="button"
-        @click="emit('selectFilter')"
-        class="px-3 py-1.5 bg-slate-800/80 ring-1 ring-white/10 rounded-xl text-sm text-gray-200 font-medium flex items-center gap-1.5 hover:bg-slate-800 transition-colors"
-      >
-        <span>{{ filterLabel }}</span>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+      <PeriodDropdown
+        v-model="selectedPeriod"
+        v-model:range="customRange"
+        @period-change="handlePeriodChange"
+      />
     </div>
 
     <!-- Category List -->
@@ -119,6 +114,8 @@ interface Props {
   totalCategories?: number
 }
 
+type PeriodType = 'month' | 'week' | 'all' | 'custom'
+
 const props = withDefaults(defineProps<Props>(), {
   filterLabel: 'All',
   totalCategories: 12,
@@ -160,12 +157,24 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   selectFilter: []
+  'period-change': [period: PeriodType, range?: { start: string | null; end: string | null }]
   openAllCategories: []
   openCategory: [id: string]
 }>()
 
 const { t } = useI18n()
 const { formatCurrency } = useFormatting()
+
+const selectedPeriod = ref<PeriodType>('month')
+const customRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
+
+const handlePeriodChange = (period: PeriodType, range?: { start: string | null; end: string | null }) => {
+  selectedPeriod.value = period
+  if (range) {
+    customRange.value = range
+  }
+  emit('period-change', period, range)
+}
 
 const getCategoryGradient = (accent: string): string => {
   const gradients: Record<string, string> = {
@@ -176,6 +185,4 @@ const getCategoryGradient = (accent: string): string => {
   }
   return gradients[accent] || gradients.green
 }
-
 </script>
-

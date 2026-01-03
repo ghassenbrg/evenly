@@ -123,13 +123,15 @@ interface Props {
   inline?: boolean
   minDate?: string
   maxDate?: string
+  autoOpen?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: undefined,
   inline: false,
   minDate: undefined,
-  maxDate: undefined
+  maxDate: undefined,
+  autoOpen: false
 })
 
 const emit = defineEmits<{
@@ -310,6 +312,17 @@ const toggleCalendar = () => {
   }
 }
 
+onMounted(() => {
+  if (props.autoOpen) {
+    showCalendar.value = true
+    if (process.client) {
+      nextTick(() => {
+        updateCalendarPosition()
+      })
+    }
+  }
+})
+
 const updateCalendarPosition = () => {
   if (!triggerRef.value || !calendarRef.value) return
   
@@ -397,4 +410,3 @@ if (process.client) {
   transform: scale(0.95) translateY(-10px);
 }
 </style>
-

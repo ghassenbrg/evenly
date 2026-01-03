@@ -1,57 +1,15 @@
 <template>
-  <div class="balance-card-bg rounded-2xl p-3 relative overflow-hidden">
+  <div class="balance-card-bg rounded-2xl p-3 relative overflow-visible">
     <!-- Header with Dropdown -->
     <div class="flex items-center justify-between mb-2">
       <p class="text-xs text-white/50">{{ periodLabel }}</p>
-      <div class="relative">
-        <button
-          type="button"
-          @click="showDropdown = !showDropdown"
-          class="px-3 py-1.5 bg-slate-800/80 ring-1 ring-white/10 rounded-lg text-sm text-gray-200 font-medium flex items-center gap-1.5 hover:bg-slate-800 transition-colors"
-        >
-          <span>{{ selectedPeriodLabel }}</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        
-        <!-- Dropdown Menu -->
-        <div
-          v-if="showDropdown"
-          class="absolute right-0 top-full mt-1.5 w-40 bg-slate-800 ring-1 ring-white/10 rounded-lg shadow-lg z-10 overflow-hidden"
-          @click.stop
-        >
-          <button
-            v-for="option in periodOptions"
-            :key="option.value"
-            @click="selectPeriod(option.value)"
-            class="w-full px-3 py-2.5 text-left text-sm text-gray-200 hover:bg-slate-700/50 transition-colors flex items-center justify-between"
-            :class="{ 'bg-slate-700/30': selectedPeriod === option.value }"
-          >
-            <span>{{ option.label }}</span>
-            <svg
-              v-if="selectedPeriod === option.value"
-              class="w-4 h-4 text-emerald-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Custom Date Range Picker -->
-    <div v-if="selectedPeriod === 'custom'" class="mt-3">
-      <DateRangePicker
-        :model-value="{ start: customStartDate, end: customEndDate }"
-        :max-date="new Date().toISOString().split('T')[0]"
-        @apply="handleCustomRangeApply"
+      <PeriodDropdown
+        v-model="selectedPeriod"
+        v-model:range="customRange"
+        @period-change="handlePeriodChange"
       />
     </div>
-
+    
     <!-- Total Amount -->
     <div class="mb-3">
       <p class="text-3xl font-semibold text-white/90">{{ formattedTotal }}</p>
@@ -114,6 +72,8 @@
 </template>
 
 <script setup lang="ts">
+import PeriodDropdown from '~/components/PeriodDropdown.vue'
+
 interface Expense {
   id: string
   workspaceId: string
@@ -121,6 +81,8 @@ interface Expense {
   dateISO?: string
   date?: string
 }
+
+type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
 interface Props {
   expenses: Expense[]
@@ -141,30 +103,14 @@ const chartHeight = 80
 // Unique ID for gradients (to avoid conflicts if multiple instances)
 const componentId = Math.random().toString(36).substring(7)
 
-// Period options
-type PeriodType = 'month' | 'week' | 'all' | 'custom'
-
 const emit = defineEmits<{
   'period-change': [period: PeriodType, dateRange?: { start: string | null; end: string | null }]
 }>()
 
 const { t } = useI18n()
 
-const periodOptions = computed(() => [
-  { value: 'month' as PeriodType, label: t('expenses.thisMonth') },
-  { value: 'week' as PeriodType, label: t('expenses.thisWeek') },
-  { value: 'all' as PeriodType, label: t('expenses.allTime') },
-  { value: 'custom' as PeriodType, label: t('expenses.custom') }
-])
-
 const selectedPeriod = ref<PeriodType>('month')
-const showDropdown = ref(false)
-const customStartDate = ref<string>('')
-const customEndDate = ref<string>('')
-
-const selectedPeriodLabel = computed(() => {
-  return periodOptions.value.find(opt => opt.value === selectedPeriod.value)?.label || t('expenses.thisMonth')
-})
+const customRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
 
 const periodLabel = computed(() => {
   switch (selectedPeriod.value) {
@@ -181,34 +127,29 @@ const periodLabel = computed(() => {
   }
 })
 
-const selectPeriod = (period: PeriodType) => {
+const handlePeriodChange = (period: PeriodType, range?: { start: string | null; end: string | null }) => {
   selectedPeriod.value = period
-  showDropdown.value = false
-  
-  if (period === 'custom') {
-    // Initialize with current month if not set
-    if (!customStartDate.value || !customEndDate.value) {
-      const now = new Date()
-      const start = new Date(now.getFullYear(), now.getMonth(), 1)
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      customStartDate.value = start.toISOString().split('T')[0]
-      customEndDate.value = end.toISOString().split('T')[0]
-    }
-  }
-  
-  // Emit period change with date range
-  emit('period-change', period, {
-    start: customStartDate.value,
-    end: customEndDate.value
-  })
-}
 
-const handleCustomRangeApply = (range: { start: string | null; end: string | null }) => {
-  customStartDate.value = range.start || ''
-  customEndDate.value = range.end || ''
-  
-  // Emit period change with custom date range
-  emit('period-change', 'custom', range)
+  if (period === 'custom') {
+    const existing = range || customRange.value
+    let start = existing.start
+    let end = existing.end
+    if (!start || !end) {
+      const now = new Date()
+      const defaultStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const defaultEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      start = defaultStart.toISOString().split('T')[0]
+      end = defaultEnd.toISOString().split('T')[0]
+    }
+    customRange.value = { start, end }
+    emit('period-change', period, { start, end })
+    return
+  }
+
+  if (range) {
+    customRange.value = range
+  }
+  emit('period-change', period, range)
 }
 
 // Get date range based on selected period
@@ -236,10 +177,10 @@ const dateRange = computed(() => {
       end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
       break
     case 'custom':
-      if (customStartDate.value && customEndDate.value) {
-        start = new Date(customStartDate.value)
+      if (customRange.value.start && customRange.value.end) {
+        start = new Date(customRange.value.start)
         start.setHours(0, 0, 0, 0)
-        end = new Date(customEndDate.value)
+        end = new Date(customRange.value.end)
         end.setHours(23, 59, 59, 999)
       } else {
         // Default to current month if not set
@@ -428,18 +369,4 @@ const areaPath = computed(() => {
   return path
 })
 
-// Close dropdown when clicking outside
-onMounted(() => {
-  const handleClickOutside = (e: MouseEvent) => {
-    const target = e.target as HTMLElement
-    if (!target.closest('.relative')) {
-      showDropdown.value = false
-    }
-  }
-  document.addEventListener('click', handleClickOutside)
-  onUnmounted(() => {
-    document.removeEventListener('click', handleClickOutside)
-  })
-})
 </script>
-
