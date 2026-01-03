@@ -7,10 +7,10 @@
         <button
           type="button"
           @click="showDropdown = !showDropdown"
-          class="px-2.5 py-1 bg-slate-800/80 ring-1 ring-white/10 rounded-lg text-xs text-gray-200 font-medium flex items-center gap-1 hover:bg-slate-800 transition-colors"
+          class="px-3 py-1.5 bg-slate-800/80 ring-1 ring-white/10 rounded-lg text-sm text-gray-200 font-medium flex items-center gap-1.5 hover:bg-slate-800 transition-colors"
         >
           <span>{{ selectedPeriodLabel }}</span>
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -18,20 +18,20 @@
         <!-- Dropdown Menu -->
         <div
           v-if="showDropdown"
-          class="absolute right-0 top-full mt-1.5 w-36 bg-slate-800 ring-1 ring-white/10 rounded-lg shadow-lg z-10 overflow-hidden"
+          class="absolute right-0 top-full mt-1.5 w-40 bg-slate-800 ring-1 ring-white/10 rounded-lg shadow-lg z-10 overflow-hidden"
           @click.stop
         >
           <button
             v-for="option in periodOptions"
             :key="option.value"
             @click="selectPeriod(option.value)"
-            class="w-full px-3 py-2 text-left text-xs text-gray-200 hover:bg-slate-700/50 transition-colors flex items-center justify-between"
+            class="w-full px-3 py-2.5 text-left text-sm text-gray-200 hover:bg-slate-700/50 transition-colors flex items-center justify-between"
             :class="{ 'bg-slate-700/30': selectedPeriod === option.value }"
           >
             <span>{{ option.label }}</span>
             <svg
               v-if="selectedPeriod === option.value"
-              class="w-3.5 h-3.5 text-emerald-400"
+              class="w-4 h-4 text-emerald-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -54,22 +54,22 @@
 
     <!-- Total Amount -->
     <div class="mb-3">
-      <p class="text-2xl font-semibold text-white/90">{{ formattedTotal }}</p>
+      <p class="text-3xl font-semibold text-white/90">{{ formattedTotal }}</p>
     </div>
 
     <!-- Indicators Row -->
     <div class="grid grid-cols-3 gap-3 mb-3">
       <div>
-        <p class="text-[10px] text-white/40 mb-0.5">{{ t('expenses.expensesLabel') }}</p>
-        <p class="text-sm font-semibold text-white/80">{{ expenseCount }}</p>
+        <p class="text-xs text-white/40 mb-0.5">{{ t('expenses.expensesLabel') }}</p>
+        <p class="text-base font-semibold text-white/80">{{ expenseCount }}</p>
       </div>
       <div>
-        <p class="text-[10px] text-white/40 mb-0.5">{{ t('expenses.avgPerDay') }}</p>
-        <p class="text-sm font-semibold text-white/80">{{ formattedAverage }}</p>
+        <p class="text-xs text-white/40 mb-0.5">{{ t('expenses.avgPerDay') }}</p>
+        <p class="text-base font-semibold text-white/80">{{ formattedAverage }}</p>
       </div>
       <div>
-        <p class="text-[10px] text-white/40 mb-0.5">{{ t('expenses.largest') }}</p>
-        <p class="text-sm font-semibold text-white/80">{{ formattedLargest }}</p>
+        <p class="text-xs text-white/40 mb-0.5">{{ t('expenses.largest') }}</p>
+        <p class="text-base font-semibold text-white/80">{{ formattedLargest }}</p>
       </div>
     </div>
 

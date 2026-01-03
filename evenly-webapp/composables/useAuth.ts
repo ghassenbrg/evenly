@@ -6,12 +6,21 @@ export const useAuth = () => {
   const user = useCookie<User | null>('user', { default: () => null })
   const { $keycloak } = useNuxtApp()
 
-  const login = async (redirectUri?: string) => {
+  const login = async (redirectPath?: string) => {
     if (!$keycloak) {
       throw new Error('Keycloak not initialized')
     }
     
-    const callbackUri = redirectUri || window.location.origin + '/keycloak-callback'
+    const safeRedirectPath = redirectPath && redirectPath.startsWith('/') ? redirectPath : null
+    if (process.client) {
+      if (safeRedirectPath) {
+        sessionStorage.setItem('postLoginRedirect', safeRedirectPath)
+      } else {
+        sessionStorage.removeItem('postLoginRedirect')
+      }
+    }
+
+    const callbackUri = window.location.origin + '/keycloak-callback'
     try {
       await $keycloak.login({
         redirectUri: callbackUri
@@ -36,7 +45,7 @@ export const useAuth = () => {
     }
     
     await $keycloak.logout({
-      redirectUri: window.location.origin
+      redirectUri: `${window.location.origin}/login`
     })
     
     token.value = null
@@ -70,26 +79,6 @@ export const useAuth = () => {
     if (!$keycloak || !$keycloak.authenticated) {
       return
     }
-    
-    try {
-      // Try to load user profile from Keycloak
-      const userProfile = await $keycloak.loadUserProfile()
-      user.value = {
-        id: userProfile.id || '',
-        email: userProfile.email || '',
-        displayName: `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim() || userProfile.username || '',
-        username: userProfile.username,
-        createdAt: userProfile.createdTimestamp 
-          ? new Date(userProfile.createdTimestamp).toISOString() 
-          : new Date().toISOString()
-      } as User
-    } catch (err: any) {
-      // If profile loading fails (CORS, 401, etc.), try to extract info from token
-      // This is expected when Keycloak's /account endpoint has CORS restrictions
-      // Silently fall back to token info - only log if it's not a CORS/network error
-      if (!err?.message?.includes('Failed to fetch') && !err?.message?.includes('CORS')) {
-        console.warn('Failed to load user profile from Keycloak, using token info:', err)
-      }
       
       try {
         // Decode token to get user info (JWT token contains user info)
@@ -112,12 +101,15 @@ export const useAuth = () => {
         console.error('Failed to extract user info from token:', tokenErr)
         // Keep existing user value if available
       }
-    }
   }
 
   const isAuthenticated = computed(() => {
     if (process.client && $keycloak) {
-      return $keycloak.authenticated || false
+      if ($keycloak.authenticated) {
+        return true
+      }
+      // Fall back to stored cookies while Keycloak finishes initializing
+      return !!token.value && !!user.value
     }
     return !!token.value && !!user.value
   })
@@ -153,4 +145,3 @@ export const useAuth = () => {
     loadUserProfile
   }
 }
-

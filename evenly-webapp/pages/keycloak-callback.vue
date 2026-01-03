@@ -22,8 +22,20 @@ definePageMeta({
 
 const { loadUserProfile, isAuthenticated } = useAuth()
 const { success } = useToast()
-const router = useRouter()
+const route = useRoute()
 const { t } = useI18n()
+
+const getRedirectPath = () => {
+  const redirectParam = route.query.redirect
+  const storedRedirect = process.client ? sessionStorage.getItem('postLoginRedirect') : null
+  if (typeof redirectParam === 'string' && redirectParam.startsWith('/')) {
+    return redirectParam
+  }
+  if (storedRedirect && storedRedirect.startsWith('/')) {
+    return storedRedirect
+  }
+  return '/dashboard'
+}
 
 onMounted(async () => {
   try {
@@ -43,13 +55,16 @@ onMounted(async () => {
     
     if (isAuthenticated.value) {
       success(t('auth.login.welcomeBack'))
+      if (process.client) {
+        sessionStorage.removeItem('postLoginRedirect')
+      }
       
       // Pre-load workspaces
       const workspacesStore = useWorkspacesStore()
       await workspacesStore.fetchWorkspaces()
       
-      // Redirect to dashboard
-      await navigateTo('/dashboard', { replace: true })
+      // Redirect back to the intended page (default to dashboard)
+      await navigateTo(getRedirectPath(), { replace: true })
     } else {
       // Not authenticated, redirect to login
       await navigateTo('/login', { replace: true })
@@ -60,4 +75,3 @@ onMounted(async () => {
   }
 })
 </script>
-

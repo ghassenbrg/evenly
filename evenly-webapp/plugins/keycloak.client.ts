@@ -11,7 +11,7 @@ export default defineNuxtPlugin(async () => {
     clientId: config.public.keycloak.clientId
   })
 
-  // Initialize Keycloak
+  // Track initialization to avoid unexpected redirects on reloads
   try {
     // Check if we're on the callback page
     const isCallback = window.location.pathname === '/keycloak-callback'
@@ -26,6 +26,7 @@ export default defineNuxtPlugin(async () => {
         onLoad: isCallback ? 'login-required' : 'check-sso',
         pkceMethod: 'S256',
         checkLoginIframe: false, // Disable iframe-based login checks
+        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
         enableLogging: false,
         redirectUri: window.location.origin + '/keycloak-callback'
       })
@@ -78,6 +79,10 @@ export default defineNuxtPlugin(async () => {
           keycloak.logout({ redirectUri: window.location.origin + '/login' })
         })
       }
+    } else {
+      // Clear any stale auth cookies so the UI doesn't think we're logged in
+      token.value = null
+      user.value = null
     }
   } catch (error) {
     console.error('Keycloak initialization error:', error)
@@ -89,4 +94,3 @@ export default defineNuxtPlugin(async () => {
     }
   }
 })
-

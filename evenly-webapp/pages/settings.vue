@@ -53,9 +53,7 @@ const router = useRouter()
 const currentLocale = computed(() => locale.value)
 const availableLocales = computed(() => locales.value)
 
-const handleLogout = () => {
-  authStore.logout()
-  router.push('/login')
+const handleLogout = async () => {
+  await authStore.logout()
 }
 </script>
-

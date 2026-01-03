@@ -49,18 +49,19 @@ definePageMeta({
 const { login } = useAuth()
 const { success } = useToast()
 const loading = ref(false)
+const route = useRoute()
 
 const { t } = useI18n()
 
 const handleLogin = async () => {
   try {
     loading.value = true
+    const redirectQuery = typeof route.query.redirect === 'string' ? route.query.redirect : null
     // Redirect to Keycloak login
-    await login()
+    await login(redirectQuery || undefined)
   } catch (err: any) {
     console.error('Login error:', err)
     loading.value = false
   }
 }
 </script>
-
