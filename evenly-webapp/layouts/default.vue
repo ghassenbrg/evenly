@@ -4,7 +4,10 @@
     <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 pt-safe">
       <div class="flex items-center justify-between px-4 h-14">
         <h1 class="text-lg font-semibold">{{ pageTitle }}</h1>
-        <WorkspaceSwitch v-if="showWorkspaceSwitch" />
+        <div v-if="showWorkspaceSwitch" class="flex items-center space-x-2">
+          <NotificationBell />
+          <WorkspaceSwitch />
+        </div>
       </div>
     </header>
 
@@ -81,7 +84,8 @@ const pageTitle = computed(() => {
     '/dashboard': t('navigation.dashboard'),
     '/expenses': t('navigation.expenses'),
     '/history': t('navigation.history'),
-    '/settings': t('navigation.settings')
+    '/settings': t('navigation.settings'),
+    '/notifications': t('navigation.notifications')
   }
   return titles[route.path] || t('app.name')
 })

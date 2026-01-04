@@ -30,7 +30,8 @@
     "dashboard": "Dashboard",
     "expenses": "Expenses",
     "history": "History",
-    "settings": "Settings"
+    "settings": "Settings",
+    "notifications": "Notifications"
   },
   "auth": {
     "login": {
@@ -219,6 +220,17 @@
       "fri": "Fri",
       "sat": "Sat"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bellAriaLabel": "Notifications",
+    "unreadCountAriaLabel": "{count} unread notifications",
+    "noNotifications": "No notifications yet",
+    "loadFailed": "Failed to load notifications",
+    "loadingMore": "Loading more...",
+    "markAllAsRead": "Mark all as read",
+    "markingAllAsRead": "Marking all as read...",
+    "unknownWorkspace": "Unknown workspace"
   }
 }
 

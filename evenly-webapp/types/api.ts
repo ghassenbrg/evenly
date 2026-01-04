@@ -242,3 +242,25 @@ export interface Payment {
   payee?: User
 }
 
+export interface Notification {
+  id: string
+  workspaceId: string
+  title: string
+  message: string
+  read: boolean
+  createdAt: string
+  workspace?: Workspace
+}
+
+export interface UnreadCountResponse {
+  unreadCount: number
+}
+
+export interface PaginatedNotifications {
+  items: Notification[]
+  total: number
+  page: number
+  pageSize: number
+  hasMore: boolean
+}
+

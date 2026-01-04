@@ -30,7 +30,8 @@
     "dashboard": "ダッシュボード",
     "expenses": "支出",
     "history": "履歴",
-    "settings": "設定"
+    "settings": "設定",
+    "notifications": "通知"
   },
   "auth": {
     "login": {
@@ -219,6 +220,17 @@
       "fri": "金",
       "sat": "土"
     }
+  },
+  "notifications": {
+    "title": "通知",
+    "bellAriaLabel": "通知",
+    "unreadCountAriaLabel": "未読通知 {count} 件",
+    "noNotifications": "通知はまだありません",
+    "loadFailed": "通知の読み込みに失敗しました",
+    "loadingMore": "さらに読み込み中...",
+    "markAllAsRead": "すべて既読にする",
+    "markingAllAsRead": "すべて既読にしています...",
+    "unknownWorkspace": "不明なワークスペース"
   }
 }
 
