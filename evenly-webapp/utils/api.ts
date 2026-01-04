@@ -6,7 +6,7 @@ export interface ApiError {
   status?: number
 }
 
-export const useApi = () => {
+export const useApi = (baseOverride?: string) => {
   const config = useRuntimeConfig()
   const token = useCookie<string | null>('token', { default: () => null })
   const { $keycloak } = useNuxtApp()
@@ -32,7 +32,8 @@ export const useApi = () => {
     }
 
     try {
-      const res = await fetch(`${config.public.apiBase}${path}`, { ...options, headers })
+      const base = baseOverride || config.public.apiBase
+      const res = await fetch(`${base}${path}`, { ...options, headers })
       
       if (!res.ok) {
         const error: ApiError = await res.json().catch(() => ({}))

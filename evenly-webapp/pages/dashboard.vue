@@ -99,7 +99,8 @@ const handleOpenPayment = (balance: Balance, currentUserBalance?: Balance | null
 const handlePaymentCompleted = () => {
   // Reload dashboard data after payment
   loadDashboard()
-  // Optionally reload balances if needed
+  // Emit settled event to SettleUpSheet if it's open
+  // (The @settled listener will also call loadDashboard, but that's fine - it's idempotent)
 }
 
 const getDateRange = (period: 'month' | 'week' | 'all' | 'custom', customRange?: { start: string | null; end: string | null }) => {

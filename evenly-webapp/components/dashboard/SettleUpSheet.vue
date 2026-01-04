@@ -79,6 +79,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'open-payment': [balance: Balance, currentUserBalance?: Balance | null]
+  'settled': []
 }>()
 
 const { t } = useI18n()

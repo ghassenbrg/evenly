@@ -38,6 +38,7 @@ services:
       NUXT_PUBLIC_KEYCLOAK_URL: ${NUXT_PUBLIC_KEYCLOAK_URL:-http://localhost:9090}
       NUXT_PUBLIC_KEYCLOAK_REALM: ${NUXT_PUBLIC_KEYCLOAK_REALM:-evenly}
       NUXT_PUBLIC_KEYCLOAK_CLIENT_ID: ${NUXT_PUBLIC_KEYCLOAK_CLIENT_ID:-evenly-web}
+      POCKITO_API_BASE: ${POCKITO_API_BASE:-http://localhost:8080}
     depends_on:
       - wiremock
     ports:

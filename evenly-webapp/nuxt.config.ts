@@ -35,6 +35,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080',
+      pockitoApiBase: process.env.POCKITO_API_BASE || process.env.NUXT_PUBLIC_POCKITO_API_BASE,
       keycloak: {
         url: process.env.NUXT_PUBLIC_KEYCLOAK_URL || 'http://localhost:9090',
         realm: process.env.NUXT_PUBLIC_KEYCLOAK_REALM || 'evenly',
