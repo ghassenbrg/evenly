@@ -46,6 +46,19 @@
         </div>
       </div>
 
+      <!-- Note Field (Optional) -->
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">
+          {{ t('dashboard.paymentNote') }} <span class="text-slate-500 text-xs">({{ t('common.optional') }})</span>
+        </label>
+        <textarea
+          v-model="paymentNote"
+          rows="3"
+          class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+          :placeholder="t('dashboard.paymentNotePlaceholder')"
+        />
+      </div>
+
       <!-- Payment Summary -->
       <div v-if="paymentAmount > 0" class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 space-y-3">
         <div class="flex items-center justify-between">
@@ -132,6 +145,7 @@ const { user } = useAuth()
 const { members, fetchMembers } = useWorkspaceMembers()
 
 const paymentAmount = ref(0)
+const paymentNote = ref('')
 const loading = ref(false)
 
 // Load balances and members when sheet opens
@@ -263,10 +277,11 @@ const quickAmounts = computed(() => {
   ].filter(amount => amount > 0)
 })
 
-// Reset amount when modal opens/closes
+// Reset amount and note when modal opens/closes
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     paymentAmount.value = 0
+    paymentNote.value = ''
   }
 })
 
@@ -280,7 +295,9 @@ const handleSubmit = async () => {
   
   try {
     // Create a settlement for this payment
-    await createSettlement(props.workspaceId, {})
+    await createSettlement(props.workspaceId, {
+      note: paymentNote.value.trim() || undefined
+    })
     success(`${t('dashboard.paymentCompleted')}: ${formatCurrency(paymentAmount.value)}`)
     emit('payment-completed')
     emit('update:modelValue', false)

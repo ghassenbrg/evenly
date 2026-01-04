@@ -3,6 +3,8 @@
 export type SplitMode = 'EQUAL' | 'WEIGHTED'
 export type MemberRole = 'OWNER' | 'MEMBER'
 export type ExpenseStatus = 'ACTIVE' | 'SETTLED'
+export type PaymentType = 'EXPENSE_SETTLEMENT' | 'REIMBURSEMENT' | 'MANUAL_TRANSFER' | 'SETTLEMENT'
+export type PaymentStatus = 'COMPLETED' | 'PENDING' | 'FAILED'
 
 export interface Currency {
   code: string
@@ -221,6 +223,22 @@ export interface UpdateExpenseRequest {
 }
 
 export interface CreateSettlementRequest {
-  // No body needed, uses current balance state
+  note?: string
+}
+
+export interface Payment {
+  id: string
+  workspaceId: string
+  payerId: string
+  payeeId: string
+  amount: number
+  currency: string
+  type: PaymentType
+  status: PaymentStatus
+  note?: string
+  reference?: string
+  createdAt: string
+  payer?: User
+  payee?: User
 }
 

@@ -157,7 +157,9 @@
     "confirmPayment": "Confirm Payment",
     "processing": "Processing...",
     "paymentCompleted": "Payment completed successfully",
-    "loadBalancesFailed": "Failed to load balances"
+    "loadBalancesFailed": "Failed to load balances",
+    "paymentNote": "Note",
+    "paymentNotePlaceholder": "Add a note (optional)"
   },
   "expenses": {
     "loadingMore": "Loading more...",
@@ -189,6 +191,22 @@
     },
     "noExpenses": "No expenses found for this period",
     "loadFailed": "Failed to load expenses"
+  },
+  "payments": {
+    "loadingMore": "Loading more...",
+    "noPayments": "No payment history yet",
+    "loadFailed": "Failed to load payment history",
+    "types": {
+      "expenseSettlement": "Expense Settlement",
+      "reimbursement": "Reimbursement",
+      "manualTransfer": "Manual Transfer",
+      "settlement": "Settlement"
+    },
+    "status": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "failed": "Failed"
+    }
   },
   "dateRange": {
     "select": "Select Date Range",
