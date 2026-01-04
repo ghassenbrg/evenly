@@ -24,7 +24,9 @@
       "id": "ws-{{randomValue type='UUID'}}",
       "name": "{{jsonPath request.body '$.name'}}",
       "defaultSplitMode": "{{jsonPath request.body '$.defaultSplitMode'}}",
-      "currency": "JPY",
+      "monthlySharedLimit": "{{jsonPath request.body '$.monthlySharedLimit'}}",
+      "currency": "{{jsonPath request.body '$.currency'}}",
+      "isPersonal": false,
       "createdAt": "{{now}}",
       "updatedAt": "{{now}}"
     },

@@ -28,7 +28,9 @@
     "view": "View",
     "saving": "Saving...",
     "loadMore": "Load more",
-    "outOfPockito": "Out of app"
+    "outOfPockito": "Out of app",
+    "copy": "Copy",
+    "tryAgain": "Try again"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -102,13 +104,31 @@
     "splitMode": "Split Mode",
     "splitModeEqual": "Equal",
     "splitModeWeighted": "Weighted",
+    "currency": "Currency",
+    "selectCurrency": "Select currency",
+    "currencyRequired": "Please select a currency",
     "monthlyBudget": "Monthly Shared Budget",
     "monthlyBudgetPlaceholder": "100000",
-    "creating": "Creating..."
+    "creating": "Creating...",
+    "inviteTitle": "Invite Members",
+    "inviteDescription": "Share this code or link with others to invite them to your workspace.",
+    "inviteCode": "Invite Code",
+    "inviteLink": "Invite Link",
+    "inviteCodeCopied": "Invite code copied!",
+    "inviteLinkCopied": "Invite link copied!"
   },
   "join": {
     "title": "Join Workspace",
-    "placeholder": "Placeholder page"
+    "description": "Enter an invitation code to join a workspace",
+    "inviteCode": "Invitation Code",
+    "codePlaceholder": "Enter code",
+    "submit": "Join Workspace",
+    "joining": "Joining...",
+    "success": "Successfully joined workspace!",
+    "failed": "Failed to join workspace. Please check the code and try again.",
+    "codeRequired": "Please enter an invitation code",
+    "redirecting": "Redirecting to workspace...",
+    "tryAgain": "Try again"
   },
   "settings": {
     "title": "Settings",

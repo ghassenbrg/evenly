@@ -30,7 +30,7 @@
     </main>
 
     <!-- Bottom Tab Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-800 pb-safe z-30">
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-800 pb-safe-plus z-30">
       <div class="flex items-center justify-around h-16">
         <NuxtLink
           to="/dashboard"
@@ -131,5 +131,9 @@ export default {
 
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pb-safe-plus {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
 }
 </style>

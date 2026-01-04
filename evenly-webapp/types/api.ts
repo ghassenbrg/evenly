@@ -164,6 +164,7 @@ export interface CreateWorkspaceRequest {
   name: string
   defaultSplitMode: SplitMode
   monthlySharedLimit?: number | null
+  currency?: string
 }
 
 export interface UpdateWorkspaceSettingsRequest {

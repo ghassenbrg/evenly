@@ -24,10 +24,10 @@
     "jsonBody": {
       "id": "invite-{{randomValue type='UUID'}}",
       "workspaceId": "{{request.pathSegments.[1]}}",
-      "code": "{{randomValue length=6 type='ALPHANUMERIC'}}",
-      "maxUses": 10,
+      "code": "{{randomValue length=8 type='ALPHANUMERIC'}}",
+      "maxUses": "{{jsonPath request.body '$.maxUses'}}",
       "usesCount": 0,
-      "expiresAt": "{{now offset='7 days'}}",
+      "expiresAt": "{{now offset='+30 days'}}",
       "createdAt": "{{now}}"
     },
     "transformers": ["response-template"]

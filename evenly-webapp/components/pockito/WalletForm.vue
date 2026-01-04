@@ -134,7 +134,7 @@
           />
           <div class="flex items-center justify-between">
             <p v-if="errors.description" class="text-xs text-red-400">{{ errors.description }}</p>
-            <p v-else class="text-xs text-white/50">{{ form.description.length }}/500</p>
+            <p v-else class="text-xs text-white/50">{{ (form.description?.length || 0) }}/500</p>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 <template>
+  <!-- Create Workspace Sheet -->
   <BottomSheet :model-value="modelValue" @update:model-value="(val) => emit('update:modelValue', val)" :title="t('workspace.create')">
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <div>
@@ -35,13 +36,24 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.monthlyBudget') }} ({{ t('common.optional') }})</label>
-        <input
-          v-model.number="form.monthlySharedLimit"
-          type="number"
-          min="0"
-          step="1000"
-          class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.currency') || 'Currency' }}</label>
+        <select
+          v-model="form.currency"
+          required
+          class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="" disabled>{{ t('workspace.selectCurrency') || 'Select currency' }}</option>
+          <option v-for="currency in currencies" :key="currency.code" :value="currency.code">
+            {{ currency.code }} - {{ currency.name }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <AmountInput
+          v-model="form.monthlySharedLimit"
+          :currency="form.currency || 'USD'"
+          :label="`${t('workspace.monthlyBudget')} (${t('common.optional')})`"
           :placeholder="t('workspace.monthlyBudgetPlaceholder')"
         />
       </div>
@@ -66,10 +78,70 @@
       </div>
     </template>
   </BottomSheet>
+
+  <!-- Invitation Sheet -->
+  <BottomSheet 
+    :model-value="showInviteSheet" 
+    @update:model-value="showInviteSheet = $event"
+    :title="t('workspace.inviteTitle') || 'Invite Members'"
+  >
+    <div class="space-y-4">
+      <p class="text-slate-300 text-sm">{{ t('workspace.inviteDescription') || 'Share this code or link with others to invite them to your workspace.' }}</p>
+      
+      <!-- Invite Code -->
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.inviteCode') || 'Invite Code' }}</label>
+        <div class="flex gap-2">
+          <input
+            :value="inviteCode"
+            readonly
+            class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono text-lg text-center"
+          />
+          <button
+            @click="copyInviteCode"
+            class="px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition-colors"
+          >
+            {{ t('common.copy') || 'Copy' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Invite Link -->
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.inviteLink') || 'Invite Link' }}</label>
+        <div class="flex gap-2">
+          <input
+            :value="inviteLink"
+            readonly
+            class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm"
+          />
+          <button
+            @click="copyInviteLink"
+            class="px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition-colors"
+          >
+            {{ t('common.copy') || 'Copy' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <button
+        @click="showInviteSheet = false"
+        class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-xl transition-colors"
+      >
+        {{ t('common.done') || 'Done' }}
+      </button>
+    </template>
+  </BottomSheet>
 </template>
 
 <script setup lang="ts">
-import type { CreateWorkspaceRequest } from '~/types/api'
+import type { CreateWorkspaceRequest, Invite } from '~/types/api'
+import AmountInput from '~/components/AmountInput.vue'
+import { useCurrencies } from '~/composables/useCurrencies'
+import { useInvites } from '~/composables/useInvites'
+import { useAuth } from '~/composables/useAuth'
 
 interface Props {
   modelValue: boolean
@@ -83,38 +155,101 @@ const emit = defineEmits<{
 
 const workspacesStore = useWorkspacesStore()
 const { success, error } = useToast()
+const { currencies, fetchCurrencies } = useCurrencies()
+const { createInvite } = useInvites()
+const { user } = useAuth()
 
 const loading = ref(false)
+const showInviteSheet = ref(false)
+const createdWorkspaceId = ref<string | null>(null)
+const inviteCode = ref<string | null>(null)
+const inviteLink = ref<string | null>(null)
 
 const form = ref<CreateWorkspaceRequest>({
   name: '',
   defaultSplitMode: 'EQUAL',
-  monthlySharedLimit: null
+  monthlySharedLimit: null,
+  currency: ''
 })
 
-watch(() => props.modelValue, (newVal) => {
+// Fetch currencies when sheet opens
+watch(() => props.modelValue, async (newVal) => {
   if (newVal) {
     form.value = {
       name: '',
       defaultSplitMode: 'EQUAL',
-      monthlySharedLimit: null
+      monthlySharedLimit: null,
+      currency: user.value?.preferredCurrency || ''
     }
+    await fetchCurrencies()
+    // Set default currency if user has preference
+    if (!form.value.currency && currencies.value.length > 0) {
+      form.value.currency = currencies.value.find(c => c.code === 'USD')?.code || currencies.value[0].code
+    }
+  } else {
+    showInviteSheet.value = false
+    inviteCode.value = null
+    inviteLink.value = null
+    createdWorkspaceId.value = null
   }
 })
 
 const { t } = useI18n()
 
 const handleSubmit = async () => {
+  if (!form.value.currency) {
+    error(t('workspace.currencyRequired') || 'Please select a currency')
+    return
+  }
+
   try {
     loading.value = true
-    await workspacesStore.createWorkspace(form.value)
+    // Convert 0 to null for optional monthlySharedLimit
+    const payload = {
+      ...form.value,
+      monthlySharedLimit: form.value.monthlySharedLimit === 0 ? null : form.value.monthlySharedLimit
+    }
+    const workspace = await workspacesStore.createWorkspace(payload)
+    createdWorkspaceId.value = workspace.id
+    
+    // Create an invite for the workspace
+    try {
+      const invite = await createInvite(workspace.id, {
+        maxUses: 0, // Unlimited uses
+        expiresInDays: 30
+      })
+      inviteCode.value = invite.code
+      inviteLink.value = `${window.location.origin}/join?code=${invite.code}`
+    } catch (inviteErr: any) {
+      // If invite creation fails, still show success but without invite
+      console.warn('Failed to create invite:', inviteErr)
+    }
+    
     success(t('workspace.created'))
     emit('created')
     emit('update:modelValue', false)
+    
+    // Show invite sheet after a brief delay
+    await nextTick()
+    showInviteSheet.value = true
   } catch (err: any) {
     error(err.message || t('workspace.createFailed'))
   } finally {
     loading.value = false
+  }
+}
+
+const copyInviteCode = async () => {
+  if (inviteCode.value) {
+    await navigator.clipboard.writeText(inviteCode.value)
+    success(t('workspace.inviteCodeCopied') || 'Invite code copied!')
+  }
+}
+
+const copyInviteLink = async () => {
+  if (inviteLink.value) {
+    await navigator.clipboard.writeText(inviteLink.value)
+    success(t('workspace.inviteLinkCopied') || 'Invite link copied!')
   }
 }
 </script>

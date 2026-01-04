@@ -4,14 +4,17 @@
       {{ label }}
     </label>
     <div class="relative">
-      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">{{ currencySymbol }}</span>
+      <span 
+        class="absolute top-1/2 -translate-y-1/2 text-gray-400"
+        :class="currencySymbolPaddingClass"
+      >{{ currencySymbol }}</span>
       <input
         :value="displayValue"
         type="tel"
         inputmode="decimal"
         pattern="[0-9]*\.?[0-9]*"
         :placeholder="placeholder"
-        :class="inputClass"
+        :class="[cleanedInputClass, inputPaddingClass]"
         @input="handleInput"
         @blur="handleBlur"
         @focus="handleFocus"
@@ -41,7 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
   label: undefined,
   hint: undefined,
   placeholder: undefined,
-  inputClass: 'w-full pl-8 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg font-semibold'
+  inputClass: 'w-full pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg font-semibold'
 })
 
 const emit = defineEmits<{
@@ -82,6 +85,37 @@ const currencySymbol = computed(() => {
     }
     return symbols[props.currency] || props.currency
   }
+})
+
+// Calculate padding based on currency symbol length
+const currencySymbolLength = computed(() => currencySymbol.value.length)
+const currencySymbolPaddingClass = computed(() => {
+  // For 3-character symbols (CHF, CAD, AUD, SGD), use more left padding
+  if (currencySymbolLength.value >= 3) {
+    return 'left-3'
+  } else if (currencySymbolLength.value === 2) {
+    return 'left-3.5'
+  }
+  return 'left-4'
+})
+
+const inputPaddingClass = computed(() => {
+  // Adjust input padding based on currency symbol length
+  if (currencySymbolLength.value >= 3) {
+    return 'pl-14' // More padding for 3+ character symbols
+  } else if (currencySymbolLength.value === 2) {
+    return 'pl-12' // Medium padding for 2 character symbols
+  }
+  return 'pl-8' // Default padding for 1 character symbols
+})
+
+// Clean inputClass by removing any conflicting padding-left classes
+// This ensures the component always controls its own padding
+const cleanedInputClass = computed(() => {
+  if (!props.inputClass) return ''
+  // Remove any pl-* classes (padding-left) from the custom inputClass
+  // This allows the component to always apply the correct dynamic padding
+  return props.inputClass.replace(/\bpl-\d+\b/g, '').trim()
 })
 
 // Internal raw value for editing
