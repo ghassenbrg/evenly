@@ -68,7 +68,8 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'auth'
+  middleware: 'auth',
+  isMainPage: true
 })
 
 const { locale, locales, setLocale, t } = useI18n()

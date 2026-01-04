@@ -3,8 +3,21 @@
     <!-- Header -->
     <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 pt-safe">
       <div class="flex items-center justify-between px-4 h-14">
-        <h1 class="text-lg font-semibold">{{ pageTitle }}</h1>
-        <div v-if="showWorkspaceSwitch" class="flex items-center space-x-2">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <!-- Back Button -->
+          <button
+            v-if="showBackButton"
+            @click="goBack"
+            aria-label="Go back"
+            class="flex-shrink-0 p-1.5 -ml-1.5 text-slate-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-lg"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 class="text-lg font-semibold truncate">{{ pageTitle }}</h1>
+        </div>
+        <div v-if="showWorkspaceSwitch" class="flex items-center space-x-2 flex-shrink-0">
           <NotificationBell />
           <WorkspaceSwitch />
         </div>
@@ -71,9 +84,19 @@
 
 <script setup lang="ts">
 const route = useRoute()
+const { isMainPage, goBack } = useNavigation()
 
 const showWorkspaceSwitch = computed(() => {
   return route.path !== '/login' && route.path !== '/register' && route.path !== '/' && route.path !== '/join'
+})
+
+// Show back button on non-main pages (and not on auth pages)
+const showBackButton = computed(() => {
+  const authPages = ['/login', '/register', '/', '/join', '/keycloak-callback']
+  if (authPages.includes(route.path)) {
+    return false
+  }
+  return !isMainPage.value
 })
 
 const { t } = useI18n()

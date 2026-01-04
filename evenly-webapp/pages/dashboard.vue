@@ -68,7 +68,8 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: 'auth',
-  scrollToTop: false
+  scrollToTop: false,
+  isMainPage: true
 })
 
 import { useWorkspacesStore } from '~/stores/workspaces'
