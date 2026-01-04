@@ -19,7 +19,12 @@
     "optional": "任意",
     "today": "今日",
     "yesterday": "昨日",
-    "noMoreItems": "これ以上の支出はありません"
+    "noMoreItems": "これ以上の支出はありません",
+    "retry": "再試行",
+    "all": "すべて",
+    "unknown": "不明",
+    "other": "その他",
+    "loadDashboardFailed": "ダッシュボードデータの読み込みに失敗しました"
   },
   "navigation": {
     "dashboard": "ダッシュボード",
@@ -124,7 +129,35 @@
     "allCategories": "すべてのカテゴリ",
     "recentExpenses": "最近の支出",
     "viewAll": "すべて表示",
-    "paidBy": "支払者"
+    "paidBy": "支払者",
+    "settleUp": "精算",
+    "settleUpDescription": "他のメンバーとの未払い残高を確認して精算する",
+    "paid": "支払済み",
+    "expected": "予定",
+    "youOwe": "あなたが借りている",
+    "owesYou": "あなたに借りている",
+    "settled": "精算済み",
+    "pay": "支払う",
+    "settleAll": "すべて精算",
+    "settling": "精算中...",
+    "paymentCreated": "支払いが正常に作成されました",
+    "paymentFailed": "支払いの作成に失敗しました",
+    "settlementCreated": "精算が正常に作成されました",
+    "settlementFailed": "精算の作成に失敗しました",
+    "noBalancesToSettle": "すべての残高が精算済みです",
+    "makePayment": "支払いを行う",
+    "payingTo": "支払い先",
+    "outstandingBalance": "未払い残高",
+    "paymentAmount": "支払い金額",
+    "maxAmount": "最大金額",
+    "enterAmount": "支払い金額を入力",
+    "quickAmounts": "クイック金額",
+    "remainingBalance": "残高",
+    "myRemainingBalance": "私の残高",
+    "confirmPayment": "支払いを確認",
+    "processing": "処理中...",
+    "paymentCompleted": "支払いが正常に完了しました",
+    "loadBalancesFailed": "残高の読み込みに失敗しました"
   },
   "expenses": {
     "loadingMore": "さらに読み込み中...",
@@ -154,7 +187,20 @@
       "mobile": "携帯電話",
       "other": "その他"
     },
-    "noExpenses": "この期間の支出はありません"
+    "noExpenses": "この期間の支出はありません",
+    "loadFailed": "支出の読み込みに失敗しました"
+  },
+  "dateRange": {
+    "select": "日付範囲を選択",
+    "weekDays": {
+      "sun": "日",
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土"
+    }
   }
 }
 

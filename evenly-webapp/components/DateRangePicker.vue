@@ -141,7 +141,15 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const weekDays = computed(() => [
+  t('dateRange.weekDays.sun'),
+  t('dateRange.weekDays.mon'),
+  t('dateRange.weekDays.tue'),
+  t('dateRange.weekDays.wed'),
+  t('dateRange.weekDays.thu'),
+  t('dateRange.weekDays.fri'),
+  t('dateRange.weekDays.sat')
+])
 
 const showCalendar = ref(false)
 const currentMonth = ref(new Date().getMonth())
@@ -296,7 +304,7 @@ const displayText = computed(() => {
   if (startDate.value) {
     return `${formatDate(startDate.value)} - ...`
   }
-  return 'Select Date Range'
+  return t('dateRange.select')
 })
 
 const calendarRef = ref<HTMLElement | null>(null)

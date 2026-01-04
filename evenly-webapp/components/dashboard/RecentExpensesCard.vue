@@ -171,7 +171,7 @@ const displayedExpenses = computed(() => {
     .map(expense => ({
       id: expense.id,
       category: expense.category?.slug || 'other',
-      title: expense.category?.name || 'Other',
+      title: expense.category?.name || t('common.other'),
       dateISO: expense.date,
       paidBy: expense.paidBy?.displayName || expense.paidByUserId,
       amount: expense.amount,

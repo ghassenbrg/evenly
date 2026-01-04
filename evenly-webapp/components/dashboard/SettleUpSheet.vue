@@ -7,12 +7,12 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-      <p class="text-red-400 text-sm">{{ error.message || 'Failed to load balances' }}</p>
+      <p class="text-red-400 text-sm">{{ error.message || t('dashboard.loadBalancesFailed') }}</p>
       <button
         @click="loadBalances"
         class="mt-2 text-sm text-red-400 hover:text-red-300 underline"
       >
-        Retry
+        {{ t('common.retry') }}
       </button>
     </div>
 
@@ -47,8 +47,7 @@
             
             <button
               @click="handlePay(balance)"
-              :disabled="settling"
-              class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:text-gray-500 text-white font-medium rounded-lg transition-colors text-sm"
+              class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors text-sm"
             >
               {{ t('dashboard.pay') }}
             </button>
@@ -61,32 +60,11 @@
         </div>
       </div>
     </div>
-
-    <template #footer>
-      <div class="flex gap-3">
-        <button
-          @click="emit('update:modelValue', false)"
-          class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition-colors"
-        >
-          {{ t('common.close') }}
-        </button>
-        <button
-          v-if="otherMemberBalances.length > 0 && hasOutstandingBalances"
-          @click="handleSettleAll"
-          :disabled="settling"
-          class="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:text-gray-500 text-white font-medium py-3 rounded-xl transition-colors"
-        >
-          <span v-if="!settling">{{ t('dashboard.settleAll') }}</span>
-          <span v-else>{{ t('dashboard.settling') }}</span>
-        </button>
-      </div>
-    </template>
   </BottomSheet>
 </template>
 
 <script setup lang="ts">
 import { useBalance } from '~/composables/useBalance'
-import { useSettlements } from '~/composables/useSettlements'
 import { useAuth } from '~/composables/useAuth'
 import { useWorkspaceMembers } from '~/composables/useWorkspaceMembers'
 import { useFormatting } from '~/composables/useFormatting'
@@ -100,7 +78,6 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'settled': []
   'open-payment': [balance: Balance, currentUserBalance?: Balance | null]
 }>()
 
@@ -109,8 +86,6 @@ const { formatCurrency } = useFormatting()
 const { user } = useAuth()
 const { balances, loading, error, fetchBalances } = useBalance()
 const { members, fetchMembers } = useWorkspaceMembers()
-const { createSettlement, loading: settling } = useSettlements()
-const { success, error: showError } = useToast()
 
 // Load balances and members when sheet opens
 watch(() => props.modelValue, (isOpen) => {
@@ -194,10 +169,6 @@ const otherMemberBalances = computed(() => {
   return balances.value.filter(b => b.userId !== currentUserId.value)
 })
 
-const hasOutstandingBalances = computed(() => {
-  return otherMemberBalances.value.some(b => b.balance !== 0)
-})
-
 const handlePay = (balance: Balance) => {
   // Close settle up sheet and open payment sheet
   emit('update:modelValue', false)
@@ -205,21 +176,6 @@ const handlePay = (balance: Balance) => {
   const currentUserBal = currentUserBalance.value
   // Emit event to parent to open payment sheet with both balances
   emit('open-payment', balance, currentUserBal)
-}
-
-const handleSettleAll = async () => {
-  if (!props.workspaceId) return
-  
-  try {
-    // Create a settlement for all outstanding balances
-    await createSettlement(props.workspaceId, {})
-    success(t('dashboard.settlementCreated'))
-    // Reload balances
-    await loadBalances()
-    emit('settled')
-  } catch (err: any) {
-    showError(err.message || t('dashboard.settlementFailed'))
-  }
 }
 </script>
 

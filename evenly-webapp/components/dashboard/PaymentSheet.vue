@@ -23,26 +23,12 @@
       </div>
 
       <!-- Amount Input -->
-      <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">
-          {{ t('dashboard.paymentAmount') }}
-        </label>
-        <div class="relative">
-          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">¥</span>
-          <input
-            v-model.number="paymentAmount"
-            type="number"
-            :min="0"
-            step="100"
-            class="w-full pl-8 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg font-semibold"
-            :placeholder="formatCurrency(0)"
-            @input="handleAmountInput"
-          />
-        </div>
-        <p class="mt-1 text-xs text-gray-400">
-          {{ t('dashboard.enterAmount') }}
-        </p>
-      </div>
+      <AmountInput
+        v-model="paymentAmount"
+        :label="t('dashboard.paymentAmount')"
+        :hint="t('dashboard.enterAmount')"
+        :placeholder="'0'"
+      />
 
       <!-- Quick Amount Buttons -->
       <div>
@@ -283,13 +269,6 @@ watch(() => props.modelValue, (isOpen) => {
     paymentAmount.value = 0
   }
 })
-
-const handleAmountInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const value = parseFloat(target.value) || 0
-  // Allow any positive amount, no max limit
-  paymentAmount.value = Math.max(0, value)
-}
 
 const canSubmit = computed(() => {
   // Allow submission if amount is greater than 0, no max limit

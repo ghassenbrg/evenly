@@ -118,7 +118,7 @@ const { formatCurrency, formatDate } = useFormatting()
 const { t } = useI18n()
 
 const categorySlug = computed(() => props.expense.category?.slug || 'other')
-const categoryName = computed(() => props.expense.category?.name || 'Other')
+const categoryName = computed(() => props.expense.category?.name || t('common.other'))
 const paidByName = computed(() => props.expense.paidBy?.displayName || props.expense.paidByUserId)
 const expenseDate = computed(() => props.expense.date)
 

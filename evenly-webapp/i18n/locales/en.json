@@ -19,7 +19,12 @@
     "optional": "optional",
     "today": "Today",
     "yesterday": "Yesterday",
-    "noMoreItems": "No more expenses"
+    "noMoreItems": "No more expenses",
+    "retry": "Retry",
+    "all": "All",
+    "unknown": "Unknown",
+    "other": "Other",
+    "loadDashboardFailed": "Failed to load dashboard data"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -151,7 +156,8 @@
     "myRemainingBalance": "My Remaining Balance",
     "confirmPayment": "Confirm Payment",
     "processing": "Processing...",
-    "paymentCompleted": "Payment completed successfully"
+    "paymentCompleted": "Payment completed successfully",
+    "loadBalancesFailed": "Failed to load balances"
   },
   "expenses": {
     "loadingMore": "Loading more...",
@@ -181,7 +187,20 @@
       "mobile": "Mobile Phone",
       "other": "Other Expense"
     },
-    "noExpenses": "No expenses found for this period"
+    "noExpenses": "No expenses found for this period",
+    "loadFailed": "Failed to load expenses"
+  },
+  "dateRange": {
+    "select": "Select Date Range",
+    "weekDays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
   }
 }
 

@@ -121,7 +121,7 @@ interface Props {
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
 const props = withDefaults(defineProps<Props>(), {
-  filterLabel: 'All',
+  filterLabel: undefined,
   totalCategories: 0,
   items: () => []
 })
@@ -221,7 +221,7 @@ const computedItems = computed(() => {
     .slice(0, 4)
     .map(item => ({
       id: item.categoryId,
-      name: item.category?.name || 'Unknown',
+      name: item.category?.name || t('common.unknown'),
       icon: (item.category?.icon || 'other') as 'groceries' | 'rent' | 'bills' | 'mobile',
       expenseCount: item.count,
       totalAmount: item.total,

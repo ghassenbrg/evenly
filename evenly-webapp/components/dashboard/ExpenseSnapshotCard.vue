@@ -170,7 +170,7 @@ interface Props {
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
 const props = withDefaults(defineProps<Props>(), {
-  filterLabel: 'All',
+  filterLabel: undefined,
   othersCount: 0,
   othersPercent: 0,
   othersColor: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
@@ -263,7 +263,7 @@ const computedItems = computed(() => {
     .slice(0, 4)
     .map(item => ({
       key: item.categoryId,
-      label: item.category?.name || 'Unknown',
+      label: item.category?.name || t('common.unknown'),
       percent: total > 0 ? Math.round((item.total / total) * 100) : 0,
       count: item.count,
       color: item.category?.color ? `linear-gradient(135deg, ${item.category.color} 0%, ${item.category.color} 100%)` : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',

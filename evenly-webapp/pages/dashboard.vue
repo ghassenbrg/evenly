@@ -7,7 +7,7 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-      <p class="text-red-400 text-sm">{{ error.message || 'Failed to load dashboard data' }}</p>
+      <p class="text-red-400 text-sm">{{ error.message || t('common.loadDashboardFailed') }}</p>
       <button
         @click="() => loadDashboard()"
         class="mt-2 text-sm text-red-400 hover:text-red-300 underline"
