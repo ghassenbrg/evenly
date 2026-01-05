@@ -1,11 +1,16 @@
 {
-  "priority": 1,
+  "priority": 2,
   "request": {
     "method": "POST",
-    "urlPath": "/api/workspaces"
+    "urlPathPattern": "/api/workspaces/([^/]+)/pay",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.amount <= 0)]"
+      }
+    ]
   },
   "response": {
-    "status": 200,
+    "status": 400,
     "headers": {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -14,16 +19,9 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "data": {
-        "id": "ws-bob-personal",
-        "name": "Personal",
-        "defaultSplitMode": "EQUAL",
-        "monthlySharedLimit": null,
-        "isPersonal": true,
-        "currency": "JPY",
-        "inviteCode": "123456",
-        "inviteLink": "https://localhost:3000/workspace/join/123456"
-      }
+      "error": "VALIDATION_ERROR",
+      "message": "Amount must be greater than 0"
     }
   }
 }
+

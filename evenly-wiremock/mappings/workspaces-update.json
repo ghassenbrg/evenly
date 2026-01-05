@@ -1,7 +1,7 @@
 {
   "priority": 1,
   "request": {
-    "method": "GET",
+    "method": "PUT",
     "urlPathPattern": "/api/workspaces/([^/]+)"
   },
   "response": {
@@ -14,24 +14,22 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "data": {
-        "id": "ws-couple",
-        "name": "Bob & Alice",
+      "workspace": {
+        "id": "ws-bob-personal",
+        "name": "Personal",
         "defaultSplitMode": "WEIGHTED",
-        "monthlySharedLimit": 1500,
-        "isPersonal": false,
-        "currency": "EUR",
-        "inviteCode": "235680",
-        "inviteLink": "https://localhost:3000/workspace/join/235680",
+        "monthlySharedLimit": null,
+        "isPersonal": true,
+        "currency": "JPY",
+        "inviteCode": "123456",
+        "inviteLink": "https://localhost:3000/workspace/join/123456",
         "members": [
           {
             "userId": "user-bob",
-            "role": "OWNER",
             "weightPercent": 60
           },
           {
             "userId": "user-alice",
-            "role": "MEMBER",
             "weightPercent": 40
           }
         ]
@@ -39,3 +37,4 @@
     }
   }
 }
+

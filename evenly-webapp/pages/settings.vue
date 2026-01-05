@@ -19,26 +19,26 @@
 
     <!-- Money features -->
     <div class="bg-slate-800 rounded-2xl p-4 space-y-3">
-      <h2 class="text-white font-semibold text-lg">{{ t('settings.money') || 'Money management' }}</h2>
-      <p class="text-slate-400 text-sm">{{ t('settings.moneyDescription') || 'Access wallets, transactions, and subscriptions backed by the shared API.' }}</p>
+      <h2 class="text-white font-semibold text-lg">{{ t('settings.money') }}</h2>
+      <p class="text-slate-400 text-sm">{{ t('settings.moneyDescription') }}</p>
       <div class="grid gap-3 grid-cols-1">
         <NuxtLink
           to="/wallets"
           class="w-full bg-white/5 border border-slate-700 hover:border-emerald-500 text-white font-medium py-3 rounded-xl text-center transition-colors"
         >
-          {{ t('wallets.title') || 'Wallets' }}
+          {{ t('wallets.title') }}
         </NuxtLink>
         <NuxtLink
           to="/transactions"
           class="w-full bg-white/5 border border-slate-700 hover:border-emerald-500 text-white font-medium py-3 rounded-xl text-center transition-colors"
         >
-          {{ t('transactions.title') || 'Transactions' }}
+          {{ t('transactions.title') }}
         </NuxtLink>
         <NuxtLink
           to="/subscriptions"
           class="w-full bg-white/5 border border-slate-700 hover:border-emerald-500 text-white font-medium py-3 rounded-xl text-center transition-colors"
         >
-          {{ t('subscriptions.title') || 'Subscriptions' }}
+          {{ t('subscriptions.title') }}
         </NuxtLink>
       </div>
     </div>

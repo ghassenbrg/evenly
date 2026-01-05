@@ -190,19 +190,18 @@ const dateRange = computed(() => {
   return { start, end }
 })
 
-// Filter expenses by date range and workspace
+// Filter expenses by date range and workspace - using effectiveDate from API
 const filteredExpenses = computed(() => {
   const { start, end } = dateRange.value
   
   let filtered = props.expenses.filter(expense => {
-    const expenseDate = expense.date
+    const expenseDate = expense.effectiveDate
     if (!expenseDate) return false
     
     const expenseDateObj = new Date(expenseDate)
     if (expenseDateObj < start || expenseDateObj > end) return false
     
-    if (props.workspaceId && expense.workspaceId !== props.workspaceId) return false
-    
+    // Note: API doesn't provide workspaceId in expense response, so skip that check
     return true
   })
   
@@ -256,7 +255,7 @@ const trendData = computed(() => {
   const dailyTotals = new Map<number, number>()
   
   filteredExpenses.value.forEach(expense => {
-    const expenseDate = expense.date
+    const expenseDate = expense.effectiveDate
     if (!expenseDate) return
     
     const expenseDateObj = new Date(expenseDate)

@@ -1,17 +1,19 @@
 {
   "priority": 1,
   "request": {
-    "method": "OPTIONS"
+    "method": "POST",
+    "urlPath": "/api/notifications/mark-all-as-read"
   },
   "response": {
     "status": 200,
     "headers": {
+      "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Credentials": "true",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
-      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization",
-      "Access-Control-Max-Age": "3600"
-    }
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": {}
   }
 }
 

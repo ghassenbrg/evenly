@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 space-y-4">
     <!-- Header with Mark All as Read -->
-    <div v-if="notifications.length > 0 && hasUnread" class="flex items-center justify-between">
+    <div v-if="notificationList.length > 0 && hasUnread" class="flex items-center justify-between">
       <h2 class="text-lg font-semibold">{{ t('notifications.title') }}</h2>
       <button
         @click="handleMarkAllAsRead"
@@ -11,17 +11,17 @@
         {{ markingAllAsRead ? t('notifications.markingAllAsRead') : t('notifications.markAllAsRead') }}
       </button>
     </div>
-    <div v-else-if="notifications.length > 0" class="flex items-center justify-between">
+    <div v-else-if="notificationList.length > 0" class="flex items-center justify-between">
       <h2 class="text-lg font-semibold">{{ t('notifications.title') }}</h2>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading && notifications.length === 0" class="flex items-center justify-center py-12">
+    <div v-if="loading && notificationList.length === 0" class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error && notifications.length === 0" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+    <div v-else-if="error && notificationList.length === 0" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
       <p class="text-red-400 text-sm">{{ error.message || t('notifications.loadFailed') }}</p>
       <button
         @click="loadNotifications"
@@ -46,7 +46,7 @@
             <template v-for="(notification, notificationIndex) in group.notifications" :key="notification.id">
               <NotificationItem
                 :notification="notification"
-                @read="handleMarkAsRead"
+                @read="(id) => handleMarkAsRead(id)"
               />
             </template>
           </div>
@@ -75,7 +75,7 @@
       </div>
       
       <!-- Loading More Indicator -->
-      <div v-if="loading && notifications.length > 0" class="flex justify-center pt-4 pb-4">
+      <div v-if="loading && notificationList.length > 0" class="flex justify-center pt-4 pb-4">
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500"></div>
       </div>
       
@@ -128,10 +128,10 @@ const loadNotifications = async () => {
   await notifications.fetchNotifications(true)
 }
 
-// Sort notifications by date (newest first)
+// Sort notifications by date (newest first) - using timestamp from API
 const sortedNotifications = computed(() => {
   return [...notificationList.value].sort((a, b) => {
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   })
 })
 
@@ -140,7 +140,7 @@ const groupedNotifications = computed(() => {
   const groups: Record<string, Notification[]> = {}
   
   sortedNotifications.value.forEach(notification => {
-    const date = new Date(notification.createdAt)
+    const date = new Date(notification.timestamp)
     const dateKey = date.toISOString().split('T')[0]
     
     if (!groups[dateKey]) {
@@ -198,14 +198,10 @@ const hasUnread = computed(() => {
   return sortedNotifications.value.some(n => !n.read)
 })
 
-// Get unique workspace IDs for mark all as read
-const workspaceIds = computed(() => {
-  return [...new Set(sortedNotifications.value.map(n => n.workspaceId))]
-})
 
-const handleMarkAsRead = async (notificationId: string, workspaceId: string) => {
+const handleMarkAsRead = async (notificationId: string) => {
   try {
-    await notifications.markAsRead(notificationId, workspaceId)
+    await notifications.markAsRead(notificationId)
   } catch (err) {
     console.error('Failed to mark notification as read:', err)
   }
@@ -216,10 +212,8 @@ const handleMarkAllAsRead = async () => {
   
   markingAllAsRead.value = true
   try {
-    // Mark all as read for each workspace
-    for (const workspaceId of workspaceIds.value) {
-      await notifications.markAllAsRead(workspaceId)
-    }
+    // Mark all notifications as read (no workspaceId needed)
+    await notifications.markAllAsRead()
   } catch (err) {
     console.error('Failed to mark all notifications as read:', err)
   } finally {

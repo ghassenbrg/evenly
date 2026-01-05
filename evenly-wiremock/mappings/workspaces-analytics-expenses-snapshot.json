@@ -1,0 +1,68 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([^/]+)/analytics/expenses-snapshot"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": {
+      "data": [
+        {
+          "categoryId": "1",
+          "categoryName": "Food",
+          "categoryIcon": "fa-solid fa-utensils",
+          "categoryColor": "#f43f5e",
+          "totalAmount": 46700,
+          "spentPercentage": 23,
+          "expensesCount": 14
+        },
+        {
+          "categoryId": "2",
+          "categoryName": "Transportation",
+          "categoryIcon": "fa-solid fa-car",
+          "categoryColor": "#3b82f6",
+          "totalAmount": 10500,
+          "spentPercentage": 12,
+          "expensesCount": 13
+        },
+        {
+          "categoryId": "3",
+          "categoryName": "Entertainment",
+          "categoryIcon": "fa-solid fa-film",
+          "categoryColor": "#8b5cf6",
+          "totalAmount": 19700,
+          "spentPercentage": 20,
+          "expensesCount": 30
+        },
+        {
+          "categoryId": "4",
+          "categoryName": "Groceries",
+          "categoryIcon": "fa-solid fa-cart-shopping",
+          "categoryColor": "#10b981",
+          "totalAmount": 26800,
+          "spentPercentage": 17,
+          "expensesCount": 40
+        },
+        {
+          "categoryId": null,
+          "categoryName": "Others",
+          "categoryIcon": "fa-solid fa-ellipsis",
+          "categoryColor": "#64748b",
+          "totalAmount": 21800,
+          "spentPercentage": 28,
+          "expensesCount": null
+        }
+      ],
+      "categoriesCount": 11,
+      "remainingCategoriesCount": 7
+    }
+  }
+}

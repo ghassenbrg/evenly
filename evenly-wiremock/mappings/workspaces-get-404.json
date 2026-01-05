@@ -1,11 +1,11 @@
 {
-  "priority": 1,
+  "priority": 2,
   "request": {
     "method": "GET",
-    "urlPath": "/api/notifications/unread-count"
+    "urlPathPattern": "/api/workspaces/([^/]+)"
   },
   "response": {
-    "status": 200,
+    "status": 404,
     "headers": {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -14,9 +14,9 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "data": {
-        "count": 2
-      }
+      "error": "NOT_FOUND",
+      "message": "Workspace not found"
     }
   }
 }
+

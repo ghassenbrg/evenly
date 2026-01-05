@@ -2,7 +2,7 @@
   "priority": 1,
   "request": {
     "method": "GET",
-    "urlPathPattern": "/api/notifications"
+    "urlPath": "/api/notifications"
   },
   "response": {
     "status": 200,
@@ -14,122 +14,33 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "items": [
+      "data": [
         {
-          "id": "notif-{{randomValue type='UUID'}}",
-          "workspaceId": "ws-couple",
-          "title": "New expense added",
-          "message": "Bob added a new expense of ¥5,000 in the Groceries category",
-          "read": false,
-          "createdAt": "{{now offset='-5 minutes'}}",
-          "workspace": {
-            "id": "ws-couple",
-            "name": "Bob & Alice",
-            "defaultSplitMode": "EQUAL",
-            "monthlySharedLimit": 100000,
-            "isPersonal": false,
-            "currency": "JPY",
-            "createdAt": "2024-01-01T00:00:00Z",
-            "updatedAt": "2024-01-01T00:00:00Z"
-          }
+          "id": "1",
+          "type": "message",
+          "content": "You have a new message from John.",
+          "timestamp": "2024-06-01T10:15:30Z",
+          "workspaceId": "workspace_123",
+          "read": false
         },
         {
-          "id": "notif-{{randomValue type='UUID'}}",
-          "workspaceId": "ws-couple",
-          "title": "Payment received",
-          "message": "Alice received a payment of ¥12,000 from Bob",
-          "read": false,
-          "createdAt": "{{now offset='-2 hours'}}",
-          "workspace": {
-            "id": "ws-couple",
-            "name": "Bob & Alice",
-            "defaultSplitMode": "EQUAL",
-            "monthlySharedLimit": 100000,
-            "isPersonal": false,
-            "currency": "JPY",
-            "createdAt": "2024-01-01T00:00:00Z",
-            "updatedAt": "2024-01-01T00:00:00Z"
-          }
+          "id": "2",
+          "type": "alert",
+          "content": "Your password will expire in 5 days.",
+          "timestamp": "2024-06-01T09:00:00Z",
+          "workspaceId": "workspace_123",
+          "read": true
         },
         {
-          "id": "notif-{{randomValue type='UUID'}}",
-          "workspaceId": "ws-bob-personal",
-          "title": "Budget warning",
-          "message": "You've reached 80% of your monthly budget limit",
-          "read": false,
-          "createdAt": "{{now offset='-1 days'}}",
-          "workspace": {
-            "id": "ws-bob-personal",
-            "name": "Personal",
-            "defaultSplitMode": "EQUAL",
-            "monthlySharedLimit": null,
-            "isPersonal": true,
-            "currency": "JPY",
-            "createdAt": "2024-01-01T00:00:00Z",
-            "updatedAt": "2024-01-01T00:00:00Z"
-          }
-        },
-        {
-          "id": "notif-{{randomValue type='UUID'}}",
-          "workspaceId": "ws-couple",
-          "title": "Settlement completed",
-          "message": "All balances have been settled in Bob & Alice workspace",
-          "read": true,
-          "createdAt": "{{now offset='-2 days'}}",
-          "workspace": {
-            "id": "ws-couple",
-            "name": "Bob & Alice",
-            "defaultSplitMode": "EQUAL",
-            "monthlySharedLimit": 100000,
-            "isPersonal": false,
-            "currency": "JPY",
-            "createdAt": "2024-01-01T00:00:00Z",
-            "updatedAt": "2024-01-01T00:00:00Z"
-          }
-        },
-        {
-          "id": "notif-{{randomValue type='UUID'}}",
-          "workspaceId": "ws-couple",
-          "title": "New member joined",
-          "message": "Charlie joined the Bob & Alice workspace",
-          "read": true,
-          "createdAt": "{{now offset='-3 days'}}",
-          "workspace": {
-            "id": "ws-couple",
-            "name": "Bob & Alice",
-            "defaultSplitMode": "EQUAL",
-            "monthlySharedLimit": 100000,
-            "isPersonal": false,
-            "currency": "JPY",
-            "createdAt": "2024-01-01T00:00:00Z",
-            "updatedAt": "2024-01-01T00:00:00Z"
-          }
-        },
-        {
-          "id": "notif-{{randomValue type='UUID'}}",
-          "workspaceId": "ws-couple",
-          "title": "Expense updated",
-          "message": "Bob updated an expense in the Dining Out category",
-          "read": true,
-          "createdAt": "{{now offset='-5 days'}}",
-          "workspace": {
-            "id": "ws-couple",
-            "name": "Bob & Alice",
-            "defaultSplitMode": "EQUAL",
-            "monthlySharedLimit": 100000,
-            "isPersonal": false,
-            "currency": "JPY",
-            "createdAt": "2024-01-01T00:00:00Z",
-            "updatedAt": "2024-01-01T00:00:00Z"
-          }
+          "id": "3",
+          "type": "reminder",
+          "content": "Meeting with the design team at 3 PM.",
+          "timestamp": "2024-06-01T08:30:00Z",
+          "workspaceId": "workspace_980",
+          "read": false
         }
       ],
-      "total": 6,
-      "page": 1,
-      "pageSize": 20,
-      "hasMore": false
-    },
-    "transformers": ["response-template"]
+      "unreadCount": 2
+    }
   }
 }
-

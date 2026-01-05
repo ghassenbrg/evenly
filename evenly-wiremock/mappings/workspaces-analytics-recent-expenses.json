@@ -1,0 +1,63 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([^/]+)/analytics/recent-expenses"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": {
+      "data": [
+        {
+          "id": "1",
+          "categoryId": "1",
+          "categoryName": "Food",
+          "categoryIcon": "fa-solid fa-burger",
+          "categoryColor": "#f43f5e",
+          "amount": 100000,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "PENDING",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "2",
+          "categoryId": "2",
+          "categoryName": "Transportation",
+          "categoryIcon": "fa-solid fa-car",
+          "categoryColor": "#3b82f6",
+          "amount": 100000,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Taxi to the airport",
+          "status": "PENDING",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "3",
+          "categoryId": "3",
+          "categoryName": "Entertainment",
+          "categoryIcon": "fa-solid fa-film",
+          "categoryColor": "#8b5cf6",
+          "amount": 100000,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Movie tickets",
+          "status": "PENDING",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        }
+      ]
+    }
+  }
+}

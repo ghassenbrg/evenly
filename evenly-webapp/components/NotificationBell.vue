@@ -34,6 +34,7 @@
 <script setup lang="ts">
 const { t } = useI18n()
 const notifications = useNotifications()
+// unreadCount is already a computed from the composable
 const unreadCount = notifications.unreadCount
 
 // Start polling when component mounts

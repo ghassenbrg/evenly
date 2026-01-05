@@ -20,6 +20,7 @@ export default defineNuxtPlugin(async () => {
     // This avoids CSP errors from Keycloak's frame-ancestors policy
     // Note: Even with checkLoginIframe: false, check-sso might attempt iframe checks
     // CSP errors are expected and won't break functionality since we use redirects
+    // Note: Browser may show sandbox warnings for silent-check-sso.html iframe - this is expected
     let authenticated = false
     try {
       authenticated = await keycloak.init({

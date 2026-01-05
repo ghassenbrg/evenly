@@ -1,18 +1,20 @@
-import type { Expense, CreateExpenseRequest, UpdateExpenseRequest } from '~/types/api'
+import type { Expense, CreateExpenseRequest, UpdateExpenseRequest, PaginatedResponse } from '~/types/api'
 import { useApi } from '~/utils/api'
 
 export interface ExpenseFilters {
   startDate?: string
   endDate?: string
   categoryId?: string
-  status?: 'ACTIVE' | 'SETTLED'
-  limit?: number
-  offset?: number
+  status?: 'ACTIVE' | 'SETTLED' | 'PENDING' | 'COMPLETED'
+  page?: number
+  size?: number
+  sort?: string // Format: "property,DIRECTION" e.g. "effectiveDate,DESC"
 }
 
 export const useExpenses = () => {
   const api = useApi()
   const expenses = ref<Expense[]>([])
+  const pageInfo = ref<{ number: number; size: number; totalElements: number; totalPages: number } | null>(null)
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
@@ -20,17 +22,21 @@ export const useExpenses = () => {
     loading.value = true
     error.value = null
     try {
+      // endpoints.json: GET /api/workspaces/{id}/expenses?page=0&size=5&sort=effectiveDate,DESC
       const queryParams = new URLSearchParams()
       if (filters?.startDate) queryParams.append('startDate', filters.startDate)
       if (filters?.endDate) queryParams.append('endDate', filters.endDate)
       if (filters?.categoryId) queryParams.append('categoryId', filters.categoryId)
       if (filters?.status) queryParams.append('status', filters.status)
-      if (filters?.limit) queryParams.append('limit', String(filters.limit))
-      if (filters?.offset) queryParams.append('offset', String(filters.offset))
+      if (filters?.page !== undefined) queryParams.append('page', String(filters.page))
+      if (filters?.size !== undefined) queryParams.append('size', String(filters.size))
+      if (filters?.sort) queryParams.append('sort', filters.sort)
 
       const query = queryParams.toString()
       const path = `/api/workspaces/${workspaceId}/expenses${query ? `?${query}` : ''}`
-      expenses.value = await api.get<Expense[]>(path)
+      const response = await api.get<PaginatedResponse<Expense>>(path)
+      expenses.value = response.data
+      pageInfo.value = response.page
     } catch (err) {
       error.value = err as Error
       throw err
@@ -109,6 +115,7 @@ export const useExpenses = () => {
 
   return {
     expenses: readonly(expenses),
+    pageInfo: readonly(pageInfo),
     loading: readonly(loading),
     error: readonly(error),
     fetchExpenses,

@@ -146,6 +146,9 @@
   },
   "dashboard": {
     "totalBalance": "残高",
+    "totalPaid": "支払い総額",
+    "youOwe": "あなたが借りている",
+    "youAreOwed": "あなたに借りている",
     "budget": "予算",
     "setUp": "設定",
     "expenseSnapshot": "支出スナップショット",
@@ -256,7 +259,12 @@
     "loadingMore": "さらに読み込み中...",
     "markAllAsRead": "すべて既読にする",
     "markingAllAsRead": "すべて既読にしています...",
-    "unknownWorkspace": "不明なワークスペース"
+    "unknownWorkspace": "不明なワークスペース",
+    "types": {
+      "message": "メッセージ",
+      "alert": "アラート",
+      "reminder": "リマインダー"
+    }
   },
   "wallets": {
     "title": "ウォレット",

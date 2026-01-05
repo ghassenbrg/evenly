@@ -18,47 +18,15 @@
           @click="emit('openCategory', item.id)"
           class="w-full flex items-center justify-between py-3 transition-colors hover:bg-white/5 rounded-lg px-1 -mx-1 relative"
         >
-          <!-- Left Icon -->
+          <!-- Left Icon with Font Awesome -->
           <div
             class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
-            :style="{ background: getCategoryGradient(item.accent) }"
+            :style="{ background: colorToGradient(item.color) }"
           >
-            <svg
-              v-if="item.icon === 'groceries'"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            <FontAwesomeIcon
+              :icon="getFontAwesomeIcon(item.iconClass || 'fa-solid fa-ellipsis')"
               class="w-5 h-5 text-white/80"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <svg
-              v-else-if="item.icon === 'rent'"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 text-white/80"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            <svg
-              v-else-if="item.icon === 'bills'"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 text-white/80"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <svg
-              v-else-if="item.icon === 'mobile'"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 text-white/80"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
+            />
           </div>
 
           <!-- Middle Text Block -->
@@ -101,15 +69,18 @@
 <script setup lang="ts">
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
-import { useCategories } from '~/composables/useCategories'
+import { useFontAwesome } from '~/composables/useFontAwesome'
+import { useCategoryColor } from '~/composables/useCategoryColor'
 
 interface CategoryItem {
   id: string
   name: string
-  icon: 'groceries' | 'rent' | 'bills' | 'mobile'
+  iconClass?: string // Font Awesome icon class from API
+  icon?: 'groceries' | 'rent' | 'bills' | 'mobile' // Legacy support
   expenseCount: number
   totalAmount: number
   accent: 'green' | 'rose' | 'sky' | 'indigo'
+  color?: string // Category color from API
 }
 
 interface Props {
@@ -135,11 +106,22 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { formatCurrency } = useFormatting()
+const { parseIconClass } = useFontAwesome()
+const { colorToGradient } = useCategoryColor()
 
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
-const { categoryAnalytics, fetchCategoryAnalytics } = useAnalytics()
-const { categories, fetchCategories } = useCategories()
+const { expenseSnapshot, fetchCategoryAnalytics } = useAnalytics()
+
+// Helper to get Font Awesome icon from class string
+const getFontAwesomeIcon = (iconClass: string | null | undefined) => {
+  const parsed = parseIconClass(iconClass)
+  if (!parsed) {
+    // Fallback to ellipsis icon
+    return ['fas', 'ellipsis']
+  }
+  return [parsed.prefix, parsed.icon]
+}
 
 const selectedPeriod = ref<PeriodType>('month')
 const customRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
@@ -205,31 +187,39 @@ const handlePeriodChange = async (period: PeriodType, range?: { start: string | 
   // Fetch data for this card only
   if (activeWorkspaceId.value) {
     const { start, end } = getDateRange(period, range)
-    await Promise.all([
-      fetchCategoryAnalytics(activeWorkspaceId.value, start, end),
-      fetchCategories(activeWorkspaceId.value)
-    ])
+    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
   }
   
   emit('period-change', period, range)
 }
 
-// Compute items from fetched categoryAnalytics
+// Compute items from fetched expenseSnapshot - use real API data
+// The API returns data sorted by totalAmount, with "Others" category (categoryId: null) at the end
 const computedItems = computed(() => {
-  return [...categoryAnalytics.value]
-    .sort((a, b) => b.total - a.total)
+  if (!expenseSnapshot.value || !expenseSnapshot.value.data.length) return []
+  
+  // Filter out "Others" category (categoryId: null) and take top 4
+  return expenseSnapshot.value.data
+    .filter(item => item.categoryId !== null)
     .slice(0, 4)
     .map(item => ({
-      id: item.categoryId,
-      name: item.category?.name || t('common.unknown'),
-      icon: (item.category?.icon || 'other') as 'groceries' | 'rent' | 'bills' | 'mobile',
-      expenseCount: item.count,
-      totalAmount: item.total,
-      accent: getAccentFromColor(item.category?.color || '#64748b')
+      id: item.categoryId || '',
+      name: item.categoryName || t('common.unknown'),
+      iconClass: item.categoryIcon || 'fa-solid fa-ellipsis', // Use real API categoryIcon
+      expenseCount: item.expensesCount || 0,
+      totalAmount: item.totalAmount,
+      accent: getAccentFromColor(item.categoryColor || '#64748b'), // Use real API categoryColor
+      color: item.categoryColor || '#64748b' // Store color for gradient
     }))
 })
 
-const computedTotalCategories = computed(() => categories.value.length)
+// Use categoriesCount from API response
+const computedTotalCategories = computed(() => {
+  if (expenseSnapshot.value && expenseSnapshot.value.categoriesCount) {
+    return expenseSnapshot.value.categoriesCount
+  }
+  return 0
+})
 
 // Use computed values if available, otherwise fall back to props
 const displayItems = computed(() => computedItems.value.length > 0 ? computedItems.value : props.items)
@@ -249,20 +239,14 @@ const getCategoryGradient = (accent: string): string => {
 onMounted(async () => {
   if (activeWorkspaceId.value) {
     const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
-    await Promise.all([
-      fetchCategoryAnalytics(activeWorkspaceId.value, start, end),
-      fetchCategories(activeWorkspaceId.value)
-    ])
+    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
   }
 })
 
 watch(activeWorkspaceId, async () => {
   if (activeWorkspaceId.value) {
     const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
-    await Promise.all([
-      fetchCategoryAnalytics(activeWorkspaceId.value, start, end),
-      fetchCategories(activeWorkspaceId.value)
-    ])
+    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
   }
 })
 </script>

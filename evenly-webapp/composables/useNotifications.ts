@@ -1,23 +1,27 @@
-import type { Notification, UnreadCountResponse, PaginatedNotifications } from '~/types/api'
+import type { Notification } from '~/types/api'
 import { useApi } from '~/utils/api'
+
+// Shared state - singleton pattern (like useToast)
+const unreadCount = ref<number>(0)
+const notifications = ref<Notification[]>([])
+const loading = ref(false)
+const error = ref<Error | null>(null)
+const total = ref(0)
+const hasMore = ref(false)
+const page = ref(1)
+const pageSize = ref(20)
+
+// Poll interval for unread count (45 seconds)
+let pollInterval: ReturnType<typeof setInterval> | null = null
 
 export const useNotifications = () => {
   const api = useApi()
-  const unreadCount = ref<number>(0)
-  const notifications = ref<Notification[]>([])
-  const loading = ref(false)
-  const error = ref<Error | null>(null)
-  const total = ref(0)
-  const hasMore = ref(false)
-  const page = ref(1)
-  const pageSize = ref(20)
-
-  // Poll interval for unread count (45 seconds)
-  let pollInterval: ReturnType<typeof setInterval> | null = null
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await api.get<UnreadCountResponse>('/api/notifications/unread-count')
+      // endpoints.json: GET /api/notifications/unread-count returns { data: { count: number } }
+      // useApi transforms it to { unreadCount: number }
+      const response = await api.get<{ unreadCount: number }>('/api/notifications/unread-count')
       unreadCount.value = response.unreadCount
     } catch (err) {
       console.error('Failed to fetch unread count:', err)
@@ -34,22 +38,22 @@ export const useNotifications = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await api.get<PaginatedNotifications>(
-        `/api/notifications?page=${page.value}&pageSize=${pageSize.value}`
-      )
+      // endpoints.json structure: { data: Notification[], unreadCount: number }
+      // Note: endpoints.json doesn't support pagination, so we get all notifications
+      const response = await api.get<{ data: Notification[], unreadCount: number }>('/api/notifications')
+      
+      const notificationsList = response.data || []
+      const responseUnreadCount = response.unreadCount || 0
       
       if (reset) {
-        notifications.value = response.items
+        notifications.value = notificationsList
       } else {
-        notifications.value = [...notifications.value, ...response.items]
+        notifications.value = [...notifications.value, ...notificationsList]
       }
       
-      total.value = response.total
-      hasMore.value = response.hasMore
-      page.value = response.page
-      
-      // Update unread count after fetching notifications
-      await fetchUnreadCount()
+      total.value = notificationsList.length
+      hasMore.value = false // endpoints.json doesn't support pagination
+      unreadCount.value = responseUnreadCount
     } catch (err) {
       error.value = err as Error
       throw err
@@ -64,19 +68,23 @@ export const useNotifications = () => {
     await fetchNotifications(false)
   }
 
-  const markAsRead = async (notificationId: string, workspaceId: string) => {
+  const markAsRead = async (notificationId: string) => {
     try {
-      await api.post(`/api/workspaces/${workspaceId}/notifications/${notificationId}/read`)
+      // Find notification before marking as read to check if it was unread
+      const notification = notifications.value.find(n => n.id === notificationId)
+      const wasUnread = notification && !notification.read
+      
+      // endpoints.json uses /api/notifications/{id}/mark-as-read (no workspaceId in path)
+      await api.post(`/api/notifications/${notificationId}/mark-as-read`)
       
       // Update local state
-      const notification = notifications.value.find(n => n.id === notificationId)
       if (notification) {
         notification.read = true
       }
       
-      // Update unread count
-      if (unreadCount.value > 0) {
-        unreadCount.value -= 1
+      // Decrement unread count if notification was previously unread
+      if (wasUnread && unreadCount.value > 0) {
+        unreadCount.value = unreadCount.value - 1
       }
     } catch (err) {
       console.error('Failed to mark notification as read:', err)
@@ -84,15 +92,14 @@ export const useNotifications = () => {
     }
   }
 
-  const markAllAsRead = async (workspaceId: string) => {
+  const markAllAsRead = async () => {
     try {
-      await api.post(`/api/workspaces/${workspaceId}/notifications/read-all`)
+      // endpoints.json uses /api/notifications/mark-all-as-read (no workspaceId in path)
+      await api.post('/api/notifications/mark-all-as-read')
       
-      // Update local state
+      // Update local state - mark all notifications as read
       notifications.value.forEach(n => {
-        if (n.workspaceId === workspaceId) {
-          n.read = true
-        }
+        n.read = true
       })
       
       // Reset unread count
@@ -131,7 +138,8 @@ export const useNotifications = () => {
   }
 
   return {
-    unreadCount: readonly(unreadCount),
+    // Return computed to ensure reactivity
+    unreadCount: computed(() => unreadCount.value),
     notifications: readonly(notifications),
     loading: readonly(loading),
     error: readonly(error),

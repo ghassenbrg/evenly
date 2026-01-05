@@ -22,27 +22,18 @@
     <div class="flex-1 min-w-0">
       <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
-          <h4 class="text-sm font-medium text-white truncate">{{ notification.title }}</h4>
-          <p class="text-xs text-slate-400 mt-1 line-clamp-2">{{ notification.message }}</p>
+          <h4 class="text-sm font-medium text-white truncate">{{ getNotificationTitle(notification.type) }}</h4>
+          <p class="text-xs text-slate-400 mt-1 line-clamp-2">{{ notification.content }}</p>
         </div>
       </div>
       
       <!-- Workspace and Time -->
       <div class="flex items-center justify-between mt-2">
-        <span
-          v-if="notification.workspace"
-          class="text-xs text-slate-500"
-        >
-          {{ notification.workspace.name }}
-        </span>
-        <span
-          v-else
-          class="text-xs text-slate-500"
-        >
-          {{ t('notifications.unknownWorkspace') }}
+        <span class="text-xs text-slate-500">
+          {{ getWorkspaceName(notification.workspaceId) }}
         </span>
         <span class="text-xs text-slate-500">
-          {{ formatTime(notification.createdAt) }}
+          {{ formatTime(notification.timestamp) }}
         </span>
       </div>
     </div>
@@ -52,25 +43,41 @@
 <script setup lang="ts">
 import type { Notification } from '~/types/api'
 import { useFormatting } from '~/composables/useFormatting'
+import { useWorkspacesStore } from '~/stores/workspaces'
 
 const props = defineProps<{
   notification: Notification
 }>()
 
 const emit = defineEmits<{
-  read: [notificationId: string, workspaceId: string]
+  read: [notificationId: string]
 }>()
 
 const { t } = useI18n()
 const { formatRelativeTime } = useFormatting()
+const workspacesStore = useWorkspacesStore()
 
 const formatTime = (dateString: string): string => {
   return formatRelativeTime(new Date(dateString))
 }
 
+const getNotificationTitle = (type: string): string => {
+  const titles: Record<string, string> = {
+    message: t('notifications.types.message'),
+    alert: t('notifications.types.alert'),
+    reminder: t('notifications.types.reminder')
+  }
+  return titles[type] || type
+}
+
+const getWorkspaceName = (workspaceId: string): string => {
+  const workspace = workspacesStore.workspaces.find(w => w.id === workspaceId)
+  return workspace?.name || workspaceId || t('notifications.unknownWorkspace')
+}
+
 const handleClick = () => {
   if (!props.notification.read) {
-    emit('read', props.notification.id, props.notification.workspaceId)
+    emit('read', props.notification.id)
   }
 }
 </script>

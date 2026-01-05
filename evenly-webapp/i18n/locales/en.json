@@ -146,6 +146,9 @@
   },
   "dashboard": {
     "totalBalance": "Total Balance",
+    "totalPaid": "Total Paid",
+    "youOwe": "You owe",
+    "youAreOwed": "You are owed",
     "budget": "Budget",
     "setUp": "Set up",
     "expenseSnapshot": "Expense Snapshot",
@@ -256,7 +259,12 @@
     "loadingMore": "Loading more...",
     "markAllAsRead": "Mark all as read",
     "markingAllAsRead": "Marking all as read...",
-    "unknownWorkspace": "Unknown workspace"
+    "unknownWorkspace": "Unknown workspace",
+    "types": {
+      "message": "Message",
+      "alert": "Alert",
+      "reminder": "Reminder"
+    }
   },
   "wallets": {
     "title": "Wallets",

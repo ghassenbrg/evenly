@@ -1,11 +1,11 @@
 {
-  "priority": 1,
+  "priority": 2,
   "request": {
-    "method": "GET",
-    "urlPath": "/api/notifications/unread-count"
+    "method": "DELETE",
+    "urlPathPattern": "/api/workspaces/([^/]+)"
   },
   "response": {
-    "status": 200,
+    "status": 409,
     "headers": {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -14,9 +14,9 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "data": {
-        "count": 2
-      }
+      "error": "CONFLICT",
+      "message": "Cannot delete workspace with active expenses or settlements"
     }
   }
 }
+

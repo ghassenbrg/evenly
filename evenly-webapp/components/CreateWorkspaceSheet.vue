@@ -36,13 +36,13 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.currency') || 'Currency' }}</label>
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.currency') }}</label>
         <select
           v-model="form.currency"
           required
           class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         >
-          <option value="" disabled>{{ t('workspace.selectCurrency') || 'Select currency' }}</option>
+          <option value="" disabled>{{ t('workspace.selectCurrency') }}</option>
           <option v-for="currency in currencies" :key="currency.code" :value="currency.code">
             {{ currency.code }} - {{ currency.name }}
           </option>
@@ -83,14 +83,14 @@
   <BottomSheet 
     :model-value="showInviteSheet" 
     @update:model-value="showInviteSheet = $event"
-    :title="t('workspace.inviteTitle') || 'Invite Members'"
+    :title="t('workspace.inviteTitle')"
   >
     <div class="space-y-4">
-      <p class="text-slate-300 text-sm">{{ t('workspace.inviteDescription') || 'Share this code or link with others to invite them to your workspace.' }}</p>
+      <p class="text-slate-300 text-sm">{{ t('workspace.inviteDescription') }}</p>
       
       <!-- Invite Code -->
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.inviteCode') || 'Invite Code' }}</label>
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.inviteCode') }}</label>
         <div class="flex gap-2">
           <input
             :value="inviteCode"
@@ -108,7 +108,7 @@
 
       <!-- Invite Link -->
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.inviteLink') || 'Invite Link' }}</label>
+        <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.inviteLink') }}</label>
         <div class="flex gap-2">
           <input
             :value="inviteLink"

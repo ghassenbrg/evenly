@@ -13,28 +13,39 @@
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
-    "jsonBody": [
-      {
-        "id": "ws-bob-personal",
-        "name": "Personal",
-        "defaultSplitMode": "EQUAL",
-        "monthlySharedLimit": null,
-        "isPersonal": true,
-        "currency": "JPY",
-        "createdAt": "2024-01-01T00:00:00Z",
-        "updatedAt": "2024-01-01T00:00:00Z"
-      },
-      {
-        "id": "ws-couple",
-        "name": "Bob & Alice",
-        "defaultSplitMode": "EQUAL",
-        "monthlySharedLimit": 100000,
-        "isPersonal": false,
-        "currency": "JPY",
-        "createdAt": "2024-01-01T00:00:00Z",
-        "updatedAt": "2024-01-01T00:00:00Z"
-      }
-    ]
+    "jsonBody": {
+      "data": [
+        {
+          "id": "ws-bob-personal",
+          "name": "Personal",
+          "defaultSplitMode": "EQUAL",
+          "monthlySharedLimit": null,
+          "isPersonal": true,
+          "currency": "JPY",
+          "inviteCode": "123456",
+          "inviteLink": "https://localhost:3000/workspace/join/123456"
+        },
+        {
+          "id": "ws-couple",
+          "name": "Bob & Alice",
+          "defaultSplitMode": "WEIGHTED",
+          "monthlySharedLimit": 120000,
+          "isPersonal": false,
+          "currency": "JPY",
+          "inviteCode": "098764",
+          "inviteLink": "https://localhost:3000/workspace/join/098764"
+        },
+        {
+          "id": "ws-family",
+          "name": "Family",
+          "defaultSplitMode": "EQUAL",
+          "monthlySharedLimit": 1500,
+          "isPersonal": false,
+          "currency": "EUR",
+          "inviteCode": "235680",
+          "inviteLink": "https://localhost:3000/workspace/join/235680"
+        }
+      ]
+    }
   }
 }
-

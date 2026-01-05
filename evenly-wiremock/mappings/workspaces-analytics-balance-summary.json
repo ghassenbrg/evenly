@@ -1,8 +1,8 @@
 {
   "priority": 1,
   "request": {
-    "method": "POST",
-    "urlPath": "/api/workspaces"
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([^/]+)/analytics/balance-summary"
   },
   "response": {
     "status": 200,
@@ -15,15 +15,14 @@
     },
     "jsonBody": {
       "data": {
-        "id": "ws-bob-personal",
-        "name": "Personal",
-        "defaultSplitMode": "EQUAL",
-        "monthlySharedLimit": null,
-        "isPersonal": true,
-        "currency": "JPY",
-        "inviteCode": "123456",
-        "inviteLink": "https://localhost:3000/workspace/join/123456"
+        "userTotalPaidAmount": 90000,
+        "userTotalExpectedAmount": 120000,
+        "workspaceTotalPaidAmount": 140000,
+        "budgetLimit": 200000,
+        "spentPercentage": 70,
+        "currency": "JPY"
       }
     }
   }
 }
+

@@ -10,17 +10,8 @@
         class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
         :style="{ background: getStatusGradient(payment.status) }"
       >
+        <!-- Payment icon - API doesn't provide type, so use default -->
         <svg
-          v-if="payment.type === 'EXPENSE_SETTLEMENT' || payment.type === 'SETTLEMENT'"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          class="w-5 h-5 text-white/80"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <svg
-          v-else-if="payment.type === 'REIMBURSEMENT'"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -28,25 +19,16 @@
         >
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <svg
-          v-else
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          class="w-5 h-5 text-white/80"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-        </svg>
       </div>
       
       <!-- Member Info -->
       <div class="flex flex-col items-start">
         <div class="flex items-center space-x-2">
-          <span class="text-xs font-medium text-white/70">{{ getPayerInitials(payment.payer) }}</span>
+          <span class="text-xs font-medium text-white/70">{{ getInitials(payment.paidByUserName) }}</span>
           <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
-          <span class="text-xs font-medium text-white/70">{{ getPayeeInitials(payment.payee) }}</span>
+          <span class="text-xs font-medium text-white/70">{{ getInitials(payment.payeeUserName) }}</span>
         </div>
         <div class="text-xs text-white/50 mt-0.5">
           {{ payerName }} → {{ payeeName }}
@@ -57,7 +39,7 @@
     <!-- Middle Text Block -->
     <div class="flex-1 min-w-0 px-3 text-left">
       <div class="flex items-center space-x-2">
-        <span class="text-base font-medium text-white/90">{{ getPaymentTypeLabel(payment.type) }}</span>
+        <span class="text-base font-medium text-white/90">{{ t('payments.payment') }}</span>
         <span
           class="px-2 py-0.5 rounded-full text-xs font-medium"
           :class="getStatusClass(payment.status)"
@@ -66,7 +48,7 @@
         </span>
       </div>
       <div class="text-sm text-white/55 mt-0.5">
-        {{ formatDate(payment.createdAt) }}
+        {{ formatDate(payment.effectiveDate) }}
       </div>
       <div v-if="payment.note" class="text-xs text-white/50 mt-1">
         {{ payment.note }}
@@ -96,40 +78,21 @@ const emit = defineEmits<{
 const { formatCurrency, formatDate } = useFormatting()
 const { t } = useI18n()
 
-const payerName = computed(() => props.payment.payer?.displayName || props.payment.payerId)
-const payeeName = computed(() => props.payment.payee?.displayName || props.payment.payeeId)
+// Use API field names from endpoints.json
+const payerName = computed(() => props.payment.paidByUserName || props.payment.paidByUserId)
+const payeeName = computed(() => props.payment.payeeUserName || props.payment.payeeUserId)
 
-const getPayerInitials = (user?: User) => {
-  if (!user) return '?'
-  const name = user.displayName || user.username || ''
+const getInitials = (name?: string) => {
+  if (!name) return '?'
   return name
     .split(' ')
     .map(n => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2) || user.id.slice(0, 2).toUpperCase()
+    .slice(0, 2) || '??'
 }
 
-const getPayeeInitials = (user?: User) => {
-  if (!user) return '?'
-  const name = user.displayName || user.username || ''
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || user.id.slice(0, 2).toUpperCase()
-}
-
-const getPaymentTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    EXPENSE_SETTLEMENT: t('payments.types.expenseSettlement'),
-    REIMBURSEMENT: t('payments.types.reimbursement'),
-    MANUAL_TRANSFER: t('payments.types.manualTransfer'),
-    SETTLEMENT: t('payments.types.settlement')
-  }
-  return labels[type] || type
-}
+// Payment type not in API response, removed
 
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {

@@ -63,6 +63,12 @@ export default defineNuxtConfig({
     workbox: {
       navigateFallback: '/',
       navigateFallbackDenylist: [/^\/api/, /^\/_nuxt/],
+      globPatterns: ['**/*.{js,css,html,png,svg,jpg,jpeg,gif,webp,woff,woff2}'],
+      cleanupOutdatedCaches: true,
+      skipWaiting: true,
+      clientsClaim: true,
+      // Suppress non-precached-url errors for navigation routes
+      // The root route is handled by navigateFallback
       runtimeCaching: [
         {
           urlPattern: ({ url }) => url.pathname.startsWith('/api'),
@@ -79,7 +85,9 @@ export default defineNuxtConfig({
             cacheName: 'root-cache'
           }
         }
-      ]
+      ],
+      // Customize the service worker to handle root route properly
+      importScripts: []
     }
   },
   tailwindcss: {

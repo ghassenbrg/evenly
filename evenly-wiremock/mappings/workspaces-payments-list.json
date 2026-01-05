@@ -2,7 +2,7 @@
   "priority": 1,
   "request": {
     "method": "GET",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/payments"
+    "urlPathPattern": "/api/workspaces/([^/]+)/payments"
   },
   "response": {
     "status": 200,
@@ -13,164 +13,140 @@
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
-    "jsonBody": [
-      {
-        "id": "pay-{{randomValue type='UUID'}}",
-        "workspaceId": "{{request.pathSegments.[1]}}",
-        "payerId": "user-bob",
-        "payeeId": "user-alice",
-        "amount": 38500,
-        "currency": "JPY",
-        "type": "EXPENSE_SETTLEMENT",
-        "status": "COMPLETED",
-        "note": "Settlement payment for shared expenses",
-        "createdAt": "{{now offset='-1 days'}}",
-        "payer": {
-          "id": "user-bob",
-          "email": "bob@example.com",
-          "displayName": "Bob",
-          "username": "bob",
-          "preferredCurrency": "JPY"
+    "jsonBody": {
+      "data": [
+        {
+          "id": "1",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
         },
-        "payee": {
-          "id": "user-alice",
-          "email": "alice@example.com",
-          "displayName": "Alice",
-          "username": "alice",
-          "preferredCurrency": "JPY"
+        {
+          "id": "2",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "3",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "4",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "5",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "6",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "7",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "8",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "9",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
+        },
+        {
+          "id": "10",
+          "payeeUserId": "user-alice",
+          "payeeUserName": "Alice",
+          "amount": 6500,
+          "currency": "JPY",
+          "effectiveDate": "2025-10-31",
+          "note": "Dinner with friends",
+          "status": "COMPLETED",
+          "paidByUserId": "user-bob",
+          "paidByUserName": "Bob"
         }
+      ],
+      "page": {
+        "number": 0,
+        "size": 10,
+        "totalElements": 23,
+        "totalPages": 5
       },
-      {
-        "id": "pay-{{randomValue type='UUID'}}",
-        "workspaceId": "{{request.pathSegments.[1]}}",
-        "payerId": "user-alice",
-        "payeeId": "user-bob",
-        "amount": 12000,
-        "currency": "JPY",
-        "type": "REIMBURSEMENT",
-        "status": "COMPLETED",
-        "note": "Reimbursement for dinner",
-        "createdAt": "{{now offset='-3 days'}}",
-        "payer": {
-          "id": "user-alice",
-          "email": "alice@example.com",
-          "displayName": "Alice",
-          "username": "alice",
-          "preferredCurrency": "JPY"
-        },
-        "payee": {
-          "id": "user-bob",
-          "email": "bob@example.com",
-          "displayName": "Bob",
-          "username": "bob",
-          "preferredCurrency": "JPY"
-        }
-      },
-      {
-        "id": "pay-{{randomValue type='UUID'}}",
-        "workspaceId": "{{request.pathSegments.[1]}}",
-        "payerId": "user-bob",
-        "payeeId": "user-alice",
-        "amount": 5000,
-        "currency": "JPY",
-        "type": "MANUAL_TRANSFER",
-        "status": "PENDING",
-        "note": "Partial payment",
-        "createdAt": "{{now offset='-5 days'}}",
-        "payer": {
-          "id": "user-bob",
-          "email": "bob@example.com",
-          "displayName": "Bob",
-          "username": "bob",
-          "preferredCurrency": "JPY"
-        },
-        "payee": {
-          "id": "user-alice",
-          "email": "alice@example.com",
-          "displayName": "Alice",
-          "username": "alice",
-          "preferredCurrency": "JPY"
-        }
-      },
-      {
-        "id": "pay-{{randomValue type='UUID'}}",
-        "workspaceId": "{{request.pathSegments.[1]}}",
-        "payerId": "user-alice",
-        "payeeId": "user-bob",
-        "amount": 15000,
-        "currency": "JPY",
-        "type": "SETTLEMENT",
-        "status": "COMPLETED",
-        "reference": "SETT-2024-001",
-        "createdAt": "{{now offset='-7 days'}}",
-        "payer": {
-          "id": "user-alice",
-          "email": "alice@example.com",
-          "displayName": "Alice",
-          "username": "alice",
-          "preferredCurrency": "JPY"
-        },
-        "payee": {
-          "id": "user-bob",
-          "email": "bob@example.com",
-          "displayName": "Bob",
-          "username": "bob",
-          "preferredCurrency": "JPY"
-        }
-      },
-      {
-        "id": "pay-{{randomValue type='UUID'}}",
-        "workspaceId": "{{request.pathSegments.[1]}}",
-        "payerId": "user-bob",
-        "payeeId": "user-alice",
-        "amount": 25000,
-        "currency": "JPY",
-        "type": "EXPENSE_SETTLEMENT",
-        "status": "FAILED",
-        "note": "Payment failed due to insufficient funds",
-        "createdAt": "{{now offset='-10 days'}}",
-        "payer": {
-          "id": "user-bob",
-          "email": "bob@example.com",
-          "displayName": "Bob",
-          "username": "bob",
-          "preferredCurrency": "JPY"
-        },
-        "payee": {
-          "id": "user-alice",
-          "email": "alice@example.com",
-          "displayName": "Alice",
-          "username": "alice",
-          "preferredCurrency": "JPY"
-        }
-      },
-      {
-        "id": "pay-{{randomValue type='UUID'}}",
-        "workspaceId": "{{request.pathSegments.[1]}}",
-        "payerId": "user-alice",
-        "payeeId": "user-bob",
-        "amount": 8000,
-        "currency": "JPY",
-        "type": "REIMBURSEMENT",
-        "status": "COMPLETED",
-        "createdAt": "{{now offset='-14 days'}}",
-        "payer": {
-          "id": "user-alice",
-          "email": "alice@example.com",
-          "displayName": "Alice",
-          "username": "alice",
-          "preferredCurrency": "JPY"
-        },
-        "payee": {
-          "id": "user-bob",
-          "email": "bob@example.com",
-          "displayName": "Bob",
-          "username": "bob",
-          "preferredCurrency": "JPY"
-        }
+      "sort": {
+        "sorted": true,
+        "direction": "DESC",
+        "property": "effectiveDate"
       }
-    ],
-    "transformers": ["response-template"]
+    }
   }
 }
-

@@ -56,22 +56,20 @@ export interface Category {
   updatedAt: string
 }
 
+// Expense types matching endpoints.json
 export interface Expense {
   id: string
-  workspaceId: string
+  categoryId: string | null
+  categoryName: string
+  categoryIcon: string
+  categoryColor?: string
   amount: number
-  paidByUserId: string
-  categoryId: string
-  date: string
+  currency: string
+  effectiveDate: string
   note?: string
   status: ExpenseStatus
-  settlementId: string | null
-  createdByUserId: string
-  createdAt: string
-  updatedAt: string
-  paidBy?: User
-  category?: Category
-  participants?: ExpenseParticipant[]
+  paidByUserId: string
+  paidByUserName: string
 }
 
 export interface ExpenseParticipant {
@@ -115,6 +113,7 @@ export interface Settlement {
   createdBy?: User
 }
 
+// Analytics summary - keeping for backward compatibility but API uses balance-summary
 export interface AnalyticsSummary {
   total: number
   youOwe?: number
@@ -131,6 +130,33 @@ export interface AnalyticsSummary {
     percentage: number
     warning: boolean
   }
+}
+
+// Analytics types matching endpoints.json
+export interface ExpenseSnapshotItem {
+  categoryId: string | null
+  categoryName: string
+  categoryIcon: string
+  categoryColor?: string
+  totalAmount: number
+  spentPercentage: number
+  expensesCount: number | null
+}
+
+export interface ExpenseSnapshotResponse {
+  data: ExpenseSnapshotItem[]
+  categoriesCount: number
+  remainingCategoriesCount: number
+}
+
+export interface BalanceSummary {
+  totalAmount?: number // Legacy field, kept for backward compatibility
+  userTotalPaidAmount: number
+  userTotalExpectedAmount: number
+  workspaceTotalPaidAmount: number
+  budgetLimit: number | null
+  spentPercentage: number
+  currency: string
 }
 
 export interface CategoryAnalytics {
@@ -227,41 +253,62 @@ export interface CreateSettlementRequest {
   note?: string
 }
 
+// Payment types matching endpoints.json
 export interface Payment {
   id: string
-  workspaceId: string
-  payerId: string
-  payeeId: string
+  payeeUserId: string
+  payeeUserName: string
   amount: number
   currency: string
-  type: PaymentType
-  status: PaymentStatus
+  effectiveDate: string
   note?: string
-  reference?: string
-  createdAt: string
-  payer?: User
-  payee?: User
+  status: PaymentStatus
+  paidByUserId: string
+  paidByUserName: string
 }
 
+// Notification types matching endpoints.json
 export interface Notification {
   id: string
+  type: string
+  content: string
+  timestamp: string
   workspaceId: string
-  title: string
-  message: string
   read: boolean
-  createdAt: string
-  workspace?: Workspace
 }
 
 export interface UnreadCountResponse {
-  unreadCount: number
+  count: number
 }
 
-export interface PaginatedNotifications {
-  items: Notification[]
-  total: number
-  page: number
-  pageSize: number
-  hasMore: boolean
+// Pagination types matching endpoints.json
+export interface PageInfo {
+  number: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+export interface SortInfo {
+  sorted: boolean
+  direction: 'ASC' | 'DESC'
+  property: string
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  page: PageInfo
+  sort: SortInfo
+}
+
+// Error response types
+export interface ApiErrorResponse {
+  error?: string
+  message?: string
+  status?: number
+  errors?: Array<{
+    field: string
+    message: string
+  }>
 }
 

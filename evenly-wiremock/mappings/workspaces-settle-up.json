@@ -1,0 +1,43 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([^/]+)/settle-up"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": {
+      "data": {
+        "currency": "JPY",
+        "currentUser": {
+          "userId": "user-bob",
+          "userFullName": "Bob",
+          "paidAmount": 120000,
+          "expectedAmount": 81500
+        },
+        "otherMembers": [
+          {
+            "userId": "user-alice",
+            "userFullName": "Alice",
+            "paidAmount": 61500,
+            "expectedAmount": 38500
+          },
+          {
+            "userId": "user-charlie",
+            "userFullName": "Charlie",
+            "paidAmount": 0,
+            "expectedAmount": 6500
+          }
+        ]
+      }
+    }
+  }
+}
+

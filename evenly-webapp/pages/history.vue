@@ -94,17 +94,16 @@ const loadPayments = async () => {
   if (!activeWorkspaceId.value) return
   
   const filters: PaymentFilters = {
-    sortBy: 'createdAt',
-    sortOrder: 'desc'
+    sort: 'effectiveDate,DESC'
   }
   
   await fetchPayments(activeWorkspaceId.value, filters)
 }
 
-// Sort payments by date (newest first)
+// Sort payments by date (newest first) - using effectiveDate from API
 const sortedPayments = computed(() => {
   return [...payments.value].sort((a, b) => {
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    return new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime()
   })
 })
 
@@ -113,7 +112,7 @@ const groupedPayments = computed(() => {
   const groups: Record<string, Payment[]> = {}
   
   sortedPayments.value.forEach(payment => {
-    const date = new Date(payment.createdAt)
+    const date = new Date(payment.effectiveDate)
     const dateKey = date.toISOString().split('T')[0]
     
     if (!groups[dateKey]) {

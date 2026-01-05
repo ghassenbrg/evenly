@@ -12,7 +12,7 @@
         @click="loadExpenses"
         class="mt-2 text-sm text-red-400 hover:text-red-300 underline"
       >
-        Retry
+        {{ t('common.retry') }}
       </button>
     </div>
 
@@ -156,10 +156,10 @@ const handlePeriodChange = (period: 'month' | 'week' | 'all' | 'custom', dateRan
   loadExpenses()
 }
 
-// Sort expenses by date (newest first)
+// Sort expenses by date (newest first) - using effectiveDate from API
 const sortedExpenses = computed(() => {
   return [...expenses.value].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime()
+    return new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime()
   })
 })
 
@@ -168,7 +168,7 @@ const groupedExpenses = computed(() => {
   const groups: Record<string, Expense[]> = {}
   
   sortedExpenses.value.forEach(expense => {
-    const date = new Date(expense.date)
+    const date = new Date(expense.effectiveDate)
     const dateKey = date.toISOString().split('T')[0]
     
     if (!groups[dateKey]) {

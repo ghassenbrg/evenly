@@ -1,0 +1,567 @@
+{
+    "GET /api/notifications": {
+        "data": [
+            {
+                "id": "1",
+                "type": "message",
+                "content": "You have a new message from John.",
+                "timestamp": "2024-06-01T10:15:30Z",
+                "workspaceId": "workspace_123",
+                "read": false
+            },
+            {
+                "id": "2",
+                "type": "alert",
+                "content": "Your password will expire in 5 days.",
+                "timestamp": "2024-06-01T09:00:00Z",
+                "workspaceId": "workspace_123",
+                "read": true
+            },
+            {
+                "id": "3",
+                "type": "reminder",
+                "content": "Meeting with the design team at 3 PM.",
+                "timestamp": "2024-06-01T08:30:00Z",
+                "workspaceId": "workspace_980",
+                "read": false
+            }
+        ],
+        "unreadCount": 2
+    },
+    "GET /api/notifications/unread-count": {
+        "data": {
+            "count": 2
+        }
+    },
+    "POST /api/notifications/{id}/mark-as-read": {},
+    "POST /api/notifications/mark-all-as-read": {},
+    "GET /api/workspaces": {
+        "data": [
+            {
+                "id": "ws-bob-personal",
+                "name": "Personal",
+                "defaultSplitMode": "EQUAL",
+                "monthlySharedLimit": null,
+                "isPersonal": true,
+                "currency": "JPY",
+                "inviteCode": "123456",
+                "inviteLink": "https://localhost:3000/workspace/join/123456"
+            },
+            {
+                "id": "ws-couple",
+                "name": "Bob & Alice",
+                "defaultSplitMode": "WEIGHTED",
+                "monthlySharedLimit": 120000,
+                "isPersonal": false,
+                "currency": "JPY",
+                "inviteCode": "098764",
+                "inviteLink": "https://localhost:3000/workspace/join/098764"
+            },
+            {
+                "id": "ws-family",
+                "name": "Family",
+                "defaultSplitMode": "EQUAL",
+                "monthlySharedLimit": 1500,
+                "isPersonal": false,
+                "currency": "EUR",
+                "inviteCode": "235680",
+                "inviteLink": "https://localhost:3000/workspace/join/235680"
+            }
+        ]
+    },
+    "GET /api/workspaces/{id}": {
+        "data": {
+            "id": "ws-couple",
+            "name": "Bob & Alice",
+            "defaultSplitMode": "WEIGHTED",
+            "monthlySharedLimit": 1500,
+            "isPersonal": false,
+            "currency": "EUR",
+            "inviteCode": "235680",
+            "inviteLink": "https://localhost:3000/workspace/join/235680",
+            "members": [
+                {
+                    "userId": "user-bob",
+                    "role": "OWNER",
+                    "weightPercent": 60
+                },
+                {
+                    "userId": "user-alice",
+                    "role": "MEMBER",
+                    "weightPercent": 40
+                }
+            ]
+        }
+    },
+    "POST /api/workspaces": {
+        "data": {
+            "id": "ws-bob-personal",
+            "name": "Personal",
+            "defaultSplitMode": "EQUAL",
+            "monthlySharedLimit": null,
+            "isPersonal": true,
+            "currency": "JPY",
+            "inviteCode": "123456",
+            "inviteLink": "https://localhost:3000/workspace/join/123456"
+        }
+    },
+    "PUT /api/workspaces/{id}": {
+        "workspace": {
+            "id": "ws-bob-personal",
+            "name": "Personal",
+            "defaultSplitMode": "WEIGHTED",
+            "monthlySharedLimit": null,
+            "isPersonal": true,
+            "currency": "JPY",
+            "inviteCode": "123456",
+            "inviteLink": "https://localhost:3000/workspace/join/123456",
+            "members": [
+                {
+                    "userId": "user-bob",
+                    "weightPercent": 60
+                },
+                {
+                    "userId": "user-alice",
+                    "weightPercent": 40
+                }
+            ]
+        }
+    },
+    "GET /api/workspaces/{id}/settle-up": {
+        "data": {
+            "currency": "JPY",
+            "currentUser": {
+                "userId": "user-bob",
+                "userFullName": "Bob",
+                "paidAmount": 120000,
+                "expectedAmount": 81500
+            },
+            "otherMembers": [
+                {
+                    "userId": "user-alice",
+                    "userFullName": "Alice",
+                    "paidAmount": 61500,
+                    "expectedAmount": 38500
+                },
+                {
+                    "userId": "user-charlie",
+                    "userFullName": "Charlie",
+                    "paidAmount": 0,
+                    "expectedAmount": 6500
+                }
+            ]
+        }
+    },
+    "POST /api/workspaces/{id}/pay": {
+        "data": {
+            "id": "1",
+            "payeeUserId": "user-alice",
+            "payeeUserName": "Alice",
+            "amount": 6500,
+            "currency": "JPY",
+            "effectiveDate": "2025-10-31",
+            "note": "Dinner with friends",
+            "status": "COMPLETED",
+            "paidByUserId": "user-bob",
+            "paidByUserName": "Bob"
+        }
+    },
+    "DELETE /api/workspaces/{id}": {},
+    "GET /api/workspaces/{id}/analytics/balance-summary": {
+        "data": {
+            "userTotalPaidAmount": 120000,
+            "userTotalExpectedAmount": 81500,
+            "workspaceTotalPaidAmount": 181500,
+            "budgetLimit": 200000,
+            "spentPercentage": 90.75,
+            "currency": "JPY"
+        }
+    },
+    "GET /api/workspaces/{id}/analytics/expenses-snapshot?startDate=2025-10-31&endDate=2026-01-31": {
+        "data": [
+            {
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "categoryColor": "#f43f5e",
+                "totalAmount": 46700,
+                "spentPercentage": 23,
+                "expensesCount": 14
+            },
+            {
+                "categoryId": "2",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "categoryColor": "#3b82f6",
+                "totalAmount": 10500,
+                "spentPercentage": 12,
+                "expensesCount": 20
+            },
+            {
+                "categoryId": "3",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "categoryColor": "#8b5cf6",
+                "totalAmount": 19700,
+                "spentPercentage": 20,
+                "expensesCount": 30
+            },
+            {
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "categoryColor": "#10b981",
+                "totalAmount": 26800,
+                "spentPercentage": 17,
+                "expensesCount": 40
+            },
+            {
+                "categoryId": null,
+                "categoryName": "Others",
+                "categoryIcon": "fa-solid fa-ellipsis",
+                "categoryColor": "#64748b",
+                "totalAmount": 21800,
+                "spentPercentage": 28,
+                "expensesCount": null
+            }
+        ],
+        "categoriesCount": 11,
+        "remainingCategoriesCount": 7
+    },
+    "GET /api/workspaces/{id}/analytics/recent-expenses?size=3": {
+        "data": [
+            {
+                "id": "1",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-burger",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "PENDING",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "2",
+                "categoryId": "2",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Taxi to the airport",
+                "status": "PENDING",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#3b82f6"
+            },
+            {
+                "id": "3",
+                "categoryId": "3",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Movie tickets",
+                "status": "PENDING",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#8b5cf6"
+            }
+        ]
+    },
+    "GET /api/workspaces/{id}/expenses?page=0&size=5&sort=effectiveDate,DESC": {
+        "data": [
+            {
+                "id": "1",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-burger",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "PENDING",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "2",
+                "categoryId": "2",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Taxi to the airport",
+                "status": "PENDING",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#3b82f6"
+            },
+            {
+                "id": "3",
+                "categoryId": "3",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Movie tickets",
+                "status": "PENDING",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "4",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-30",
+                "note": "Groceries",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "5",
+                "categoryId": "5",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-29",
+                "note": "Taxi to the airport",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#3b82f6"
+            },
+            {
+                "id": "6",
+                "categoryId": "6",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-28",
+                "note": "Movie tickets",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "7",
+                "categoryId": "7",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-27",
+                "note": "Movie tickets",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "8",
+                "categoryId": "8",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-26",
+                "note": "Movie tickets",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "9",
+                "categoryId": "9",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-25",
+                "note": "Movie tickets",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "10",
+                "categoryId": "10",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 100000,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-24",
+                "note": "Movie tickets",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob",
+                "categoryColor": "#8b5cf6"
+            }
+        ],
+        "page": {
+            "number": 0,
+            "size": 10,
+            "totalElements": 23,
+            "totalPages": 5
+        },
+        "sort": {
+            "sorted": true,
+            "direction": "DESC",
+            "property": "effectiveDate"
+        }
+    },
+    "GET /api/workspaces/{id}/payments?page=0&size=5&sort=effectiveDate,DESC": {
+        "data": [
+            {
+                "id": "1",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "2",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "3",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "4",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "5",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "6",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "7",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "8",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "9",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            },
+            {
+                "id": "10",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 6500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Dinner with friends",
+                "status": "COMPLETED",
+                "paidByUserId": "user-bob",
+                "paidByUserName": "Bob"
+            }
+        ],
+        "page": {
+            "number": 0,
+            "size": 10,
+            "totalElements": 23,
+            "totalPages": 5
+        },
+        "sort": {
+            "sorted": true,
+            "direction": "DESC",
+            "property": "effectiveDate"
+        }
+    }
+}

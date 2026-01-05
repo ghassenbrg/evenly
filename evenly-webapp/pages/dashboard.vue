@@ -12,17 +12,14 @@
         @click="() => loadDashboard()"
         class="mt-2 text-sm text-red-400 hover:text-red-300 underline"
       >
-        Retry
+        {{ t('common.retry') }}
       </button>
     </div>
 
     <!-- Content -->
     <template v-else>
       <DashboardBalanceCard
-        v-if="summary"
-        :balance="summary.total"
-        :spent="summary.sharedBudgetUsage?.spent || 0"
-        :limit="summary.sharedBudgetUsage?.limit || 0"
+        :balance-summary="balanceSummary"
         :is-personal="activeWorkspace?.isPersonal || false"
         :workspace-id="activeWorkspaceId || undefined"
         @settle-up="showSettleUp = true"
@@ -81,7 +78,7 @@ import type { Expense, Balance } from '~/types/api'
 const { t } = useI18n()
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspacesStore)
-const { summary, categoryAnalytics, recentExpenses, loading, error, fetchSummary, fetchCategoryAnalytics, fetchRecentExpenses, clear } = useAnalytics()
+const { summary, balanceSummary, categoryAnalytics, recentExpenses, loading, error, fetchSummary, fetchCategoryAnalytics, fetchRecentExpenses, clear } = useAnalytics()
 const { categories, fetchCategories } = useCategories()
 const { formatCurrency } = useFormatting()
 
@@ -169,10 +166,10 @@ const expenseSnapshotItems = computed(() => {
     .slice(0, 4)
     .map(item => ({
       key: item.categoryId,
-      label: item.category?.name || 'Unknown',
+      label: item.category?.name || t('common.unknown'),
       percent: total > 0 ? Math.round((item.total / total) * 100) : 0,
       count: item.count,
-      color: item.category?.color ? `linear-gradient(135deg, ${item.category.color} 0%, ${item.category.color} 100%)` : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+      color: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', // Default color since API doesn't provide it
       icon: (item.category?.icon || 'others') as 'groceries' | 'rent' | 'bills' | 'internet' | 'others'
     }))
   
@@ -199,11 +196,11 @@ const categoryItems = computed(() => {
     .slice(0, 4)
     .map(item => ({
       id: item.categoryId,
-      name: item.category?.name || 'Unknown',
+      name: item.category?.name || t('common.unknown'),
       icon: (item.category?.icon || 'other') as 'groceries' | 'rent' | 'bills' | 'mobile',
       expenseCount: item.count,
       totalAmount: item.total,
-      accent: getAccentFromColor(item.category?.color || '#64748b')
+      accent: 'green' as 'green' | 'rose' | 'sky' | 'indigo' // Default since API doesn't provide color
     }))
 })
 
