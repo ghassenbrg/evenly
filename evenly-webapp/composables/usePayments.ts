@@ -1,4 +1,4 @@
-import type { Payment, PaymentStatus, PaginatedResponse } from '~/types/api'
+import type { Payment, PaymentStatus, PaginatedResponse, CreatePaymentRequest } from '~/types/api'
 import { useApi } from '~/utils/api'
 
 export interface PaymentFilters {
@@ -56,6 +56,20 @@ export const usePayments = () => {
     }
   }
 
+  const createPayment = async (workspaceId: string, request: CreatePaymentRequest) => {
+    loading.value = true
+    error.value = null
+    try {
+      const payment = await api.post<Payment>(`/api/workspaces/${workspaceId}/pay`, request)
+      return payment
+    } catch (err) {
+      error.value = err as Error
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   const clearPayments = () => {
     payments.value = []
     error.value = null
@@ -68,6 +82,7 @@ export const usePayments = () => {
     error: readonly(error),
     fetchPayments,
     getPayment,
+    createPayment,
     clearPayments
   }
 }

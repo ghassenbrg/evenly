@@ -4,12 +4,36 @@
     <div class="flex items-center justify-between">
       <h2 class="text-base font-semibold text-gray-100">{{ t('dashboard.categoriesBreakdown') }}</h2>
       <PeriodDropdown
+        v-if="!isLoading"
         v-model="selectedPeriod"
         v-model:range="customRange"
         @period-change="handlePeriodChange"
       />
+      <div v-else class="h-8 w-24 bg-slate-700/50 rounded-lg animate-pulse"></div>
     </div>
 
+    <!-- Loading Skeleton -->
+    <template v-if="isLoading">
+      <div class="space-y-0">
+        <template v-for="i in 4" :key="i">
+          <div class="flex items-center justify-between py-3">
+            <div class="flex items-center gap-3 flex-1">
+              <div class="w-11 h-11 rounded-full bg-slate-700/50 animate-pulse"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-4 w-32 bg-slate-700/50 rounded animate-pulse"></div>
+                <div class="h-3 w-20 bg-slate-700/30 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div class="h-4 w-20 bg-slate-700/50 rounded animate-pulse"></div>
+          </div>
+          <div v-if="i < 4" class="h-px bg-white/10 ml-14 mr-0"></div>
+        </template>
+      </div>
+      <div class="w-full h-12 bg-slate-700/30 rounded-xl animate-pulse"></div>
+    </template>
+
+    <!-- Content -->
+    <template v-else>
     <!-- Category List -->
     <div class="space-y-0">
       <template v-for="(item, index) in displayItems" :key="item.id">
@@ -63,6 +87,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
     </button>
+    </template>
   </div>
 </template>
 
@@ -87,6 +112,7 @@ interface Props {
   filterLabel?: string
   items?: CategoryItem[]
   totalCategories?: number
+  loading?: boolean
 }
 
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
@@ -94,7 +120,8 @@ type PeriodType = 'month' | 'week' | 'all' | 'custom'
 const props = withDefaults(defineProps<Props>(), {
   filterLabel: undefined,
   totalCategories: 0,
-  items: () => []
+  items: () => [],
+  loading: false
 })
 
 const emit = defineEmits<{
@@ -111,7 +138,10 @@ const { colorToGradient } = useCategoryColor()
 
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
-const { expenseSnapshot, fetchCategoryAnalytics } = useAnalytics()
+const { expenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
+
+// Combine prop loading with analytics loading
+const isLoading = computed(() => props.loading || analyticsLoading.value)
 
 // Helper to get Font Awesome icon from class string
 const getFontAwesomeIcon = (iconClass: string | null | undefined) => {

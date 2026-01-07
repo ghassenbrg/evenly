@@ -1,12 +1,7 @@
 <template>
   <div class="p-4 space-y-4">
-    <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-    </div>
-
     <!-- Error State -->
-    <div v-else-if="error" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+    <div v-if="error" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
       <p class="text-red-400 text-sm">{{ error.message || t('common.loadDashboardFailed') }}</p>
       <button
         @click="() => loadDashboard()"
@@ -22,6 +17,7 @@
         :balance-summary="balanceSummary"
         :is-personal="activeWorkspace?.isPersonal || false"
         :workspace-id="activeWorkspaceId || undefined"
+        :loading="balanceLoading"
         @settle-up="showSettleUp = true"
       />
       
@@ -48,15 +44,18 @@
         :others-count="othersCount"
         :others-percent="othersPercent"
         :others-color="othersColor"
+        :loading="expenseSnapshotLoading"
       />
       
       <DashboardCategoriesBreakdownCard
         :items="categoryItems"
         :total-categories="categories.length"
+        :loading="categoriesLoading"
       />
       
       <DashboardRecentExpensesCard
         :expenses="recentExpenses as Expense[]"
+        :loading="recentExpensesLoading"
       />
     </template>
   </div>
@@ -79,8 +78,13 @@ const { t } = useI18n()
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspacesStore)
 const { summary, balanceSummary, categoryAnalytics, recentExpenses, loading, error, fetchSummary, fetchCategoryAnalytics, fetchRecentExpenses, clear } = useAnalytics()
-const { categories, fetchCategories } = useCategories()
+const { categories, loading: categoriesLoading, fetchCategories } = useCategories()
 const { formatCurrency } = useFormatting()
+
+// Track individual loading states - initialize as true for initial load
+const balanceLoading = ref(true)
+const expenseSnapshotLoading = ref(true)
+const recentExpensesLoading = ref(true)
 
 const showSettleUp = ref(false)
 const showPaymentSheet = ref(false)
@@ -149,12 +153,24 @@ const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'mont
   if (!activeWorkspaceId.value) return
   
   const { start, end } = getDateRange(period, customRange)
-  await Promise.all([
-    fetchSummary(activeWorkspaceId.value, start, end),
-    fetchCategoryAnalytics(activeWorkspaceId.value, start, end),
-    fetchRecentExpenses(activeWorkspaceId.value, 5),
-    fetchCategories(activeWorkspaceId.value)
-  ])
+  
+  // Load data with individual loading states
+  balanceLoading.value = true
+  expenseSnapshotLoading.value = true
+  recentExpensesLoading.value = true
+  
+  try {
+    await Promise.all([
+      fetchSummary(activeWorkspaceId.value, start, end).finally(() => { balanceLoading.value = false }),
+      fetchCategoryAnalytics(activeWorkspaceId.value, start, end).finally(() => { expenseSnapshotLoading.value = false }),
+      fetchRecentExpenses(activeWorkspaceId.value, 5).finally(() => { recentExpensesLoading.value = false }),
+      fetchCategories(activeWorkspaceId.value)
+    ])
+  } catch (err) {
+    balanceLoading.value = false
+    expenseSnapshotLoading.value = false
+    recentExpensesLoading.value = false
+  }
 }
 
 
@@ -213,6 +229,10 @@ const getAccentFromColor = (color: string): 'green' | 'rose' | 'sky' | 'indigo' 
 }
 
 watch(activeWorkspaceId, () => {
+  // Set loading states before clearing to show skeletons
+  balanceLoading.value = true
+  expenseSnapshotLoading.value = true
+  recentExpensesLoading.value = true
   clear()
   loadDashboard()
 }, { immediate: true })

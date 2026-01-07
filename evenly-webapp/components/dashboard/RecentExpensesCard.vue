@@ -4,6 +4,7 @@
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-semibold text-white/90">{{ t('dashboard.recentExpenses') }}</h2>
       <NuxtLink
+        v-if="!isLoading"
         to="/expenses"
         class="text-sm text-white/60 hover:text-white/80 font-medium flex items-center gap-1 transition-colors"
       >
@@ -12,8 +13,31 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
       </NuxtLink>
+      <div v-else class="h-5 w-20 bg-slate-700/50 rounded animate-pulse"></div>
     </div>
 
+    <!-- Loading Skeleton -->
+    <template v-if="isLoading">
+      <div class="space-y-0">
+        <template v-for="i in 3" :key="i">
+          <div class="flex items-center justify-between py-3">
+            <div class="flex items-center gap-3 flex-1">
+              <div class="w-11 h-11 rounded-full bg-slate-700/50 animate-pulse"></div>
+              <div class="flex-1 space-y-2 min-w-0">
+                <div class="h-5 w-32 bg-slate-700/50 rounded animate-pulse"></div>
+                <div class="h-3 w-40 bg-slate-700/30 rounded animate-pulse"></div>
+                <div class="h-3 w-24 bg-slate-700/20 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div class="h-5 w-20 bg-slate-700/50 rounded animate-pulse flex-shrink-0"></div>
+          </div>
+          <div v-if="i < 3" class="h-px bg-white/10 ml-14 mr-0"></div>
+        </template>
+      </div>
+    </template>
+
+    <!-- Content -->
+    <template v-else>
     <!-- Expense List -->
     <div class="space-y-0">
       <template v-for="(expense, index) in displayedExpenses" :key="expense.id">
@@ -56,6 +80,7 @@
         ></div>
       </template>
     </div>
+    </template>
   </div>
 </template>
 
@@ -66,10 +91,12 @@ import { useAnalytics } from '~/composables/useAnalytics'
 
 interface Props {
   expenses?: Expense[]
+  loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  expenses: () => []
+  expenses: () => [],
+  loading: false
 })
 
 const emit = defineEmits<{
@@ -83,7 +110,10 @@ const { colorToGradient } = useCategoryColor()
 
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
-const { recentExpenses, fetchRecentExpenses } = useAnalytics()
+const { recentExpenses, loading: analyticsLoading, fetchRecentExpenses } = useAnalytics()
+
+// Combine prop loading with analytics loading
+const isLoading = computed(() => props.loading || analyticsLoading.value)
 
 const formatDate = (dateISO: string): string => {
   const date = new Date(dateISO)

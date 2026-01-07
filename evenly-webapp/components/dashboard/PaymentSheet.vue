@@ -87,7 +87,7 @@
           >
             {{ (currentUserBalance.balance + paymentAmount) < 0 ? '-' : (currentUserBalance.balance + paymentAmount) > 0 ? '+' : '' }}{{ formatCurrency(Math.abs(currentUserBalance.balance + paymentAmount)) }}
           </span>
-          <span v-else-if="loading || balancesLoadingState || balances.length === 0" class="text-gray-500 text-xs">{{ t('common.loading') }}</span>
+          <span v-else-if="balancesLoading" class="text-gray-500 text-xs">{{ t('common.loading') }}</span>
           <span v-else class="text-gray-500 text-xs">—</span>
         </div>
       </div>
@@ -115,11 +115,10 @@
 </template>
 
 <script setup lang="ts">
-import { useSettlements } from '~/composables/useSettlements'
+import { usePayments } from '~/composables/usePayments'
 import { useFormatting } from '~/composables/useFormatting'
-import { useBalance } from '~/composables/useBalance'
+import { useSettleUp } from '~/composables/useSettleUp'
 import { useAuth } from '~/composables/useAuth'
-import { useWorkspaceMembers } from '~/composables/useWorkspaceMembers'
 import type { Balance } from '~/types/api'
 
 interface Props {
@@ -138,74 +137,33 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { formatCurrency } = useFormatting()
-const { createSettlement, loading: submitting } = useSettlements()
+const { createPayment, loading: submitting } = usePayments()
 const { success, error: showError } = useToast()
-const { balances, loading: balancesLoadingState, fetchBalances } = useBalance()
+const { settleUpData, loading: settleUpLoading, fetchSettleUp } = useSettleUp()
 const { user } = useAuth()
-const { members, fetchMembers } = useWorkspaceMembers()
 
 const paymentAmount = ref(0)
 const paymentNote = ref('')
 const loading = ref(false)
 
-// Load balances and members when sheet opens
+// Load settle-up data when sheet opens to get current user balance
 watch(() => props.modelValue, async (isOpen) => {
   if (isOpen && props.workspaceId) {
     loading.value = true
     try {
-      await Promise.all([
-        fetchBalances(props.workspaceId),
-        fetchMembers(props.workspaceId)
-      ])
+      await fetchSettleUp(props.workspaceId)
     } finally {
       loading.value = false
     }
   }
 })
 
-// Get current user's ID - try multiple matching strategies
-const currentUserId = computed(() => {
-  if (!user.value) return null
-  
-  // Strategy 1: Match by email in balances (most reliable)
-  if (user.value.email && balances.value.length > 0) {
-    const balance = balances.value.find(b => b.user?.email === user.value?.email)
-    if (balance) return balance.userId
-  }
-  
-  // Strategy 2: Match by email in members
-  if (user.value.email && members.value.length > 0) {
-    const member = members.value.find(m => m.user?.email === user.value?.email)
-    if (member) return member.userId
-  }
-  
-  // Strategy 3: Match by username in balances
-  if (user.value.username && balances.value.length > 0) {
-    const balance = balances.value.find(b => b.user?.username === user.value?.username)
-    if (balance) return balance.userId
-  }
-  
-  // Strategy 4: Match by username in members
-  if (user.value.username && members.value.length > 0) {
-    const member = members.value.find(m => m.user?.username === user.value?.username)
-    if (member) return member.userId
-  }
-  
-  // Strategy 5: Match by user ID
-  if (user.value.id && balances.value.length > 0) {
-    const balance = balances.value.find(b => b.userId === user.value?.id || b.user?.id === user.value?.id)
-    if (balance) return balance.userId
-  }
-  
-  return user.value.id
-})
-
-// Get current user's balance - use summary.total (same as total balance card) for consistency
+// Get current user's balance from settle-up data
 const currentUserBalance = computed(() => {
   // Priority 1: Use total balance from summary (same source as total balance card) for consistency
   if (props.currentUserTotalBalance !== undefined && props.currentUserTotalBalance !== null) {
     return {
-      userId: currentUserId.value || user.value?.id || 'current-user',
+      userId: user.value?.id || 'current-user',
       paid: 0,
       expected: 0,
       balance: props.currentUserTotalBalance,
@@ -218,47 +176,30 @@ const currentUserBalance = computed(() => {
     return props.currentUserBalance
   }
   
-  // If balances haven't loaded yet, return null (will show loading)
-  if (balances.value.length === 0) {
-    return null
-  }
-  
-  // Priority 3: Try to find it from balances using multiple strategies
-  if (user.value) {
-    // Strategy 1: Find by user email (most reliable)
-    if (user.value.email) {
-      const balance = balances.value.find(b => b.user?.email === user.value?.email)
-      if (balance) return balance
-    }
-    
-    // Strategy 2: Find by username
-    if (user.value.username) {
-      const balance = balances.value.find(b => b.user?.username === user.value?.username)
-      if (balance) return balance
-    }
-    
-    // Strategy 3: Find by user ID
-    if (user.value.id) {
-      const balance = balances.value.find(b => 
-        b.userId === user.value?.id || 
-        b.user?.id === user.value?.id
-      )
-      if (balance) return balance
-    }
-  }
-  
-  // Strategy 4: Use currentUserId if available
-  if (currentUserId.value) {
-    const balance = balances.value.find(b => b.userId === currentUserId.value)
-    if (balance) return balance
+  // Priority 3: Get from settle-up data
+  if (settleUpData.value) {
+    const currentUser = settleUpData.value.currentUser
+    const balance = currentUser.paidAmount - currentUser.expectedAmount
+    return {
+      userId: currentUser.userId,
+      paid: currentUser.paidAmount,
+      expected: currentUser.expectedAmount,
+      balance: balance,
+      user: {
+        id: currentUser.userId,
+        displayName: currentUser.userFullName,
+        email: '',
+        createdAt: ''
+      }
+    } as Balance
   }
   
   return null
 })
 
-// Check if balances are still loading
+// Check if data is still loading
 const balancesLoading = computed(() => {
-  return loading.value || balancesLoadingState.value || (balances.value.length === 0 && !props.currentUserBalance && members.value.length === 0)
+  return loading.value || settleUpLoading.value || (!settleUpData.value && !props.currentUserBalance)
 })
 
 // Calculate quick amount options (25%, 50%, 75%, 100% of balance)
@@ -291,12 +232,15 @@ const canSubmit = computed(() => {
 })
 
 const handleSubmit = async () => {
-  if (!canSubmit.value || !props.workspaceId) return
+  if (!canSubmit.value || !props.workspaceId || !props.balance) return
   
   try {
-    // Create a settlement for this payment
-    await createSettlement(props.workspaceId, {
-      note: paymentNote.value.trim() || undefined
+    // Create a payment using the pay endpoint
+    await createPayment(props.workspaceId, {
+      payeeUserId: props.balance.userId,
+      amount: paymentAmount.value,
+      note: paymentNote.value.trim() || undefined,
+      effectiveDate: new Date().toISOString().split('T')[0] // Today's date
     })
     success(`${t('dashboard.paymentCompleted')}: ${formatCurrency(paymentAmount.value)}`)
     emit('payment-completed')

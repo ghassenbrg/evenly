@@ -64,9 +64,8 @@
 </template>
 
 <script setup lang="ts">
-import { useBalance } from '~/composables/useBalance'
+import { useSettleUp } from '~/composables/useSettleUp'
 import { useAuth } from '~/composables/useAuth'
-import { useWorkspaceMembers } from '~/composables/useWorkspaceMembers'
 import { useFormatting } from '~/composables/useFormatting'
 import type { Balance } from '~/types/api'
 
@@ -85,89 +84,61 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { formatCurrency } = useFormatting()
 const { user } = useAuth()
-const { balances, loading, error, fetchBalances } = useBalance()
-const { members, fetchMembers } = useWorkspaceMembers()
+const { settleUpData, loading, error, fetchSettleUp } = useSettleUp()
 
-// Load balances and members when sheet opens
+// Load settle-up data when sheet opens
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen && props.workspaceId) {
-    loadBalances()
-    fetchMembers(props.workspaceId)
+    loadSettleUp()
   }
 })
 
-const loadBalances = async () => {
+const loadSettleUp = async () => {
   if (props.workspaceId) {
-    await fetchBalances(props.workspaceId)
+    await fetchSettleUp(props.workspaceId)
   }
 }
 
-// Get current user's ID - try multiple matching strategies
-const currentUserId = computed(() => {
-  if (!user.value) return null
-  
-  // Strategy 1: Match by email in balances (most reliable)
-  if (user.value.email && balances.value.length > 0) {
-    const balance = balances.value.find(b => b.user?.email === user.value?.email)
-    if (balance) return balance.userId
-  }
-  
-  // Strategy 2: Match by email in members
-  if (user.value.email && members.value.length > 0) {
-    const member = members.value.find(m => m.user?.email === user.value?.email)
-    if (member) return member.userId
-  }
-  
-  // Strategy 3: Match by username in balances
-  if (user.value.username && balances.value.length > 0) {
-    const balance = balances.value.find(b => b.user?.username === user.value?.username)
-    if (balance) return balance.userId
-  }
-  
-  // Strategy 4: Match by username in members
-  if (user.value.username && members.value.length > 0) {
-    const member = members.value.find(m => m.user?.username === user.value?.username)
-    if (member) return member.userId
-  }
-  
-  // Strategy 5: Match by user ID
-  if (user.value.id && balances.value.length > 0) {
-    const balance = balances.value.find(b => b.userId === user.value?.id || b.user?.id === user.value?.id)
-    if (balance) return balance.userId
-  }
-  
-  return user.value.id
-})
-
-// Get current user's balance
+// Get current user's balance from settle-up data
 const currentUserBalance = computed(() => {
-  if (!currentUserId.value || balances.value.length === 0) return null
+  if (!settleUpData.value) return null
   
-  // Find by userId
-  let balance = balances.value.find(b => b.userId === currentUserId.value)
-  if (balance) return balance
+  const currentUser = settleUpData.value.currentUser
+  const balance = currentUser.paidAmount - currentUser.expectedAmount
   
-  // Fallback: find by user.id or user.email or user.username
-  if (user.value) {
-    balance = balances.value.find(b => 
-      b.user?.id === user.value?.id ||
-      b.user?.email === user.value?.email ||
-      b.user?.username === user.value?.username
-    )
-    if (balance) return balance
-  }
-  
-  return null
+  return {
+    userId: currentUser.userId,
+    paid: currentUser.paidAmount,
+    expected: currentUser.expectedAmount,
+    balance: balance,
+    user: {
+      id: currentUser.userId,
+      displayName: currentUser.userFullName,
+      email: '',
+      createdAt: ''
+    }
+  } as Balance
 })
 
-// Filter out current user's balance and show only other members
-// Show all members even if balance is 0
+// Transform otherMembers from settle-up data to Balance objects
 const otherMemberBalances = computed(() => {
-  if (!currentUserId.value) {
-    // If we can't identify current user, show all balances
-    return balances.value
-  }
-  return balances.value.filter(b => b.userId !== currentUserId.value)
+  if (!settleUpData.value) return []
+  
+  return settleUpData.value.otherMembers.map(member => {
+    const balance = member.paidAmount - member.expectedAmount
+    return {
+      userId: member.userId,
+      paid: member.paidAmount,
+      expected: member.expectedAmount,
+      balance: balance,
+      user: {
+        id: member.userId,
+        displayName: member.userFullName,
+        email: '',
+        createdAt: ''
+      }
+    } as Balance
+  })
 })
 
 const handlePay = (balance: Balance) => {

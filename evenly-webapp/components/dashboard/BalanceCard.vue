@@ -1,60 +1,83 @@
 <template>
   <div class="balance-card-bg rounded-2xl p-4 space-y-4 relative overflow-hidden">
-    <!-- Total Paid Section -->
-    <div class="flex items-center justify-between">
-      <div class="flex flex-col">
-        <span class="text-sm text-gray-400 mb-1">{{ t('dashboard.totalPaid') }}</span>
-        <span class="text-3xl font-semibold text-white">
-          {{ formatCurrency(balanceSummary?.userTotalPaidAmount || 0, balanceSummary?.currency) }}
-        </span>
-        <!-- You Owe / You Are Owed (only for non-personal workspaces) -->
-        <div v-if="!isPersonal && balanceDifference !== 0" class="mt-1">
-          <span :class="balanceDifferenceClass" class="text-sm font-medium">
-            {{ balanceDifferenceText }}
+    <!-- Loading Skeleton -->
+    <template v-if="loading || !balanceSummary">
+      <div class="flex items-center justify-between">
+        <div class="flex flex-col space-y-2 flex-1">
+          <div class="h-4 w-24 bg-slate-700/50 rounded animate-pulse"></div>
+          <div class="h-9 w-40 bg-slate-600/50 rounded animate-pulse"></div>
+          <div class="h-4 w-32 bg-slate-700/50 rounded animate-pulse"></div>
+        </div>
+        <div class="w-30 h-20 bg-slate-700/30 rounded-lg animate-pulse"></div>
+      </div>
+      <div class="space-y-2">
+        <div class="h-4 w-20 bg-slate-700/50 rounded animate-pulse"></div>
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full w-1/3 bg-emerald-500/30 rounded-full animate-pulse"></div>
+        </div>
+        <div class="h-3 w-32 bg-slate-700/50 rounded animate-pulse ml-auto"></div>
+      </div>
+      <div class="w-full h-12 bg-slate-700/30 rounded-xl animate-pulse"></div>
+    </template>
+
+    <!-- Content -->
+    <template v-else>
+      <!-- Total Paid Section -->
+      <div class="flex items-center justify-between">
+        <div class="flex flex-col">
+          <span class="text-sm text-gray-400 mb-1">{{ t('dashboard.totalPaid') }}</span>
+          <span class="text-3xl font-semibold text-white">
+            {{ formatCurrency(balanceSummary?.userTotalPaidAmount || 0, balanceSummary?.currency) }}
+          </span>
+          <!-- You Owe / You Are Owed (only for non-personal workspaces) -->
+          <div v-if="!isPersonal && balanceDifference !== 0" class="mt-1">
+            <span :class="balanceDifferenceClass" class="text-sm font-medium">
+              {{ balanceDifferenceText }}
+            </span>
+          </div>
+        </div>
+        <img
+          src="/images/wallet.png"
+          :alt="t('dashboard.totalPaid')"
+          class="w-30 h-20 object-contain"
+        />
+      </div>
+
+      <!-- Budget Section - Only show if budgetLimit exists and > 0 -->
+      <div v-if="hasBudgetLimit" class="space-y-2">
+        <div>
+          <span class="text-sm text-gray-300">{{ t('dashboard.budget') }}</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+          <div
+            class="h-full rounded-full transition-all duration-300"
+            :class="progressBarColorClass"
+            :style="{ width: `${progressBarWidth}%` }"
+          ></div>
+        </div>
+
+        <!-- Budget Text -->
+        <div class="text-right">
+          <span class="text-xs text-gray-400">
+            {{ formatCurrency(balanceSummary?.workspaceTotalPaidAmount || 0, balanceSummary?.currency) }} / {{ formatCurrency(balanceSummary?.budgetLimit || 0, balanceSummary?.currency) }}
           </span>
         </div>
       </div>
-      <img
-        src="/images/wallet.png"
-        :alt="t('dashboard.totalPaid')"
-        class="w-30 h-20 object-contain"
-      />
-    </div>
 
-    <!-- Budget Section - Only show if budgetLimit exists and > 0 -->
-    <div v-if="hasBudgetLimit" class="space-y-2">
-      <div>
-        <span class="text-sm text-gray-300">{{ t('dashboard.budget') }}</span>
-      </div>
-
-      <!-- Progress Bar -->
-      <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
-        <div
-          class="h-full rounded-full transition-all duration-300"
-          :class="progressBarColorClass"
-          :style="{ width: `${progressBarWidth}%` }"
-        ></div>
-      </div>
-
-      <!-- Budget Text -->
-      <div class="text-right">
-        <span class="text-xs text-gray-400">
-          {{ formatCurrency(balanceSummary?.workspaceTotalPaidAmount || 0, balanceSummary?.currency) }} / {{ formatCurrency(balanceSummary?.budgetLimit || 0, balanceSummary?.currency) }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Settle Up Button (only for non-personal workspaces) -->
-    <button
-      v-if="!isPersonal && workspaceId"
-      @click="emit('settle-up')"
-      class="w-full mt-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      {{ t('dashboard.settleUp') }}
-    </button>
+      <!-- Settle Up Button (only for non-personal workspaces) -->
+      <button
+        v-if="!isPersonal && workspaceId"
+        @click="emit('settle-up')"
+        class="w-full mt-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ t('dashboard.settleUp') }}
+      </button>
+    </template>
   </div>
 </template>
 
@@ -65,11 +88,13 @@ interface Props {
   balanceSummary: BalanceSummary | null
   isPersonal?: boolean
   workspaceId?: string
+  loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isPersonal: false,
-  workspaceId: undefined
+  workspaceId: undefined,
+  loading: false
 })
 
 const emit = defineEmits<{

@@ -253,6 +253,28 @@ export interface CreateSettlementRequest {
   note?: string
 }
 
+// Settle-up types matching endpoints.json
+export interface SettleUpMember {
+  userId: string
+  userFullName: string
+  paidAmount: number
+  expectedAmount: number
+}
+
+export interface SettleUpResponse {
+  currency: string
+  currentUser: SettleUpMember
+  otherMembers: SettleUpMember[]
+}
+
+// Payment request types
+export interface CreatePaymentRequest {
+  payeeUserId: string
+  amount: number
+  note?: string
+  effectiveDate?: string
+}
+
 // Payment types matching endpoints.json
 export interface Payment {
   id: string

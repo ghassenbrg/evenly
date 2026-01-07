@@ -4,11 +4,38 @@
     <div class="flex items-center justify-between">
       <h2 class="text-base font-semibold text-gray-100">{{ t('dashboard.expenseSnapshot') }}</h2>
       <PeriodDropdown
+        v-if="!isLoading"
         v-model="selectedPeriod"
         v-model:range="customRange"
         @period-change="handlePeriodChange"
       />
+      <div v-else class="h-8 w-24 bg-slate-700/50 rounded-lg animate-pulse"></div>
     </div>
+
+    <!-- Loading Skeleton -->
+    <template v-if="isLoading">
+      <div class="flex justify-between items-start gap-4">
+        <!-- Left Column Skeleton -->
+        <div class="flex-1 space-y-3">
+          <div v-for="i in 4" :key="i" class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-slate-700/50 animate-pulse"></div>
+            <div class="w-px h-8 bg-slate-700/30"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-4 w-24 bg-slate-700/50 rounded animate-pulse"></div>
+              <div class="h-3 w-12 bg-slate-700/30 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Right Column Skeleton -->
+        <div class="flex-shrink-0 flex flex-col items-center">
+          <div class="w-44 h-44 rounded-full bg-slate-700/30 animate-pulse"></div>
+          <div class="mt-3 h-4 w-16 bg-slate-700/50 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Content -->
+    <template v-else>
 
     <!-- Two Column Layout -->
     <div class="flex justify-between items-start gap-4">
@@ -102,6 +129,7 @@
         </div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
@@ -127,6 +155,7 @@ interface Props {
   othersCount?: number
   othersPercent?: number
   othersColor?: string
+  loading?: boolean
 }
 
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
@@ -136,7 +165,8 @@ const props = withDefaults(defineProps<Props>(), {
   othersCount: 0,
   othersPercent: 0,
   othersColor: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
-  items: () => []
+  items: () => [],
+  loading: false
 })
 
 const { t } = useI18n()
@@ -146,9 +176,12 @@ const emit = defineEmits<{
 
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
-const { categoryAnalytics, expenseSnapshot, fetchCategoryAnalytics } = useAnalytics()
+const { categoryAnalytics, expenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
 const { parseIconClass } = useFontAwesome()
 const { colorToGradient } = useCategoryColor()
+
+// Combine prop loading with analytics loading
+const isLoading = computed(() => props.loading || analyticsLoading.value)
 
 // Helper to get Font Awesome icon from class string
 const getFontAwesomeIcon = (iconClass: string) => {
