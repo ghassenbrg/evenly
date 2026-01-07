@@ -110,10 +110,13 @@ const closeDropdown = () => {
 
 const select = (period: PeriodType) => {
   emit('update:modelValue', period)
-  emit('period-change', period, period === 'custom' ? internalRange : undefined)
+  // Only emit period-change for non-custom periods
+  // For custom, wait until date range is selected via applyCustomRange
   if (period !== 'custom') {
+    emit('period-change', period, undefined)
     closeDropdown()
   }
+  // For custom, keep dropdown open to show date picker
 }
 
 const applyCustomRange = (range: { start: string | null; end: string | null }) => {

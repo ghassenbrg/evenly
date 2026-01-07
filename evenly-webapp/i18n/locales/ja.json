@@ -224,6 +224,8 @@
   },
   "payments": {
     "payment": "支払い",
+    "paymentReceivedFrom": "{name}から支払いを受領",
+    "paymentPaidTo": "{name}へ支払い",
     "receivedFrom": "受取",
     "paidTo": "支払い",
     "sortBy": "並び替え",

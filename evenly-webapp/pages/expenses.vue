@@ -1,15 +1,18 @@
 <template>
   <div class="p-4 space-y-4">
-    <!-- Loading State -->
-    <div v-if="loading && expenses.length === 0" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+    <!-- Loading State with Skeleton -->
+    <div v-if="loading && expenses.length === 0" class="space-y-4">
+      <Skeleton variant="balance" />
+      <div class="space-y-2">
+        <Skeleton v-for="i in 5" :key="i" variant="expense-item" />
+      </div>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error && expenses.length === 0" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
       <p class="text-red-400 text-sm">{{ error.message || t('expenses.loadFailed') }}</p>
       <button
-        @click="loadExpenses"
+        @click="() => loadExpenses(true)"
         class="mt-2 text-sm text-red-400 hover:text-red-300 underline"
       >
         {{ t('common.retry') }}
@@ -19,7 +22,10 @@
     <!-- Content -->
     <template v-else>
       <ExpensesTotalCard 
-        :expenses="expenses as Expense[]" 
+        :summary="expensesSummary ? { ...expensesSummary, linearChartData: [...expensesSummary.linearChartData] } : null"
+        :summary-loading="summaryLoading"
+        v-model="selectedPeriod"
+        v-model:range="customDateRange"
         @period-change="handlePeriodChange"
       />
       
@@ -57,9 +63,9 @@
         <div class="text-sm text-white/40">{{ t('expenses.loadingMore') }}</div>
       </div>
       
-      <!-- Loading More Indicator -->
-      <div v-if="loading && expenses.length > 0" class="flex justify-center pt-4 pb-4">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500"></div>
+      <!-- Loading More Indicator with Skeleton -->
+      <div v-if="loading && expenses.length > 0" class="space-y-2 pt-4">
+        <Skeleton v-for="i in 3" :key="i" variant="expense-item" />
       </div>
       
       <!-- End of List -->
@@ -78,17 +84,20 @@ definePageMeta({
 
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useExpenses, type ExpenseFilters } from '~/composables/useExpenses'
+import { useExpensesSummary, type ExpenseSummaryFilters } from '~/composables/useExpensesSummary'
+import Skeleton from '~/components/Skeleton.vue'
 import type { Expense } from '~/types/api'
 
 const { t, locale } = useI18n()
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspacesStore)
-const { expenses, loading, error, fetchExpenses, clearExpenses } = useExpenses()
+const { expenses, pageInfo, loading, error, fetchExpenses, loadMoreExpenses, clearExpenses } = useExpenses()
+const { summary: expensesSummary, loading: summaryLoading, fetchExpensesSummary, clearSummary } = useExpensesSummary()
 
 const selectedPeriod = ref<'month' | 'week' | 'all' | 'custom'>('month')
 const customDateRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
-const visibleCount = ref(10)
-const itemsPerPage = 10
+
+const pageSize = 10
 
 const getDateRange = () => {
   const now = new Date()
@@ -134,17 +143,29 @@ const getDateRange = () => {
   }
 }
 
-const loadExpenses = async () => {
+const loadExpenses = async (reset = true) => {
   if (!activeWorkspaceId.value) return
+  
+  if (reset) {
+    clearExpenses()
+    clearSummary()
+  }
   
   const { start, end } = getDateRange()
   const filters: ExpenseFilters = {
+    page: reset ? 0 : (pageInfo.value?.number ?? 0),
+    size: pageSize,
+    sort: 'effectiveDate,DESC',
     startDate: start,
     endDate: end,
     status: 'ACTIVE'
   }
   
-  await fetchExpenses(activeWorkspaceId.value, filters)
+  // Load expenses and summary in parallel
+  await Promise.all([
+    fetchExpenses(activeWorkspaceId.value, filters, !reset),
+    fetchExpensesSummary(activeWorkspaceId.value, { startDate: start, endDate: end })
+  ])
 }
 
 const handlePeriodChange = (period: 'month' | 'week' | 'all' | 'custom', dateRange?: { start: string | null; end: string | null }) => {
@@ -152,15 +173,12 @@ const handlePeriodChange = (period: 'month' | 'week' | 'all' | 'custom', dateRan
   if (dateRange) {
     customDateRange.value = dateRange
   }
-  visibleCount.value = itemsPerPage
-  loadExpenses()
+  loadExpenses(true)
 }
 
-// Sort expenses by date (newest first) - using effectiveDate from API
+// Expenses are already sorted by API, so use them directly
 const sortedExpenses = computed(() => {
-  return [...expenses.value].sort((a, b) => {
-    return new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime()
-  })
+  return expenses.value
 })
 
 // Group expenses by day
@@ -217,39 +235,32 @@ const expenseGroups = computed(() => {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 })
 
-// Get displayed groups (lazy loaded)
+// Get displayed groups (show all loaded expenses)
 const displayedGroups = computed(() => {
-  let totalCount = 0
-  const result: typeof expenseGroups.value = []
+  return expenseGroups.value
+})
+
+// Check if there are more expenses to load from API
+const hasMore = computed(() => {
+  if (!pageInfo.value) return false
+  return pageInfo.value.number + 1 < pageInfo.value.totalPages
+})
+
+// Load more expenses from API
+const loadMore = async () => {
+  if (!activeWorkspaceId.value || !hasMore.value || loading.value) return
   
-  for (const group of expenseGroups.value) {
-    if (totalCount >= visibleCount.value) break
-    
-    const remaining = visibleCount.value - totalCount
-    if (group.expenses.length <= remaining) {
-      result.push(group)
-      totalCount += group.expenses.length
-    } else {
-      result.push({
-        ...group,
-        expenses: group.expenses.slice(0, remaining)
-      })
-      totalCount += remaining
-    }
+  const { start, end } = getDateRange()
+  const filters: ExpenseFilters = {
+    page: (pageInfo.value?.number ?? 0) + 1,
+    size: pageSize,
+    sort: 'effectiveDate,DESC',
+    startDate: start,
+    endDate: end,
+    status: 'ACTIVE'
   }
   
-  return result
-})
-
-// Check if there are more expenses to load
-const hasMore = computed(() => {
-  const totalExpenses = sortedExpenses.value.length
-  return visibleCount.value < totalExpenses
-})
-
-// Load more expenses
-const loadMore = () => {
-  visibleCount.value += itemsPerPage
+  await loadMoreExpenses(activeWorkspaceId.value, filters)
 }
 
 const loadMoreTrigger = ref<HTMLElement | null>(null)
@@ -286,19 +297,21 @@ const handleExpenseClick = (expenseId: string) => {
   console.log('Expense clicked:', expenseId)
 }
 
-watch(activeWorkspaceId, () => {
-  clearExpenses()
-  visibleCount.value = itemsPerPage
-  loadExpenses()
-}, { immediate: true })
+watch(activeWorkspaceId, (newId) => {
+  if (newId) {
+    loadExpenses(true)
+  }
+})
 
 onMounted(() => {
   if (!activeWorkspace.value) {
     workspacesStore.fetchWorkspaces().then(() => {
-      loadExpenses()
+      if (activeWorkspaceId.value) {
+        loadExpenses(true)
+      }
     })
-  } else {
-    loadExpenses()
+  } else if (activeWorkspaceId.value) {
+    loadExpenses(true)
   }
 })
 </script>

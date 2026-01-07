@@ -159,6 +159,20 @@ export interface BalanceSummary {
   currency: string
 }
 
+export interface LinearChartDataPoint {
+  date: string
+  amount: number
+}
+
+export interface ExpenseSummary {
+  totalAmount: number
+  expensesCount: number
+  averagePerDay: number
+  currency: string
+  largestExpenseAmount: number
+  linearChartData: LinearChartDataPoint[]
+}
+
 export interface CategoryAnalytics {
   categoryId: string
   category?: Category

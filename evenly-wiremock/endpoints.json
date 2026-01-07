@@ -231,196 +231,686 @@
     "GET /api/workspaces/{id}/analytics/recent-expenses?size=3": {
         "data": [
             {
-                "id": "1",
+                "id": "exp-1",
                 "categoryId": "1",
                 "categoryName": "Food",
-                "categoryIcon": "fa-solid fa-burger",
-                "amount": 100000,
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 8500,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
-                "status": "PENDING",
+                "effectiveDate": "2026-01-31",
+                "note": "Lunch at Italian restaurant",
+                "status": "ACTIVE",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
                 "categoryColor": "#f43f5e"
             },
             {
-                "id": "2",
+                "id": "exp-2",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 12500,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-30",
+                "note": "Weekly grocery shopping",
+                "status": "ACTIVE",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-3",
                 "categoryId": "2",
                 "categoryName": "Transportation",
                 "categoryIcon": "fa-solid fa-car",
-                "amount": 100000,
+                "amount": 3200,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Taxi to the airport",
-                "status": "PENDING",
+                "effectiveDate": "2026-01-29",
+                "note": "Taxi fare",
+                "status": "ACTIVE",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
                 "categoryColor": "#3b82f6"
-            },
-            {
-                "id": "3",
-                "categoryId": "3",
-                "categoryName": "Entertainment",
-                "categoryIcon": "fa-solid fa-film",
-                "amount": 100000,
-                "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Movie tickets",
-                "status": "PENDING",
-                "paidByUserId": "user-gbargougui",
-                "paidByUserName": "gbargougui",
-                "categoryColor": "#8b5cf6"
             }
         ]
     },
     "GET /api/workspaces/{id}/expenses?page=0&size=5&sort=effectiveDate,DESC&startDate=2025-10-31&endDate=2026-01-31": {
         "data": [
             {
-                "id": "1",
+                "id": "exp-1",
                 "categoryId": "1",
                 "categoryName": "Food",
-                "categoryIcon": "fa-solid fa-burger",
-                "amount": 100000,
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 8500,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
-                "status": "PENDING",
+                "effectiveDate": "2026-01-31",
+                "note": "Lunch at Italian restaurant",
+                "status": "ACTIVE",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
                 "categoryColor": "#f43f5e"
             },
             {
-                "id": "2",
+                "id": "exp-2",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 12500,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-30",
+                "note": "Weekly grocery shopping",
+                "status": "ACTIVE",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-3",
                 "categoryId": "2",
                 "categoryName": "Transportation",
                 "categoryIcon": "fa-solid fa-car",
-                "amount": 100000,
+                "amount": 3200,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Taxi to the airport",
-                "status": "PENDING",
+                "effectiveDate": "2026-01-29",
+                "note": "Taxi fare",
+                "status": "ACTIVE",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
                 "categoryColor": "#3b82f6"
             },
             {
-                "id": "3",
+                "id": "exp-4",
                 "categoryId": "3",
                 "categoryName": "Entertainment",
                 "categoryIcon": "fa-solid fa-film",
-                "amount": 100000,
+                "amount": 2400,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Movie tickets",
-                "status": "PENDING",
-                "paidByUserId": "user-gbargougui",
-                "paidByUserName": "gbargougui",
+                "effectiveDate": "2026-01-28",
+                "note": "Movie tickets for 2",
+                "status": "ACTIVE",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
                 "categoryColor": "#8b5cf6"
             },
             {
-                "id": "4",
+                "id": "exp-5",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 6800,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-27",
+                "note": "Dinner at sushi place",
+                "status": "ACTIVE",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-6",
+                "categoryId": "5",
+                "categoryName": "Bills",
+                "categoryIcon": "fa-solid fa-receipt",
+                "amount": 18500,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-25",
+                "note": "Electricity bill",
+                "status": "ACTIVE",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#f59e0b"
+            },
+            {
+                "id": "exp-7",
                 "categoryId": "4",
                 "categoryName": "Groceries",
                 "categoryIcon": "fa-solid fa-cart-shopping",
-                "amount": 100000,
+                "amount": 9200,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-30",
-                "note": "Groceries",
-                "status": "COMPLETED",
+                "effectiveDate": "2026-01-23",
+                "note": "Supermarket run",
+                "status": "ACTIVE",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
                 "categoryColor": "#10b981"
             },
             {
-                "id": "5",
-                "categoryId": "5",
+                "id": "exp-8",
+                "categoryId": "2",
                 "categoryName": "Transportation",
                 "categoryIcon": "fa-solid fa-car",
-                "amount": 100000,
+                "amount": 15000,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-29",
-                "note": "Taxi to the airport",
-                "status": "COMPLETED",
+                "effectiveDate": "2026-01-20",
+                "note": "Train tickets to Kyoto",
+                "status": "ACTIVE",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#3b82f6"
+            },
+            {
+                "id": "exp-9",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 4500,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-18",
+                "note": "Coffee and pastries",
+                "status": "ACTIVE",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-10",
+                "categoryId": "6",
+                "categoryName": "Shopping",
+                "categoryIcon": "fa-solid fa-bag-shopping",
+                "amount": 35000,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-15",
+                "note": "New winter jacket",
+                "status": "ACTIVE",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#ec4899"
+            },
+            {
+                "id": "exp-11",
+                "categoryId": "3",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 12000,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-12",
+                "note": "Concert tickets",
+                "status": "ACTIVE",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "exp-12",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 15800,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-10",
+                "note": "Monthly bulk shopping",
+                "status": "ACTIVE",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-13",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 12500,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-08",
+                "note": "Birthday dinner",
+                "status": "ACTIVE",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-14",
+                "categoryId": "2",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "amount": 2800,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-05",
+                "note": "Bus pass",
+                "status": "ACTIVE",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
                 "categoryColor": "#3b82f6"
             },
             {
-                "id": "6",
-                "categoryId": "6",
+                "id": "exp-15",
+                "categoryId": "5",
+                "categoryName": "Bills",
+                "categoryIcon": "fa-solid fa-receipt",
+                "amount": 12500,
+                "currency": "JPY",
+                "effectiveDate": "2026-01-03",
+                "note": "Internet bill",
+                "status": "ACTIVE",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#f59e0b"
+            },
+            {
+                "id": "exp-16",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 5600,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-30",
+                "note": "New Year's Eve dinner prep",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-17",
+                "categoryId": "3",
                 "categoryName": "Entertainment",
                 "categoryIcon": "fa-solid fa-film",
-                "amount": 100000,
+                "amount": 18000,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-28",
-                "note": "Movie tickets",
-                "status": "COMPLETED",
+                "effectiveDate": "2025-12-28",
+                "note": "New Year's party supplies",
+                "status": "SETTLED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "exp-18",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 14200,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-25",
+                "note": "Christmas dinner ingredients",
+                "status": "SETTLED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-19",
+                "categoryId": "6",
+                "categoryName": "Shopping",
+                "categoryIcon": "fa-solid fa-bag-shopping",
+                "amount": 28000,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-23",
+                "note": "Christmas gifts",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#ec4899"
+            },
+            {
+                "id": "exp-20",
+                "categoryId": "2",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "amount": 8500,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-20",
+                "note": "Airport taxi",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#3b82f6"
+            },
+            {
+                "id": "exp-21",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 7200,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-18",
+                "note": "Team lunch",
+                "status": "SETTLED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-22",
+                "categoryId": "5",
+                "categoryName": "Bills",
+                "categoryIcon": "fa-solid fa-receipt",
+                "amount": 22000,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-15",
+                "note": "Gas and water bills",
+                "status": "SETTLED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#f59e0b"
+            },
+            {
+                "id": "exp-23",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 9800,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-12",
+                "note": "Weekly groceries",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-24",
+                "categoryId": "3",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 15000,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-10",
+                "note": "Theater tickets",
+                "status": "SETTLED",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
                 "categoryColor": "#8b5cf6"
             },
             {
-                "id": "7",
-                "categoryId": "7",
+                "id": "exp-25",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 3800,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-08",
+                "note": "Breakfast at cafe",
+                "status": "SETTLED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-26",
+                "categoryId": "2",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "amount": 12000,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-05",
+                "note": "Shinkansen tickets",
+                "status": "SETTLED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#3b82f6"
+            },
+            {
+                "id": "exp-27",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 11200,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-03",
+                "note": "Grocery shopping",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-28",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 9500,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-30",
+                "note": "Dinner at ramen shop",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-29",
+                "categoryId": "6",
+                "categoryName": "Shopping",
+                "categoryIcon": "fa-solid fa-bag-shopping",
+                "amount": 42000,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-28",
+                "note": "New furniture",
+                "status": "SETTLED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#ec4899"
+            },
+            {
+                "id": "exp-30",
+                "categoryId": "5",
+                "categoryName": "Bills",
+                "categoryIcon": "fa-solid fa-receipt",
+                "amount": 16800,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-25",
+                "note": "Phone bill",
+                "status": "SETTLED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#f59e0b"
+            },
+            {
+                "id": "exp-31",
+                "categoryId": "3",
                 "categoryName": "Entertainment",
                 "categoryIcon": "fa-solid fa-film",
-                "amount": 100000,
+                "amount": 5500,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-22",
+                "note": "Arcade games",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "exp-32",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 6400,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-20",
+                "note": "Lunch meeting",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-33",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 13500,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-18",
+                "note": "Weekly shopping",
+                "status": "SETTLED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-34",
+                "categoryId": "2",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "amount": 4500,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-15",
+                "note": "Taxi home",
+                "status": "SETTLED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#3b82f6"
+            },
+            {
+                "id": "exp-35",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 8200,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-12",
+                "note": "BBQ dinner",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-36",
+                "categoryId": "3",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 3200,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-10",
+                "note": "Bowling night",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "exp-37",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 10800,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-08",
+                "note": "Grocery run",
+                "status": "SETTLED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-38",
+                "categoryId": "5",
+                "categoryName": "Bills",
+                "categoryIcon": "fa-solid fa-receipt",
+                "amount": 19500,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-05",
+                "note": "Rent contribution",
+                "status": "SETTLED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#f59e0b"
+            },
+            {
+                "id": "exp-39",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 5100,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-03",
+                "note": "Fast food lunch",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#f43f5e"
+            },
+            {
+                "id": "exp-40",
+                "categoryId": "2",
+                "categoryName": "Transportation",
+                "categoryIcon": "fa-solid fa-car",
+                "amount": 6800,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-01",
+                "note": "Monthly train pass",
+                "status": "SETTLED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
+                "categoryColor": "#3b82f6"
+            },
+            {
+                "id": "exp-41",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 15200,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Halloween party supplies",
+                "status": "SETTLED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice",
+                "categoryColor": "#10b981"
+            },
+            {
+                "id": "exp-42",
+                "categoryId": "3",
+                "categoryName": "Entertainment",
+                "categoryIcon": "fa-solid fa-film",
+                "amount": 8900,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-29",
+                "note": "Halloween party decorations",
+                "status": "SETTLED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#8b5cf6"
+            },
+            {
+                "id": "exp-43",
+                "categoryId": "1",
+                "categoryName": "Food",
+                "categoryIcon": "fa-solid fa-utensils",
+                "amount": 11200,
                 "currency": "JPY",
                 "effectiveDate": "2025-10-27",
-                "note": "Movie tickets",
-                "status": "COMPLETED",
+                "note": "Halloween party food",
+                "status": "SETTLED",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
-                "categoryColor": "#8b5cf6"
+                "categoryColor": "#f43f5e"
             },
             {
-                "id": "8",
-                "categoryId": "8",
-                "categoryName": "Entertainment",
-                "categoryIcon": "fa-solid fa-film",
-                "amount": 100000,
-                "currency": "JPY",
-                "effectiveDate": "2025-10-26",
-                "note": "Movie tickets",
-                "status": "COMPLETED",
-                "paidByUserId": "user-gbargougui",
-                "paidByUserName": "gbargougui",
-                "categoryColor": "#8b5cf6"
-            },
-            {
-                "id": "9",
-                "categoryId": "9",
-                "categoryName": "Entertainment",
-                "categoryIcon": "fa-solid fa-film",
-                "amount": 100000,
+                "id": "exp-44",
+                "categoryId": "6",
+                "categoryName": "Shopping",
+                "categoryIcon": "fa-solid fa-bag-shopping",
+                "amount": 18500,
                 "currency": "JPY",
                 "effectiveDate": "2025-10-25",
-                "note": "Movie tickets",
-                "status": "COMPLETED",
+                "note": "Costumes for Halloween",
+                "status": "SETTLED",
                 "paidByUserId": "user-gbargougui",
                 "paidByUserName": "gbargougui",
-                "categoryColor": "#8b5cf6"
+                "categoryColor": "#ec4899"
             },
             {
-                "id": "10",
-                "categoryId": "10",
-                "categoryName": "Entertainment",
-                "categoryIcon": "fa-solid fa-film",
-                "amount": 100000,
+                "id": "exp-45",
+                "categoryId": "4",
+                "categoryName": "Groceries",
+                "categoryIcon": "fa-solid fa-cart-shopping",
+                "amount": 9600,
                 "currency": "JPY",
                 "effectiveDate": "2025-10-24",
-                "note": "Movie tickets",
-                "status": "COMPLETED",
-                "paidByUserId": "user-gbargougui",
-                "paidByUserName": "gbargougui",
-                "categoryColor": "#8b5cf6"
+                "note": "Regular grocery shopping",
+                "status": "SETTLED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie",
+                "categoryColor": "#10b981"
             }
         ],
         "page": {
             "number": 0,
             "size": 10,
-            "totalElements": 23,
+            "totalElements": 45,
             "totalPages": 5
         },
         "sort": {
@@ -722,12 +1212,177 @@
     },
     "GET /api/workspaces/{id}/analytics/expenses-summary?startDate=2025-10-31&endDate=2026-01-31": {
         "data": {
-            "totalAmount": 120000,
-            "expensesCount": 10,
-            "averagePerDay": 10000,
+            "totalAmount": 456200,
+            "expensesCount": 45,
+            "averagePerDay": 4853,
             "currency": "JPY",
-            "largestExpenseAmount": 100000,
-            
+            "largestExpenseAmount": 42000,
+            "linearChartData": [
+                {
+                    "date": "2025-10-24",
+                    "amount": 9600
+                },
+                {
+                    "date": "2025-10-25",
+                    "amount": 28100
+                },
+                {
+                    "date": "2025-10-27",
+                    "amount": 39300
+                },
+                {
+                    "date": "2025-10-31",
+                    "amount": 50500
+                },
+                {
+                    "date": "2025-11-01",
+                    "amount": 57300
+                },
+                {
+                    "date": "2025-11-03",
+                    "amount": 62400
+                },
+                {
+                    "date": "2025-11-08",
+                    "amount": 73200
+                },
+                {
+                    "date": "2025-11-12",
+                    "amount": 81400
+                },
+                {
+                    "date": "2025-11-15",
+                    "amount": 85900
+                },
+                {
+                    "date": "2025-11-18",
+                    "amount": 99400
+                },
+                {
+                    "date": "2025-11-20",
+                    "amount": 105800
+                },
+                {
+                    "date": "2025-11-22",
+                    "amount": 111300
+                },
+                {
+                    "date": "2025-11-25",
+                    "amount": 130800
+                },
+                {
+                    "date": "2025-11-28",
+                    "amount": 172800
+                },
+                {
+                    "date": "2025-12-03",
+                    "amount": 184000
+                },
+                {
+                    "date": "2025-12-05",
+                    "amount": 196000
+                },
+                {
+                    "date": "2025-12-08",
+                    "amount": 199800
+                },
+                {
+                    "date": "2025-12-10",
+                    "amount": 214800
+                },
+                {
+                    "date": "2025-12-12",
+                    "amount": 224600
+                },
+                {
+                    "date": "2025-12-15",
+                    "amount": 246600
+                },
+                {
+                    "date": "2025-12-18",
+                    "amount": 253800
+                },
+                {
+                    "date": "2025-12-20",
+                    "amount": 262300
+                },
+                {
+                    "date": "2025-12-23",
+                    "amount": 290300
+                },
+                {
+                    "date": "2025-12-25",
+                    "amount": 304500
+                },
+                {
+                    "date": "2025-12-28",
+                    "amount": 322500
+                },
+                {
+                    "date": "2025-12-30",
+                    "amount": 328100
+                },
+                {
+                    "date": "2026-01-03",
+                    "amount": 340600
+                },
+                {
+                    "date": "2026-01-05",
+                    "amount": 343400
+                },
+                {
+                    "date": "2026-01-08",
+                    "amount": 355900
+                },
+                {
+                    "date": "2026-01-10",
+                    "amount": 371700
+                },
+                {
+                    "date": "2026-01-12",
+                    "amount": 383700
+                },
+                {
+                    "date": "2026-01-15",
+                    "amount": 418700
+                },
+                {
+                    "date": "2026-01-18",
+                    "amount": 423200
+                },
+                {
+                    "date": "2026-01-20",
+                    "amount": 438200
+                },
+                {
+                    "date": "2026-01-23",
+                    "amount": 447400
+                },
+                {
+                    "date": "2026-01-25",
+                    "amount": 465900
+                },
+                {
+                    "date": "2026-01-27",
+                    "amount": 472700
+                },
+                {
+                    "date": "2026-01-28",
+                    "amount": 475100
+                },
+                {
+                    "date": "2026-01-29",
+                    "amount": 478300
+                },
+                {
+                    "date": "2026-01-30",
+                    "amount": 490800
+                },
+                {
+                    "date": "2026-01-31",
+                    "amount": 499300
+                }
+            ]
         }
-    },
+    }
 }

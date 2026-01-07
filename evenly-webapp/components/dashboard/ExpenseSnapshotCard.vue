@@ -248,6 +248,23 @@ const getDateRange = (period: PeriodType, customRange?: { start: string | null; 
 
 const handlePeriodChange = async (period: PeriodType, range?: { start: string | null; end: string | null }) => {
   selectedPeriod.value = period
+  
+  // For custom period, only proceed if we have a valid range with both start and end
+  if (period === 'custom') {
+    if (range && range.start && range.end) {
+      customRange.value = range
+      // Fetch data for this card only
+      if (activeWorkspaceId.value) {
+        const { start, end } = getDateRange(period, range)
+        await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+      }
+      emit('period-change', period, range)
+    }
+    // If no valid range, just update the selected period but don't fetch data
+    return
+  }
+  
+  // For non-custom periods, proceed immediately
   if (range) {
     customRange.value = range
   }

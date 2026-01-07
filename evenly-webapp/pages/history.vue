@@ -181,6 +181,18 @@ const handleSortChange = (newSortBy: 'effectiveDate' | 'amount', newDirection: '
 
 const handlePeriodChange = (period: 'month' | 'week' | 'all' | 'custom', dateRange?: { start: string | null; end: string | null }) => {
   selectedPeriod.value = period
+  
+  // For custom period, only proceed if we have a valid range with both start and end
+  if (period === 'custom') {
+    if (dateRange && dateRange.start && dateRange.end) {
+      customDateRange.value = dateRange
+      loadPayments(true)
+    }
+    // If no valid range, just update the selected period but don't load data
+    return
+  }
+  
+  // For non-custom periods, proceed immediately
   if (dateRange) {
     customDateRange.value = dateRange
   }

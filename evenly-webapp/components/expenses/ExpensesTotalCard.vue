@@ -4,16 +4,25 @@
     <div class="flex items-center justify-between mb-2">
       <p class="text-xs text-white/50">{{ periodLabel }}</p>
       <PeriodDropdown
-        v-model="selectedPeriod"
-        v-model:range="customRange"
+        :model-value="selectedPeriod"
+        :range="customRange"
+        @update:model-value="(value) => emit('update:modelValue', value)"
+        @update:range="(value) => emit('update:range', value)"
         @period-change="handlePeriodChange"
       />
     </div>
     
-    <!-- Total Amount -->
-    <div class="mb-3">
-      <p class="text-3xl font-semibold text-white/90">{{ formattedTotal }}</p>
-    </div>
+    <!-- Loading State -->
+    <template v-if="summaryLoading && !summary">
+      <Skeleton variant="balance" />
+    </template>
+    
+    <!-- Content -->
+    <template v-else>
+      <!-- Total Amount -->
+      <div class="mb-3">
+        <p class="text-3xl font-semibold text-white/90">{{ formattedTotal }}</p>
+      </div>
 
     <!-- Indicators Row -->
     <div class="grid grid-cols-3 gap-3 mb-3">
@@ -68,25 +77,34 @@
         />
       </svg>
     </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import PeriodDropdown from '~/components/PeriodDropdown.vue'
+import Skeleton from '~/components/Skeleton.vue'
 
-import type { Expense } from '~/types/api'
+import type { ExpenseSummary } from '~/types/api'
 
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
 interface Props {
-  expenses: Expense[]
+  summary: ExpenseSummary | null
+  summaryLoading?: boolean
   workspaceId?: string
   monthISO?: string
+  modelValue?: PeriodType
+  range?: { start: string | null; end: string | null }
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  summary: null,
+  summaryLoading: false,
   workspaceId: undefined,
-  monthISO: undefined
+  monthISO: undefined,
+  modelValue: 'month',
+  range: () => ({ start: null, end: null })
 })
 
 const { formatCurrency } = useFormatting()
@@ -98,13 +116,23 @@ const chartHeight = 80
 const componentId = Math.random().toString(36).substring(7)
 
 const emit = defineEmits<{
+  'update:modelValue': [value: PeriodType]
+  'update:range': [{ start: string | null; end: string | null }]
   'period-change': [period: PeriodType, dateRange?: { start: string | null; end: string | null }]
 }>()
 
 const { t } = useI18n()
 
-const selectedPeriod = ref<PeriodType>('month')
-const customRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
+// Sync with parent's period state
+const selectedPeriod = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
+
+const customRange = computed({
+  get: () => props.range,
+  set: (value) => emit('update:range', value)
+})
 
 const periodLabel = computed(() => {
   switch (selectedPeriod.value) {
@@ -122,26 +150,22 @@ const periodLabel = computed(() => {
 })
 
 const handlePeriodChange = (period: PeriodType, range?: { start: string | null; end: string | null }) => {
-  selectedPeriod.value = period
+  // Update parent state via emit
+  emit('update:modelValue', period)
 
   if (period === 'custom') {
-    const existing = range || customRange.value
-    let start = existing.start
-    let end = existing.end
-    if (!start || !end) {
-      const now = new Date()
-      const defaultStart = new Date(now.getFullYear(), now.getMonth(), 1)
-      const defaultEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      start = defaultStart.toISOString().split('T')[0]
-      end = defaultEnd.toISOString().split('T')[0]
+    // For custom period, only emit if we have a valid range with both start and end
+    if (range && range.start && range.end) {
+      emit('update:range', { start: range.start, end: range.end })
+      emit('period-change', period, { start: range.start, end: range.end })
     }
-    customRange.value = { start, end }
-    emit('period-change', period, { start, end })
+    // If no valid range, don't emit - wait for user to select dates via applyCustomRange
     return
   }
 
+  // For non-custom periods, emit immediately
   if (range) {
-    customRange.value = range
+    emit('update:range', range)
   }
   emit('period-change', period, range)
 }
@@ -190,105 +214,50 @@ const dateRange = computed(() => {
   return { start, end }
 })
 
-// Filter expenses by date range and workspace - using effectiveDate from API
-const filteredExpenses = computed(() => {
-  const { start, end } = dateRange.value
-  
-  let filtered = props.expenses.filter(expense => {
-    const expenseDate = expense.effectiveDate
-    if (!expenseDate) return false
-    
-    const expenseDateObj = new Date(expenseDate)
-    if (expenseDateObj < start || expenseDateObj > end) return false
-    
-    // Note: API doesn't provide workspaceId in expense response, so skip that check
-    return true
-  })
-  
-  return filtered
-})
-
-// Calculate total
+// Use summary data from API
 const total = computed(() => {
-  return filteredExpenses.value.reduce((sum, expense) => sum + expense.amount, 0)
+  return props.summary?.totalAmount || 0
 })
 
 // Format total amount
 const formattedTotal = computed(() => {
-  return formatCurrency(total.value)
+  return formatCurrency(total.value, props.summary?.currency)
 })
 
-// Expense count
+// Expense count from API
 const expenseCount = computed(() => {
-  return filteredExpenses.value.length
+  return props.summary?.expensesCount || 0
 })
 
-// Average per day
-const averagePerDay = computed(() => {
-  const { start, end } = dateRange.value
-  const daysDiff = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)))
-  return total.value / daysDiff
-})
-
+// Average per day from API
 const formattedAverage = computed(() => {
-  return formatCurrency(Math.round(averagePerDay.value))
+  return formatCurrency(props.summary?.averagePerDay || 0, props.summary?.currency)
 })
 
-// Largest expense
-const largestExpense = computed(() => {
-  if (filteredExpenses.value.length === 0) return 0
-  return Math.max(...filteredExpenses.value.map(e => e.amount))
-})
-
+// Largest expense from API
 const formattedLargest = computed(() => {
-  return formatCurrency(largestExpense.value)
+  return formatCurrency(props.summary?.largestExpenseAmount || 0, props.summary?.currency)
 })
 
-// Build trend data points
+// Build trend data points from API linearChartData
 const trendData = computed(() => {
-  const { start, end } = dateRange.value
-  const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
-  // Cap at 90 days for reasonable chart, but ensure minimum of 7 days
-  const numDays = Math.max(7, Math.min(daysDiff, 90))
-  
-  // Group expenses by day and calculate cumulative sum
-  const dailyTotals = new Map<number, number>()
-  
-  filteredExpenses.value.forEach(expense => {
-    const expenseDate = expense.effectiveDate
-    if (!expenseDate) return
-    
-    const expenseDateObj = new Date(expenseDate)
-    const dayIndex = Math.floor((expenseDateObj.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-    
-    if (dayIndex >= 0 && dayIndex < numDays) {
-      const current = dailyTotals.get(dayIndex) || 0
-      dailyTotals.set(dayIndex, current + expense.amount)
-    }
-  })
-  
-  // Build cumulative sum array
-  const cumulative = new Array(numDays).fill(0)
-  let runningTotal = 0
-  for (let day = 0; day < numDays; day++) {
-    runningTotal += dailyTotals.get(day) || 0
-    cumulative[day] = runningTotal
+  if (!props.summary?.linearChartData || props.summary.linearChartData.length === 0) {
+    return []
   }
   
-  // Sample 14 points across the period (evenly distributed)
-  const numPoints = 14
+  const chartData = props.summary.linearChartData
+  const numPoints = chartData.length
+  const maxAmount = Math.max(...chartData.map(d => d.amount), total.value || 1)
+  
   const points: Array<{ x: number; y: number }> = []
   
-  // Ensure we have at least some data points even if no expenses
-  const maxCumulative = Math.max(...cumulative, total.value || 1)
-  
   for (let i = 0; i < numPoints; i++) {
-    const dayIndex = Math.round((i / (numPoints - 1)) * (numDays - 1))
-    const value = cumulative[dayIndex] || 0
+    const value = chartData[i].amount || 0
     
     // Normalize to chart coordinates
-    const x = (i / (numPoints - 1)) * chartWidth
-    const normalizedValue = maxCumulative > 0 ? value / maxCumulative : 0
+    // Handle edge case when there's only one point
+    const x = numPoints === 1 ? chartWidth / 2 : (i / (numPoints - 1)) * chartWidth
+    const normalizedValue = maxAmount > 0 ? value / maxAmount : 0
     // Add padding: 8px top, 8px bottom
     const y = chartHeight - 8 - (normalizedValue * (chartHeight - 16))
     

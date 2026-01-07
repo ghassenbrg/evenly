@@ -223,6 +223,8 @@
   },
   "payments": {
     "payment": "Payment",
+    "paymentReceivedFrom": "Payment received from {name}",
+    "paymentPaidTo": "Payment paid to {name}",
     "receivedFrom": "Received from",
     "paidTo": "Paid to",
     "sortBy": "Sort by",

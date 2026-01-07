@@ -18,7 +18,7 @@ export const useExpenses = () => {
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
-  const fetchExpenses = async (workspaceId: string, filters?: ExpenseFilters) => {
+  const fetchExpenses = async (workspaceId: string, filters?: ExpenseFilters, append = false) => {
     loading.value = true
     error.value = null
     try {
@@ -35,7 +35,14 @@ export const useExpenses = () => {
       const query = queryParams.toString()
       const path = `/api/workspaces/${workspaceId}/expenses${query ? `?${query}` : ''}`
       const response = await api.get<PaginatedResponse<Expense>>(path)
-      expenses.value = response.data
+      
+      if (append) {
+        // Append new expenses for pagination
+        expenses.value = [...expenses.value, ...response.data]
+      } else {
+        // Replace expenses for new search/filter
+        expenses.value = response.data
+      }
       pageInfo.value = response.page
     } catch (err) {
       error.value = err as Error
@@ -113,12 +120,27 @@ export const useExpenses = () => {
     error.value = null
   }
 
+  const loadMoreExpenses = async (workspaceId: string, filters?: ExpenseFilters) => {
+    if (!pageInfo.value) return
+    
+    const nextPage = pageInfo.value.number + 1
+    if (nextPage >= pageInfo.value.totalPages) return
+    
+    const nextFilters = {
+      ...filters,
+      page: nextPage
+    }
+    
+    await fetchExpenses(workspaceId, nextFilters, true)
+  }
+
   return {
     expenses: readonly(expenses),
     pageInfo: readonly(pageInfo),
     loading: readonly(loading),
     error: readonly(error),
     fetchExpenses,
+    loadMoreExpenses,
     getExpense,
     createExpense,
     updateExpense,

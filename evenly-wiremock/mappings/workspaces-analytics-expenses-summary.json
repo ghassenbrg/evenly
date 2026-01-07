@@ -1,0 +1,193 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/workspaces/([^/]+)/analytics/expenses-summary"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": {
+      "data": {
+        "totalAmount": 456200,
+        "expensesCount": 45,
+        "averagePerDay": 4853,
+        "currency": "JPY",
+        "largestExpenseAmount": 42000,
+        "linearChartData": [
+          {
+            "date": "2025-10-24",
+            "amount": 9600
+          },
+          {
+            "date": "2025-10-25",
+            "amount": 28100
+          },
+          {
+            "date": "2025-10-27",
+            "amount": 39300
+          },
+          {
+            "date": "2025-10-31",
+            "amount": 50500
+          },
+          {
+            "date": "2025-11-01",
+            "amount": 57300
+          },
+          {
+            "date": "2025-11-03",
+            "amount": 62400
+          },
+          {
+            "date": "2025-11-08",
+            "amount": 73200
+          },
+          {
+            "date": "2025-11-12",
+            "amount": 81400
+          },
+          {
+            "date": "2025-11-15",
+            "amount": 85900
+          },
+          {
+            "date": "2025-11-18",
+            "amount": 99400
+          },
+          {
+            "date": "2025-11-20",
+            "amount": 105800
+          },
+          {
+            "date": "2025-11-22",
+            "amount": 111300
+          },
+          {
+            "date": "2025-11-25",
+            "amount": 130800
+          },
+          {
+            "date": "2025-11-28",
+            "amount": 172800
+          },
+          {
+            "date": "2025-12-03",
+            "amount": 184000
+          },
+          {
+            "date": "2025-12-05",
+            "amount": 196000
+          },
+          {
+            "date": "2025-12-08",
+            "amount": 199800
+          },
+          {
+            "date": "2025-12-10",
+            "amount": 214800
+          },
+          {
+            "date": "2025-12-12",
+            "amount": 224600
+          },
+          {
+            "date": "2025-12-15",
+            "amount": 246600
+          },
+          {
+            "date": "2025-12-18",
+            "amount": 253800
+          },
+          {
+            "date": "2025-12-20",
+            "amount": 262300
+          },
+          {
+            "date": "2025-12-23",
+            "amount": 290300
+          },
+          {
+            "date": "2025-12-25",
+            "amount": 304500
+          },
+          {
+            "date": "2025-12-28",
+            "amount": 322500
+          },
+          {
+            "date": "2025-12-30",
+            "amount": 328100
+          },
+          {
+            "date": "2026-01-03",
+            "amount": 340600
+          },
+          {
+            "date": "2026-01-05",
+            "amount": 343400
+          },
+          {
+            "date": "2026-01-08",
+            "amount": 355900
+          },
+          {
+            "date": "2026-01-10",
+            "amount": 371700
+          },
+          {
+            "date": "2026-01-12",
+            "amount": 383700
+          },
+          {
+            "date": "2026-01-15",
+            "amount": 418700
+          },
+          {
+            "date": "2026-01-18",
+            "amount": 423200
+          },
+          {
+            "date": "2026-01-20",
+            "amount": 438200
+          },
+          {
+            "date": "2026-01-23",
+            "amount": 447400
+          },
+          {
+            "date": "2026-01-25",
+            "amount": 465900
+          },
+          {
+            "date": "2026-01-27",
+            "amount": 472700
+          },
+          {
+            "date": "2026-01-28",
+            "amount": 475100
+          },
+          {
+            "date": "2026-01-29",
+            "amount": 478300
+          },
+          {
+            "date": "2026-01-30",
+            "amount": 490800
+          },
+          {
+            "date": "2026-01-31",
+            "amount": 499300
+          }
+        ]
+      }
+    }
+  }
+}
+

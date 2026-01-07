@@ -31,21 +31,14 @@
         </svg>
       </div>
       
-      <!-- Other User Info -->
-      <div class="flex flex-col items-start">
-        <div class="text-sm font-medium text-white/90">
-          {{ otherUserName }}
-        </div>
-        <div class="text-xs text-white/50 mt-0.5">
-          {{ directionLabel }}
-        </div>
-      </div>
     </div>
 
     <!-- Middle Text Block -->
     <div class="flex-1 min-w-0 px-3 text-left">
       <div class="flex items-center space-x-2">
-        <span class="text-base font-medium text-white/90">{{ t('payments.payment') }}</span>
+        <span class="text-base font-medium text-white/90">
+          {{ isReceived ? t('payments.paymentReceivedFrom', { name: otherUserName }) : t('payments.paymentPaidTo', { name: otherUserName }) }}
+        </span>
         <span
           class="px-2 py-0.5 rounded-full text-xs font-medium"
           :class="getStatusClass(payment.status)"
@@ -124,25 +117,16 @@ const isReceived = computed(() => {
 const otherUserName = computed(() => {
   const currentUserId = authStore.currentUser?.id
   if (!currentUserId) {
-    // Fallback: show both names if we can't determine current user
-    return `${props.payment.paidByUserName} → ${props.payment.payeeUserName}`
+    // Fallback: if we can't determine current user, default to showing payee
+    return props.payment.payeeUserName || props.payment.payeeUserId || 'Unknown'
   }
   
   if (isReceived.value) {
     // Current user received money, show who paid
-    return props.payment.paidByUserName || props.payment.paidByUserId
+    return props.payment.paidByUserName || props.payment.paidByUserId || 'Unknown'
   } else {
     // Current user paid money, show who received
-    return props.payment.payeeUserName || props.payment.payeeUserId
-  }
-})
-
-// Direction label
-const directionLabel = computed(() => {
-  if (isReceived.value) {
-    return t('payments.receivedFrom')
-  } else {
-    return t('payments.paidTo')
+    return props.payment.payeeUserName || props.payment.payeeUserId || 'Unknown'
   }
 })
 

@@ -16,46 +16,46 @@
     "jsonBody": {
       "data": [
         {
-          "id": "1",
+          "id": "exp-1",
           "categoryId": "1",
           "categoryName": "Food",
-          "categoryIcon": "fa-solid fa-burger",
+          "categoryIcon": "fa-solid fa-utensils",
           "categoryColor": "#f43f5e",
-          "amount": 100000,
+          "amount": 8500,
           "currency": "JPY",
-          "effectiveDate": "2025-10-31",
-          "note": "Dinner with friends",
-          "status": "PENDING",
-          "paidByUserId": "user-bob",
-          "paidByUserName": "Bob"
+          "effectiveDate": "2026-01-31",
+          "note": "Lunch at Italian restaurant",
+          "status": "ACTIVE",
+          "paidByUserId": "user-gbargougui",
+          "paidByUserName": "gbargougui"
         },
         {
-          "id": "2",
+          "id": "exp-2",
+          "categoryId": "4",
+          "categoryName": "Groceries",
+          "categoryIcon": "fa-solid fa-cart-shopping",
+          "categoryColor": "#10b981",
+          "amount": 12500,
+          "currency": "JPY",
+          "effectiveDate": "2026-01-30",
+          "note": "Weekly grocery shopping",
+          "status": "ACTIVE",
+          "paidByUserId": "user-alice",
+          "paidByUserName": "Alice"
+        },
+        {
+          "id": "exp-3",
           "categoryId": "2",
           "categoryName": "Transportation",
           "categoryIcon": "fa-solid fa-car",
           "categoryColor": "#3b82f6",
-          "amount": 100000,
+          "amount": 3200,
           "currency": "JPY",
-          "effectiveDate": "2025-10-31",
-          "note": "Taxi to the airport",
-          "status": "PENDING",
-          "paidByUserId": "user-bob",
-          "paidByUserName": "Bob"
-        },
-        {
-          "id": "3",
-          "categoryId": "3",
-          "categoryName": "Entertainment",
-          "categoryIcon": "fa-solid fa-film",
-          "categoryColor": "#8b5cf6",
-          "amount": 100000,
-          "currency": "JPY",
-          "effectiveDate": "2025-10-31",
-          "note": "Movie tickets",
-          "status": "PENDING",
-          "paidByUserId": "user-bob",
-          "paidByUserName": "Bob"
+          "effectiveDate": "2026-01-29",
+          "note": "Taxi fare",
+          "status": "ACTIVE",
+          "paidByUserId": "user-gbargougui",
+          "paidByUserName": "gbargougui"
         }
       ]
     }
