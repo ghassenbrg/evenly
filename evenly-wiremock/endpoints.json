@@ -240,8 +240,8 @@
                 "effectiveDate": "2025-10-31",
                 "note": "Dinner with friends",
                 "status": "PENDING",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#f43f5e"
             },
             {
@@ -254,8 +254,8 @@
                 "effectiveDate": "2025-10-31",
                 "note": "Taxi to the airport",
                 "status": "PENDING",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#3b82f6"
             },
             {
@@ -268,13 +268,13 @@
                 "effectiveDate": "2025-10-31",
                 "note": "Movie tickets",
                 "status": "PENDING",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#8b5cf6"
             }
         ]
     },
-    "GET /api/workspaces/{id}/expenses?page=0&size=5&sort=effectiveDate,DESC": {
+    "GET /api/workspaces/{id}/expenses?page=0&size=5&sort=effectiveDate,DESC&startDate=2025-10-31&endDate=2026-01-31": {
         "data": [
             {
                 "id": "1",
@@ -286,8 +286,8 @@
                 "effectiveDate": "2025-10-31",
                 "note": "Dinner with friends",
                 "status": "PENDING",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#f43f5e"
             },
             {
@@ -300,8 +300,8 @@
                 "effectiveDate": "2025-10-31",
                 "note": "Taxi to the airport",
                 "status": "PENDING",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#3b82f6"
             },
             {
@@ -314,8 +314,8 @@
                 "effectiveDate": "2025-10-31",
                 "note": "Movie tickets",
                 "status": "PENDING",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#8b5cf6"
             },
             {
@@ -328,8 +328,8 @@
                 "effectiveDate": "2025-10-30",
                 "note": "Groceries",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#10b981"
             },
             {
@@ -342,8 +342,8 @@
                 "effectiveDate": "2025-10-29",
                 "note": "Taxi to the airport",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#3b82f6"
             },
             {
@@ -356,8 +356,8 @@
                 "effectiveDate": "2025-10-28",
                 "note": "Movie tickets",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#8b5cf6"
             },
             {
@@ -370,8 +370,8 @@
                 "effectiveDate": "2025-10-27",
                 "note": "Movie tickets",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#8b5cf6"
             },
             {
@@ -384,8 +384,8 @@
                 "effectiveDate": "2025-10-26",
                 "note": "Movie tickets",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#8b5cf6"
             },
             {
@@ -398,8 +398,8 @@
                 "effectiveDate": "2025-10-25",
                 "note": "Movie tickets",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#8b5cf6"
             },
             {
@@ -412,8 +412,8 @@
                 "effectiveDate": "2025-10-24",
                 "note": "Movie tickets",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui",
                 "categoryColor": "#8b5cf6"
             }
         ],
@@ -429,139 +429,305 @@
             "property": "effectiveDate"
         }
     },
-    "GET /api/workspaces/{id}/payments?page=0&size=5&sort=effectiveDate,DESC": {
+    "GET /api/workspaces/{id}/payments?page=0&size=5&sort=effectiveDate,DESC&startDate=2025-10-31&endDate=2026-01-31": {
         "data": [
             {
                 "id": "1",
-                "payeeUserId": "user-alice",
-                "payeeUserName": "Alice",
-                "amount": 6500,
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 12500,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
+                "effectiveDate": "2026-01-15",
+                "note": "Reimbursement for concert tickets",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice"
             },
             {
                 "id": "2",
-                "payeeUserId": "user-alice",
-                "payeeUserName": "Alice",
-                "amount": 6500,
+                "payeeUserId": "user-charlie",
+                "payeeUserName": "Charlie",
+                "amount": 8500,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
+                "effectiveDate": "2026-01-12",
+                "note": "Lunch payment",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
             },
             {
                 "id": "3",
                 "payeeUserId": "user-alice",
                 "payeeUserName": "Alice",
-                "amount": 6500,
+                "amount": 32000,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
-                "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "effectiveDate": "2026-01-08",
+                "note": "Monthly rent split",
+                "status": "PENDING",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
             },
             {
                 "id": "4",
-                "payeeUserId": "user-alice",
-                "payeeUserName": "Alice",
-                "amount": 6500,
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 15000,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
+                "effectiveDate": "2026-01-05",
+                "note": "Grocery reimbursement",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice"
             },
             {
                 "id": "5",
-                "payeeUserId": "user-alice",
-                "payeeUserName": "Alice",
-                "amount": 6500,
+                "payeeUserId": "user-charlie",
+                "payeeUserName": "Charlie",
+                "amount": 5000,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
-                "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "effectiveDate": "2026-01-03",
+                "note": "Coffee break",
+                "status": "FAILED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
             },
             {
                 "id": "6",
-                "payeeUserId": "user-alice",
-                "payeeUserName": "Alice",
-                "amount": 6500,
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 22000,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
+                "effectiveDate": "2025-12-28",
+                "note": "Holiday dinner",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice"
             },
             {
                 "id": "7",
                 "payeeUserId": "user-alice",
                 "payeeUserName": "Alice",
-                "amount": 6500,
+                "amount": 12000,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
+                "effectiveDate": "2025-12-25",
+                "note": "Christmas gift",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
             },
             {
                 "id": "8",
-                "payeeUserId": "user-alice",
-                "payeeUserName": "Alice",
-                "amount": 6500,
+                "payeeUserId": "user-charlie",
+                "payeeUserName": "Charlie",
+                "amount": 18000,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
+                "effectiveDate": "2025-12-20",
+                "note": "Movie tickets and snacks",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
             },
             {
                 "id": "9",
-                "payeeUserId": "user-alice",
-                "payeeUserName": "Alice",
-                "amount": 6500,
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 9500,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
+                "effectiveDate": "2025-12-18",
+                "note": "Taxi fare split",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie"
             },
             {
                 "id": "10",
                 "payeeUserId": "user-alice",
                 "payeeUserName": "Alice",
+                "amount": 45000,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-15",
+                "note": "Utility bills",
+                "status": "PENDING",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
+            },
+            {
+                "id": "11",
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 28000,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-10",
+                "note": "Restaurant dinner",
+                "status": "COMPLETED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice"
+            },
+            {
+                "id": "12",
+                "payeeUserId": "user-charlie",
+                "payeeUserName": "Charlie",
+                "amount": 7500,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-08",
+                "note": "Drinks at bar",
+                "status": "COMPLETED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
+            },
+            {
+                "id": "13",
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 11000,
+                "currency": "JPY",
+                "effectiveDate": "2025-12-05",
+                "note": "Book purchase",
+                "status": "COMPLETED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice"
+            },
+            {
+                "id": "14",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
                 "amount": 6500,
                 "currency": "JPY",
-                "effectiveDate": "2025-10-31",
-                "note": "Dinner with friends",
+                "effectiveDate": "2025-12-01",
+                "note": "Lunch payment",
                 "status": "COMPLETED",
-                "paidByUserId": "user-bob",
-                "paidByUserName": "Bob"
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
+            },
+            {
+                "id": "15",
+                "payeeUserId": "user-charlie",
+                "payeeUserName": "Charlie",
+                "amount": 25000,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-28",
+                "note": "Weekend trip expenses",
+                "status": "COMPLETED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
+            },
+            {
+                "id": "16",
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 13500,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-25",
+                "note": "Shopping reimbursement",
+                "status": "COMPLETED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie"
+            },
+            {
+                "id": "17",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 8000,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-22",
+                "note": "Concert tickets",
+                "status": "PENDING",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
+            },
+            {
+                "id": "18",
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 19000,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-18",
+                "note": "Hotel booking",
+                "status": "COMPLETED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice"
+            },
+            {
+                "id": "19",
+                "payeeUserId": "user-charlie",
+                "payeeUserName": "Charlie",
+                "amount": 4200,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-15",
+                "note": "Train tickets",
+                "status": "COMPLETED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
+            },
+            {
+                "id": "20",
+                "payeeUserId": "user-alice",
+                "payeeUserName": "Alice",
+                "amount": 16000,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-10",
+                "note": "Gym membership split",
+                "status": "COMPLETED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
+            },
+            {
+                "id": "21",
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 5500,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-05",
+                "note": "Breakfast",
+                "status": "COMPLETED",
+                "paidByUserId": "user-charlie",
+                "paidByUserName": "Charlie"
+            },
+            {
+                "id": "22",
+                "payeeUserId": "user-charlie",
+                "payeeUserName": "Charlie",
+                "amount": 30000,
+                "currency": "JPY",
+                "effectiveDate": "2025-11-01",
+                "note": "Monthly subscription",
+                "status": "FAILED",
+                "paidByUserId": "user-gbargougui",
+                "paidByUserName": "gbargougui"
+            },
+            {
+                "id": "23",
+                "payeeUserId": "user-gbargougui",
+                "payeeUserName": "gbargougui",
+                "amount": 17500,
+                "currency": "JPY",
+                "effectiveDate": "2025-10-31",
+                "note": "Halloween party expenses",
+                "status": "COMPLETED",
+                "paidByUserId": "user-alice",
+                "paidByUserName": "Alice"
             }
         ],
         "page": {
             "number": 0,
             "size": 10,
             "totalElements": 23,
-            "totalPages": 5
+            "totalPages": 3
         },
         "sort": {
             "sorted": true,
             "direction": "DESC",
             "property": "effectiveDate"
         }
-    }
+    },
+    "GET /api/workspaces/{id}/analytics/expenses-summary?startDate=2025-10-31&endDate=2026-01-31": {
+        "data": {
+            "totalAmount": 120000,
+            "expensesCount": 10,
+            "averagePerDay": 10000,
+            "currency": "JPY",
+            "largestExpenseAmount": 100000,
+            
+        }
+    },
 }

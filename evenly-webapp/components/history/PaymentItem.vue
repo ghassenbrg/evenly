@@ -8,30 +8,36 @@
     <div class="flex items-center space-x-3 flex-shrink-0">
       <div
         class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
-        :style="{ background: getStatusGradient(payment.status) }"
+        :style="{ background: iconGradient }"
       >
-        <!-- Payment icon - API doesn't provide type, so use default -->
+        <!-- Direction icon: arrow up for received, arrow down for paid -->
         <svg
+          v-if="isReceived"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
-          class="w-5 h-5 text-white/80"
+          class="w-5 h-5 text-white/90"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+        <svg
+          v-else
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          class="w-5 h-5 text-white/90"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
       </div>
       
-      <!-- Member Info -->
+      <!-- Other User Info -->
       <div class="flex flex-col items-start">
-        <div class="flex items-center space-x-2">
-          <span class="text-xs font-medium text-white/70">{{ getInitials(payment.paidByUserName) }}</span>
-          <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-          </svg>
-          <span class="text-xs font-medium text-white/70">{{ getInitials(payment.payeeUserName) }}</span>
+        <div class="text-sm font-medium text-white/90">
+          {{ otherUserName }}
         </div>
         <div class="text-xs text-white/50 mt-0.5">
-          {{ payerName }} → {{ payeeName }}
+          {{ directionLabel }}
         </div>
       </div>
     </div>
@@ -55,15 +61,19 @@
       </div>
     </div>
 
-    <!-- Right Amount -->
-    <div class="text-base font-semibold text-white/85 flex-shrink-0">
-      {{ formatCurrency(payment.amount, payment.currency) }}
+    <!-- Right Amount with Sign -->
+    <div 
+      class="text-base font-semibold flex-shrink-0"
+      :class="amountClass"
+    >
+      {{ formattedAmount }}
     </div>
   </button>
 </template>
 
 <script setup lang="ts">
-import type { Payment, User } from '~/types/api'
+import type { Payment } from '~/types/api'
+import { useAuthStore } from '~/stores/auth'
 
 interface Props {
   payment: Payment
@@ -77,22 +87,94 @@ const emit = defineEmits<{
 
 const { formatCurrency, formatDate } = useFormatting()
 const { t } = useI18n()
+const authStore = useAuthStore()
 
-// Use API field names from endpoints.json
-const payerName = computed(() => props.payment.paidByUserName || props.payment.paidByUserId)
-const payeeName = computed(() => props.payment.payeeUserName || props.payment.payeeUserId)
+// Determine if current user received money (is payee) or paid money (is payer)
+const isReceived = computed(() => {
+  const currentUser = authStore.currentUser
+  if (!currentUser) return false
+  
+  // Get current user identifiers
+  const currentUserId = currentUser.id || ''
+  const currentUserName = currentUser.username || currentUser.displayName || ''
+  
+  // Get payment identifiers
+  const payeeUserId = props.payment.payeeUserId || ''
+  const payeeUserName = props.payment.payeeUserName || ''
+  const payerUserId = props.payment.paidByUserId || ''
+  const payerUserName = props.payment.paidByUserName || ''
+  
+  // Check if current user is the payee (received money) - exact match first
+  const isPayee = payeeUserId === currentUserId || payeeUserName === currentUserName
+  
+  // Check if current user is the payer (paid money) - exact match first
+  const isPayer = payerUserId === currentUserId || payerUserName === currentUserName
+  
+  // If user is payee, they received money
+  if (isPayee) return true
+  
+  // If user is payer, they paid money
+  if (isPayer) return false
+  
+  // Default: assume user paid (conservative approach)
+  return false
+})
 
-const getInitials = (name?: string) => {
-  if (!name) return '?'
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || '??'
-}
+// Get the other user's name (not the current user)
+const otherUserName = computed(() => {
+  const currentUserId = authStore.currentUser?.id
+  if (!currentUserId) {
+    // Fallback: show both names if we can't determine current user
+    return `${props.payment.paidByUserName} → ${props.payment.payeeUserName}`
+  }
+  
+  if (isReceived.value) {
+    // Current user received money, show who paid
+    return props.payment.paidByUserName || props.payment.paidByUserId
+  } else {
+    // Current user paid money, show who received
+    return props.payment.payeeUserName || props.payment.payeeUserId
+  }
+})
 
-// Payment type not in API response, removed
+// Direction label
+const directionLabel = computed(() => {
+  if (isReceived.value) {
+    return t('payments.receivedFrom')
+  } else {
+    return t('payments.paidTo')
+  }
+})
+
+// Icon gradient based on direction
+const iconGradient = computed(() => {
+  if (isReceived.value) {
+    // Green gradient for received money
+    return 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+  } else {
+    // Red gradient for paid money
+    return 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+  }
+})
+
+// Amount class (color based on direction)
+const amountClass = computed(() => {
+  if (isReceived.value) {
+    return 'text-emerald-400' // Green for received
+  } else {
+    return 'text-red-400' // Red for paid
+  }
+})
+
+// Formatted amount with sign
+const formattedAmount = computed(() => {
+  const amount = formatCurrency(props.payment.amount, props.payment.currency)
+  if (isReceived.value) {
+    return `+${amount}` // Positive for received
+  } else {
+    return `-${amount}` // Negative for paid
+  }
+})
 
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
@@ -110,15 +192,6 @@ const getStatusClass = (status: string) => {
     FAILED: 'bg-red-500/20 text-red-400'
   }
   return classes[status] || 'bg-slate-500/20 text-slate-400'
-}
-
-const getStatusGradient = (status: string) => {
-  const gradients: Record<string, string> = {
-    COMPLETED: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    PENDING: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-    FAILED: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-  }
-  return gradients[status] || 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
 }
 </script>
 

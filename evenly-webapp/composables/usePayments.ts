@@ -17,7 +17,7 @@ export const usePayments = () => {
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
-  const fetchPayments = async (workspaceId: string, filters?: PaymentFilters) => {
+  const fetchPayments = async (workspaceId: string, filters?: PaymentFilters, append = false) => {
     loading.value = true
     error.value = null
     try {
@@ -33,7 +33,14 @@ export const usePayments = () => {
       const query = queryParams.toString()
       const path = `/api/workspaces/${workspaceId}/payments${query ? `?${query}` : ''}`
       const response = await api.get<PaginatedResponse<Payment>>(path)
-      payments.value = response.data
+      
+      if (append) {
+        // Append new payments for pagination
+        payments.value = [...payments.value, ...response.data]
+      } else {
+        // Replace payments for new search/filter
+        payments.value = response.data
+      }
       pageInfo.value = response.page
     } catch (err) {
       error.value = err as Error
@@ -75,12 +82,27 @@ export const usePayments = () => {
     error.value = null
   }
 
+  const loadMorePayments = async (workspaceId: string, filters?: PaymentFilters) => {
+    if (!pageInfo.value) return
+    
+    const nextPage = pageInfo.value.number + 1
+    if (nextPage >= pageInfo.value.totalPages) return
+    
+    const nextFilters = {
+      ...filters,
+      page: nextPage
+    }
+    
+    await fetchPayments(workspaceId, nextFilters, true)
+  }
+
   return {
     payments: readonly(payments),
     pageInfo: readonly(pageInfo),
     loading: readonly(loading),
     error: readonly(error),
     fetchPayments,
+    loadMorePayments,
     getPayment,
     createPayment,
     clearPayments

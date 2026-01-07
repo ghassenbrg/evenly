@@ -164,7 +164,6 @@
     "settleUpDescription": "View and settle outstanding balances with other members",
     "paid": "Paid",
     "expected": "Expected",
-    "youOwe": "You owe",
     "owesYou": "Owes you",
     "settled": "Settled",
     "pay": "Pay",
@@ -223,6 +222,15 @@
     "loadFailed": "Failed to load expenses"
   },
   "payments": {
+    "payment": "Payment",
+    "receivedFrom": "Received from",
+    "paidTo": "Paid to",
+    "sortBy": "Sort by",
+    "sortByDate": "Date",
+    "sortByAmount": "Amount",
+    "direction": "Direction",
+    "ascending": "Ascending",
+    "descending": "Descending",
     "loadingMore": "Loading more...",
     "noPayments": "No payment history yet",
     "loadFailed": "Failed to load payment history",

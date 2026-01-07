@@ -1,15 +1,29 @@
 <template>
   <div class="p-4 space-y-4">
-    <!-- Loading State -->
-    <div v-if="loading && payments.length === 0" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+    <!-- Sort and Period Dropdowns -->
+    <div class="flex items-center justify-between gap-3">
+      <SortDropdown
+        v-model:sort-by="sortBy"
+        v-model:direction="sortDirection"
+        @sort-change="handleSortChange"
+      />
+      <PeriodDropdown
+        v-model="selectedPeriod"
+        v-model:range="customDateRange"
+        @period-change="handlePeriodChange"
+      />
+    </div>
+
+    <!-- Loading State with Skeleton -->
+    <div v-if="loading && payments.length === 0" class="space-y-2">
+      <Skeleton v-for="i in 5" :key="i" variant="list-item" />
     </div>
 
     <!-- Error State -->
     <div v-else-if="error && payments.length === 0" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
       <p class="text-red-400 text-sm">{{ error.message || t('payments.loadFailed') }}</p>
       <button
-        @click="loadPayments"
+        @click="loadPayments(true)"
         class="mt-2 text-sm text-red-400 hover:text-red-300 underline"
       >
         {{ t('common.retry') }}
@@ -59,9 +73,9 @@
         <div class="text-sm text-white/40">{{ t('payments.loadingMore') }}</div>
       </div>
       
-      <!-- Loading More Indicator -->
-      <div v-if="loading && payments.length > 0" class="flex justify-center pt-4 pb-4">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500"></div>
+      <!-- Loading More Indicator with Skeleton -->
+      <div v-if="loading && payments.length > 0" class="space-y-2 pt-4">
+        <Skeleton v-for="i in 3" :key="i" variant="list-item" />
       </div>
       
       <!-- End of List -->
@@ -85,19 +99,92 @@ import type { Payment } from '~/types/api'
 const { t, locale } = useI18n()
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspacesStore)
-const { payments, loading, error, fetchPayments, clearPayments } = usePayments()
+const { payments, pageInfo, loading, error, fetchPayments, loadMorePayments, clearPayments } = usePayments()
 
-const visibleCount = ref(10)
-const itemsPerPage = 10
+// Period dropdown state - default to "all"
+const selectedPeriod = ref<'month' | 'week' | 'all' | 'custom'>('all')
+const customDateRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
 
-const loadPayments = async () => {
+// Sort dropdown state
+const sortBy = ref<'effectiveDate' | 'amount'>('effectiveDate')
+const sortDirection = ref<'ASC' | 'DESC'>('DESC')
+
+const pageSize = 10
+
+const getDateRange = () => {
+  const now = new Date()
+  let start: Date
+  let end: Date = new Date(now)
+
+  switch (selectedPeriod.value) {
+    case 'month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1)
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      break
+    case 'week':
+      const dayOfWeek = now.getDay()
+      const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+      start = new Date(now.getFullYear(), now.getMonth(), diff)
+      start.setHours(0, 0, 0, 0)
+      end = new Date(now)
+      end.setHours(23, 59, 59, 999)
+      break
+    case 'all':
+      // For "all", don't set date filters (show all payments)
+      return { start: undefined, end: undefined }
+    case 'custom':
+      if (customDateRange.value.start && customDateRange.value.end) {
+        start = new Date(customDateRange.value.start)
+        start.setHours(0, 0, 0, 0)
+        end = new Date(customDateRange.value.end)
+        end.setHours(23, 59, 59, 999)
+      } else {
+        // Default to current month if not set
+        start = new Date(now.getFullYear(), now.getMonth(), 1)
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      }
+      break
+    default:
+      return { start: undefined, end: undefined }
+  }
+
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0]
+  }
+}
+
+const loadPayments = async (reset = true) => {
   if (!activeWorkspaceId.value) return
   
-  const filters: PaymentFilters = {
-    sort: 'effectiveDate,DESC'
+  if (reset) {
+    clearPayments()
   }
   
-  await fetchPayments(activeWorkspaceId.value, filters)
+  const { start, end } = getDateRange()
+  const filters: PaymentFilters = {
+    page: reset ? 0 : (pageInfo.value?.number ?? 0),
+    size: pageSize,
+    sort: `${sortBy.value},${sortDirection.value}`,
+    startDate: start,
+    endDate: end
+  }
+  
+  await fetchPayments(activeWorkspaceId.value, filters, !reset)
+}
+
+const handleSortChange = (newSortBy: 'effectiveDate' | 'amount', newDirection: 'ASC' | 'DESC') => {
+  sortBy.value = newSortBy
+  sortDirection.value = newDirection
+  loadPayments(true)
+}
+
+const handlePeriodChange = (period: 'month' | 'week' | 'all' | 'custom', dateRange?: { start: string | null; end: string | null }) => {
+  selectedPeriod.value = period
+  if (dateRange) {
+    customDateRange.value = dateRange
+  }
+  loadPayments(true)
 }
 
 // Sort payments by date (newest first) - using effectiveDate from API
@@ -160,39 +247,31 @@ const paymentGroups = computed(() => {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 })
 
-// Get displayed groups (lazy loaded)
+// Get displayed groups (show all loaded payments)
 const displayedGroups = computed(() => {
-  let totalCount = 0
-  const result: typeof paymentGroups.value = []
+  return paymentGroups.value
+})
+
+// Check if there are more payments to load from API
+const hasMore = computed(() => {
+  if (!pageInfo.value) return false
+  return pageInfo.value.number + 1 < pageInfo.value.totalPages
+})
+
+// Load more payments from API
+const loadMore = async () => {
+  if (!activeWorkspaceId.value || !hasMore.value || loading.value) return
   
-  for (const group of paymentGroups.value) {
-    if (totalCount >= visibleCount.value) break
-    
-    const remaining = visibleCount.value - totalCount
-    if (group.payments.length <= remaining) {
-      result.push(group)
-      totalCount += group.payments.length
-    } else {
-      result.push({
-        ...group,
-        payments: group.payments.slice(0, remaining)
-      })
-      totalCount += remaining
-    }
+  const { start, end } = getDateRange()
+  const filters: PaymentFilters = {
+    page: (pageInfo.value?.number ?? 0) + 1,
+    size: pageSize,
+    sort: `${sortBy.value},${sortDirection.value}`,
+    startDate: start,
+    endDate: end
   }
   
-  return result
-})
-
-// Check if there are more payments to load
-const hasMore = computed(() => {
-  const totalPayments = sortedPayments.value.length
-  return visibleCount.value < totalPayments
-})
-
-// Load more payments
-const loadMore = () => {
-  visibleCount.value += itemsPerPage
+  await loadMorePayments(activeWorkspaceId.value, filters)
 }
 
 const loadMoreTrigger = ref<HTMLElement | null>(null)
@@ -229,20 +308,22 @@ const handlePaymentClick = (paymentId: string) => {
   console.log('Payment clicked:', paymentId)
 }
 
-// Watch for workspace changes and refetch payments
+// Watch for workspace changes and refetch payments (but not on initial mount)
 watch(activeWorkspaceId, () => {
-  clearPayments()
-  visibleCount.value = itemsPerPage
-  loadPayments()
-}, { immediate: true })
+  if (activeWorkspaceId.value) {
+    selectedPeriod.value = 'all'
+    customDateRange.value = { start: null, end: null }
+    loadPayments(true)
+  }
+})
 
 onMounted(() => {
   if (!activeWorkspace.value) {
     workspacesStore.fetchWorkspaces().then(() => {
-      loadPayments()
+      loadPayments(true)
     })
   } else {
-    loadPayments()
+    loadPayments(true)
   }
 })
 </script>
