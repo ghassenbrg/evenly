@@ -77,6 +77,63 @@
     </div>
   </div>
 
+  <!-- Expenses Total Card Skeleton -->
+  <div v-else-if="variant === 'expenses-total-card'" class="space-y-3">
+    <!-- Total Amount -->
+    <div class="mb-3">
+      <div class="h-9 w-32 bg-slate-700/50 rounded animate-pulse"></div>
+    </div>
+
+    <!-- Indicators Row -->
+    <div class="grid grid-cols-3 gap-3 mb-3">
+      <div class="space-y-1">
+        <div class="h-3 w-16 bg-slate-700/40 rounded animate-pulse"></div>
+        <div class="h-5 w-12 bg-slate-700/50 rounded animate-pulse"></div>
+      </div>
+      <div class="space-y-1">
+        <div class="h-3 w-20 bg-slate-700/40 rounded animate-pulse"></div>
+        <div class="h-5 w-16 bg-slate-700/50 rounded animate-pulse"></div>
+      </div>
+      <div class="space-y-1">
+        <div class="h-3 w-16 bg-slate-700/40 rounded animate-pulse"></div>
+        <div class="h-5 w-14 bg-slate-700/50 rounded animate-pulse"></div>
+      </div>
+    </div>
+
+    <!-- Chart Section with wavy line pattern -->
+    <div class="w-full" style="height: 80px; position: relative; overflow: hidden;">
+      <!-- Wavy line pattern to simulate chart -->
+      <svg class="w-full h-full" viewBox="0 0 300 80" preserveAspectRatio="none">
+        <defs>
+          <linearGradient :id="`skeletonGradient-${skeletonId}`" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.4" />
+            <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:0.4" />
+          </linearGradient>
+          <linearGradient :id="`skeletonGradientFill-${skeletonId}`" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.15" />
+            <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:0.15" />
+          </linearGradient>
+        </defs>
+        <!-- Area fill -->
+        <path
+          d="M 0 72 Q 75 40, 150 50 T 300 60 L 300 80 L 0 80 Z"
+          :fill="`url(#skeletonGradientFill-${skeletonId})`"
+          class="animate-pulse"
+        />
+        <!-- Line -->
+        <path
+          d="M 0 72 Q 75 40, 150 50 T 300 60"
+          fill="none"
+          :stroke="`url(#skeletonGradient-${skeletonId})`"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="animate-pulse"
+        />
+      </svg>
+    </div>
+  </div>
+
   <!-- Button Skeleton -->
   <div v-else-if="variant === 'button'" class="w-full h-12 bg-slate-700/30 rounded-xl animate-pulse"></div>
 
@@ -92,7 +149,7 @@
 
 <script setup lang="ts">
 interface Props {
-  variant?: 'balance' | 'list-item' | 'expense-item' | 'category-item' | 'chart' | 'expense-snapshot-list' | 'button' | 'dropdown' | 'text' | 'custom'
+  variant?: 'balance' | 'list-item' | 'expense-item' | 'category-item' | 'chart' | 'expense-snapshot-list' | 'expenses-total-card' | 'button' | 'dropdown' | 'text' | 'custom'
   count?: number
   showSeparator?: boolean
   textClass?: string
@@ -106,5 +163,8 @@ withDefaults(defineProps<Props>(), {
   textClass: 'h-4 w-24',
   customClass: 'h-4 w-full'
 })
+
+// Unique ID for gradients (to avoid conflicts if multiple instances)
+const skeletonId = Math.random().toString(36).substring(7)
 </script>
 

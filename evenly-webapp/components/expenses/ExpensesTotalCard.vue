@@ -2,7 +2,7 @@
   <div class="balance-card-bg rounded-2xl p-3 relative overflow-visible">
     <!-- Header with Dropdown -->
     <div class="flex items-center justify-between mb-2">
-      <p class="text-xs text-white/50">{{ periodLabel }}</p>
+      <p class="text-xs text-white/60 font-medium">{{ periodLabel }}</p>
       <PeriodDropdown
         :model-value="selectedPeriod"
         :range="customRange"
@@ -14,29 +14,29 @@
     
     <!-- Loading State -->
     <template v-if="summaryLoading && !summary">
-      <Skeleton variant="balance" />
+      <Skeleton variant="expenses-total-card" />
     </template>
     
     <!-- Content -->
     <template v-else>
       <!-- Total Amount -->
       <div class="mb-3">
-        <p class="text-3xl font-semibold text-white/90">{{ formattedTotal }}</p>
+        <p class="text-3xl font-bold text-white">{{ formattedTotal }}</p>
       </div>
 
     <!-- Indicators Row -->
     <div class="grid grid-cols-3 gap-3 mb-3">
       <div>
-        <p class="text-xs text-white/40 mb-0.5">{{ t('expenses.expensesLabel') }}</p>
-        <p class="text-base font-semibold text-white/80">{{ expenseCount }}</p>
+        <p class="text-xs text-white/50 mb-0.5 font-medium">{{ t('expenses.expensesLabel') }}</p>
+        <p class="text-base font-semibold text-white">{{ expenseCount }}</p>
       </div>
       <div>
-        <p class="text-xs text-white/40 mb-0.5">{{ t('expenses.avgPerDay') }}</p>
-        <p class="text-base font-semibold text-white/80">{{ formattedAverage }}</p>
+        <p class="text-xs text-white/50 mb-0.5 font-medium">{{ t('expenses.avgPerDay') }}</p>
+        <p class="text-base font-semibold text-white">{{ formattedAverage }}</p>
       </div>
       <div>
-        <p class="text-xs text-white/40 mb-0.5">{{ t('expenses.largest') }}</p>
-        <p class="text-base font-semibold text-white/80">{{ formattedLargest }}</p>
+        <p class="text-xs text-white/50 mb-0.5 font-medium">{{ t('expenses.largest') }}</p>
+        <p class="text-base font-semibold text-white">{{ formattedLargest }}</p>
       </div>
     </div>
 
@@ -51,12 +51,14 @@
       >
         <defs>
           <linearGradient :id="`expenseGradient-${componentId}`" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:1" />
+            <stop offset="0%" style="stop-color:#34d399;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#10b981;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
           </linearGradient>
           <linearGradient :id="`expenseGradientFill-${componentId}`" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.15" />
-            <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:0.15" />
+            <stop offset="0%" style="stop-color:#34d399;stop-opacity:0.25" />
+            <stop offset="50%" style="stop-color:#10b981;stop-opacity:0.25" />
+            <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.25" />
           </linearGradient>
         </defs>
         
@@ -71,7 +73,7 @@
           :d="linePath"
           fill="none"
           :stroke="`url(#expenseGradient-${componentId})`"
-          stroke-width="2"
+          stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
         />

@@ -2,7 +2,14 @@
   <div class="p-4 space-y-4">
     <!-- Loading State with Skeleton -->
     <div v-if="loading && expenses.length === 0" class="space-y-4">
-      <Skeleton variant="balance" />
+      <!-- ExpensesTotalCard handles its own skeleton -->
+      <ExpensesTotalCard 
+        :summary="null"
+        :summary-loading="true"
+        v-model="selectedPeriod"
+        v-model:range="customDateRange"
+        @period-change="handlePeriodChange"
+      />
       <div class="space-y-2">
         <Skeleton v-for="i in 5" :key="i" variant="expense-item" />
       </div>
