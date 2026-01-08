@@ -2,7 +2,7 @@
   "priority": 1,
   "request": {
     "method": "GET",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/payments/([a-z0-9-]+)"
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/expenses/([a-z0-9-]+)"
   },
   "response": {
     "status": 200,
@@ -15,16 +15,18 @@
     },
     "jsonBody": {
       "data": {
-        "id": "1",
-        "payeeUserId": "user-alice",
-        "payeeUserName": "Alice",
-        "amount": 6500,
+        "id": "exp-1",
+        "categoryId": "1",
+        "categoryName": "Food",
+        "categoryIcon": "fa-solid fa-utensils",
+        "amount": 8500,
         "currency": "JPY",
-        "effectiveDate": "2025-10-31",
-        "note": "Dinner with friends",
-        "status": "COMPLETED",
-        "paidByUserId": "user-bob",
-        "paidByUserName": "Bob"
+        "effectiveDate": "2026-01-31",
+        "note": "Lunch at Italian restaurant",
+        "status": "ACTIVE",
+        "paidByUserId": "user-gbargougui",
+        "paidByUserName": "gbargougui",
+        "categoryColor": "#f43f5e"
       }
     }
   }

@@ -17,18 +17,20 @@
             </div>
 
             <!-- Header -->
-            <div v-if="title" class="px-6 py-4 border-b border-slate-800">
-              <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-white">{{ title }}</h2>
-                <button
-                  @click="close"
-                  class="p-2 text-slate-400 hover:text-white transition-colors"
-                >
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+            <div v-if="title || $slots.header" class="px-6 py-4 border-b border-slate-800">
+              <slot name="header">
+                <div v-if="title" class="flex items-center justify-between">
+                  <h2 class="text-xl font-semibold text-white">{{ title }}</h2>
+                  <button
+                    @click="close"
+                    class="p-2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </slot>
             </div>
 
             <!-- Content -->

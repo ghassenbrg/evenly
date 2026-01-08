@@ -80,6 +80,16 @@
         <p class="text-sm text-white/40">{{ t('common.noMoreItems') }}</p>
       </div>
     </template>
+
+    <!-- Edit Expense Sheet -->
+    <ExpensesEditExpenseSheet
+      v-if="activeWorkspaceId"
+      v-model="showEditExpenseSheet"
+      :workspace-id="activeWorkspaceId"
+      :expense="selectedExpense"
+      @expense-updated="handleExpenseUpdated"
+      @expense-deleted="handleExpenseDeleted"
+    />
   </div>
 </template>
 
@@ -299,9 +309,25 @@ if (process.client) {
   })
 }
 
+const selectedExpense = ref<Expense | null>(null)
+const showEditExpenseSheet = ref(false)
+
 const handleExpenseClick = (expenseId: string) => {
-  // TODO: Navigate to expense detail page or open expense modal
-  console.log('Expense clicked:', expenseId)
+  const expense = expenses.value.find(e => e.id === expenseId)
+  if (expense) {
+    selectedExpense.value = expense as Expense
+    showEditExpenseSheet.value = true
+  }
+}
+
+const handleExpenseUpdated = () => {
+  // Reload expenses and summary after update
+  loadExpenses(true)
+}
+
+const handleExpenseDeleted = () => {
+  // Reload expenses and summary after delete
+  loadExpenses(true)
 }
 
 watch(activeWorkspaceId, (newId) => {

@@ -1,8 +1,16 @@
 {
   "priority": 1,
   "request": {
-    "method": "GET",
-    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/payments/([a-z0-9-]+)"
+    "method": "PUT",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/payments/([a-z0-9-]+)",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      },
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    }
   },
   "response": {
     "status": 200,

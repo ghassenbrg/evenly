@@ -30,7 +30,8 @@
     "loadMore": "さらに読み込む",
     "outOfPockito": "アプリ外",
     "copy": "コピー",
-    "tryAgain": "再試行"
+    "tryAgain": "再試行",
+    "status": "ステータス"
   },
   "navigation": {
     "dashboard": "ダッシュボード",
@@ -164,7 +165,6 @@
     "settleUpDescription": "他のメンバーとの未払い残高を確認して精算する",
     "paid": "支払済み",
     "expected": "予定",
-    "youOwe": "あなたが借りている",
     "owesYou": "あなたに借りている",
     "settled": "精算済み",
     "pay": "支払う",
@@ -220,7 +220,18 @@
       "other": "その他"
     },
     "noExpenses": "この期間の支出はありません",
-    "loadFailed": "支出の読み込みに失敗しました"
+    "loadFailed": "支出の読み込みに失敗しました",
+    "editExpense": "支出を編集",
+    "amount": "金額",
+    "effectiveDate": "日付",
+    "note": "メモ",
+    "notePlaceholder": "メモを追加（任意）",
+    "category": "カテゴリ",
+    "updated": "支出を正常に更新しました",
+    "updateFailed": "支出の更新に失敗しました",
+    "deleted": "支出を正常に削除しました",
+    "deleteFailed": "支出の削除に失敗しました",
+    "confirmDelete": "この支出を削除してもよろしいですか？"
   },
   "payments": {
     "payment": "支払い",
@@ -247,7 +258,17 @@
       "completed": "完了",
       "pending": "保留中",
       "failed": "失敗"
-    }
+    },
+    "editPayment": "支払いを編集",
+    "amount": "金額",
+    "effectiveDate": "日付",
+    "note": "メモ",
+    "notePlaceholder": "メモを追加（任意）",
+    "updated": "支払いを正常に更新しました",
+    "updateFailed": "支払いの更新に失敗しました",
+    "deleted": "支払いを正常に削除しました",
+    "deleteFailed": "支払いの削除に失敗しました",
+    "confirmDelete": "この支払いを削除してもよろしいですか？"
   },
   "dateRange": {
     "select": "日付範囲を選択",

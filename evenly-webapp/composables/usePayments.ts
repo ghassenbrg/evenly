@@ -77,6 +77,38 @@ export const usePayments = () => {
     }
   }
 
+  const updatePayment = async (workspaceId: string, paymentId: string, request: Partial<CreatePaymentRequest>) => {
+    loading.value = true
+    error.value = null
+    try {
+      const payment = await api.put<Payment>(`/api/workspaces/${workspaceId}/payments/${paymentId}`, request)
+      const index = payments.value.findIndex(p => p.id === paymentId)
+      if (index !== -1) {
+        payments.value[index] = payment
+      }
+      return payment
+    } catch (err) {
+      error.value = err as Error
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const deletePayment = async (workspaceId: string, paymentId: string) => {
+    loading.value = true
+    error.value = null
+    try {
+      await api.delete(`/api/workspaces/${workspaceId}/payments/${paymentId}`)
+      payments.value = payments.value.filter(p => p.id !== paymentId)
+    } catch (err) {
+      error.value = err as Error
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   const clearPayments = () => {
     payments.value = []
     error.value = null
@@ -105,6 +137,8 @@ export const usePayments = () => {
     loadMorePayments,
     getPayment,
     createPayment,
+    updatePayment,
+    deletePayment,
     clearPayments
   }
 }

@@ -22,20 +22,21 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "id": "{{request.pathSegments.[2]}}",
-      "workspaceId": "{{request.pathSegments.[1]}}",
-      "amount": 0,
-      "paidByUserId": "user-bob",
-      "categoryId": "cat-groceries",
-      "date": "{{now format='yyyy-MM-dd'}}",
-      "note": null,
-      "status": "ACTIVE",
-      "settlementId": null,
-      "createdByUserId": "user-bob",
-      "createdAt": "{{now offset='-7 days'}}",
-      "updatedAt": "{{now}}"
-    },
-    "transformers": ["response-template"]
+      "data": {
+        "id": "exp-1",
+        "categoryId": "1",
+        "categoryName": "Food",
+        "categoryIcon": "fa-solid fa-utensils",
+        "amount": 8500,
+        "currency": "JPY",
+        "effectiveDate": "2026-01-31",
+        "note": "Lunch at Italian restaurant",
+        "status": "ACTIVE",
+        "paidByUserId": "user-gbargougui",
+        "paidByUserName": "gbargougui",
+        "categoryColor": "#f43f5e"
+      }
+    }
   }
 }
 

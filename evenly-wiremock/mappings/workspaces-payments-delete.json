@@ -1,0 +1,22 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "DELETE",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/payments/([a-z0-9-]+)",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    }
+  },
+  "response": {
+    "status": 204,
+    "headers": {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    }
+  }
+}
+

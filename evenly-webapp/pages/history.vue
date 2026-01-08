@@ -83,6 +83,16 @@
         <p class="text-sm text-white/40">{{ t('common.noMoreItems') }}</p>
       </div>
     </template>
+
+    <!-- Edit Payment Sheet -->
+    <HistoryEditPaymentSheet
+      v-if="activeWorkspaceId"
+      v-model="showEditPaymentSheet"
+      :workspace-id="activeWorkspaceId"
+      :payment="selectedPayment"
+      @payment-updated="handlePaymentUpdated"
+      @payment-deleted="handlePaymentDeleted"
+    />
   </div>
 </template>
 
@@ -315,9 +325,25 @@ if (process.client) {
   })
 }
 
+const selectedPayment = ref<Payment | null>(null)
+const showEditPaymentSheet = ref(false)
+
 const handlePaymentClick = (paymentId: string) => {
-  // TODO: Navigate to payment detail page or open payment modal
-  console.log('Payment clicked:', paymentId)
+  const payment = payments.value.find(p => p.id === paymentId)
+  if (payment) {
+    selectedPayment.value = payment as Payment
+    showEditPaymentSheet.value = true
+  }
+}
+
+const handlePaymentUpdated = () => {
+  // Reload payments after update
+  loadPayments(true)
+}
+
+const handlePaymentDeleted = () => {
+  // Reload payments after delete
+  loadPayments(true)
 }
 
 // Watch for workspace changes and refetch payments (but not on initial mount)
