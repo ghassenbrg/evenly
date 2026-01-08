@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed top-0 left-0 right-0 z-50 pointer-events-none pt-safe">
+  <div class="fixed top-0 left-0 right-0 z-[100] pointer-events-none pt-safe">
     <div class="max-w-md mx-auto px-4 pt-4 space-y-2">
       <TransitionGroup name="toast">
         <div

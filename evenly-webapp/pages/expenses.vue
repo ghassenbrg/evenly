@@ -90,6 +90,26 @@
       @expense-updated="handleExpenseUpdated"
       @expense-deleted="handleExpenseDeleted"
     />
+
+    <!-- Create Expense Sheet -->
+    <ExpensesCreateExpenseSheet
+      v-if="activeWorkspaceId"
+      v-model="showCreateExpenseSheet"
+      :workspace-id="activeWorkspaceId"
+      @expense-created="handleExpenseCreated"
+    />
+
+    <!-- Floating Action Button -->
+    <button
+      v-if="activeWorkspaceId"
+      @click="showCreateExpenseSheet = true"
+      class="fixed bottom-24 right-4 z-40 h-16 w-16 rounded-full bg-emerald-500 text-slate-900 font-bold hover:bg-emerald-400 active:bg-emerald-600 active:scale-95 transition-all shadow-xl shadow-emerald-500/40 flex items-center justify-center touch-manipulation mb-safe"
+      :aria-label="t('expenses.addExpense') || 'Add expense'"
+    >
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -103,6 +123,7 @@ import { useWorkspacesStore } from '~/stores/workspaces'
 import { useExpenses, type ExpenseFilters } from '~/composables/useExpenses'
 import { useExpensesSummary, type ExpenseSummaryFilters } from '~/composables/useExpensesSummary'
 import Skeleton from '~/components/Skeleton.vue'
+import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
 import type { Expense } from '~/types/api'
 
 const { t, locale } = useI18n()
@@ -311,6 +332,7 @@ if (process.client) {
 
 const selectedExpense = ref<Expense | null>(null)
 const showEditExpenseSheet = ref(false)
+const showCreateExpenseSheet = ref(false)
 
 const handleExpenseClick = (expenseId: string) => {
   const expense = expenses.value.find(e => e.id === expenseId)
@@ -327,6 +349,11 @@ const handleExpenseUpdated = () => {
 
 const handleExpenseDeleted = () => {
   // Reload expenses and summary after delete
+  loadExpenses(true)
+}
+
+const handleExpenseCreated = () => {
+  // Reload expenses and summary after create
   loadExpenses(true)
 }
 

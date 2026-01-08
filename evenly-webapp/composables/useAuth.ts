@@ -103,6 +103,48 @@ export const useAuth = () => {
       }
   }
 
+  const getCurrentUserId = (): string | null => {
+    // Try to get from user cookie first
+    if (user.value?.id) {
+      return user.value.id
+    }
+    
+    // Fallback: extract from Keycloak token directly
+    if (process.client && $keycloak && $keycloak.authenticated) {
+      try {
+        // Try Keycloak's parsed token properties first (easier and more reliable)
+        if ($keycloak.idTokenParsed?.sub) {
+          return $keycloak.idTokenParsed.sub
+        }
+        if ($keycloak.tokenParsed?.sub) {
+          return $keycloak.tokenParsed.sub
+        }
+        
+        // Fallback: manually parse the token
+        if ($keycloak.token) {
+          const tokenParts = $keycloak.token.split('.')
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]))
+            return payload.sub || null
+          }
+        }
+        
+        // Also try idToken if available
+        if ($keycloak.idToken) {
+          const tokenParts = $keycloak.idToken.split('.')
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]))
+            return payload.sub || null
+          }
+        }
+      } catch (err) {
+        console.error('Failed to extract user ID from Keycloak:', err)
+      }
+    }
+    
+    return null
+  }
+
   const isAuthenticated = computed(() => {
     if (process.client && $keycloak) {
       if ($keycloak.authenticated) {
@@ -142,6 +184,7 @@ export const useAuth = () => {
     login,
     logout,
     updateToken,
-    loadUserProfile
+    loadUserProfile,
+    getCurrentUserId
   }
 }

@@ -81,6 +81,7 @@ const emit = defineEmits<{
 const { formatCurrency, formatDate } = useFormatting()
 const { t } = useI18n()
 const authStore = useAuthStore()
+const { getCurrentUserId } = useAuth()
 
 // Determine if current user received money (is payee) or paid money (is payer)
 const isReceived = computed(() => {
@@ -88,7 +89,7 @@ const isReceived = computed(() => {
   if (!currentUser) return false
   
   // Get current user identifiers
-  const currentUserId = currentUser.id || ''
+  const currentUserId = getCurrentUserId() || ''
   const currentUserName = currentUser.username || currentUser.displayName || ''
   
   // Get payment identifiers
@@ -115,7 +116,7 @@ const isReceived = computed(() => {
 
 // Get the other user's name (not the current user)
 const otherUserName = computed(() => {
-  const currentUserId = authStore.currentUser?.id
+  const currentUserId = getCurrentUserId()
   if (!currentUserId) {
     // Fallback: if we can't determine current user, default to showing payee
     return props.payment.payeeUserName || props.payment.payeeUserId || 'Unknown'

@@ -128,6 +128,7 @@ const { formatCurrency } = useFormatting()
 const { updatePayment, deletePayment, loading: submitting, getPayment } = usePayments()
 const { success, error: showError } = useToast()
 const authStore = useAuthStore()
+const { getCurrentUserId } = useAuth()
 
 const loading = ref(false)
 const deleting = ref(false)
@@ -141,7 +142,7 @@ const isReceived = computed(() => {
   const currentUser = authStore.currentUser
   if (!currentUser) return false
   
-  const currentUserId = currentUser.id || ''
+  const currentUserId = getCurrentUserId() || ''
   const currentUserName = currentUser.username || currentUser.displayName || ''
   
   const payeeUserId = props.payment.payeeUserId || ''

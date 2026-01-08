@@ -83,7 +83,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { formatCurrency } = useFormatting()
-const { user } = useAuth()
+const { user, getCurrentUserId } = useAuth()
 const { settleUpData, loading, error, fetchSettleUp } = useSettleUp()
 
 // Load settle-up data when sheet opens

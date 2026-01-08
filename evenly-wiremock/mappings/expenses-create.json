@@ -22,19 +22,20 @@
       "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
     },
     "jsonBody": {
-      "id": "exp-{{randomValue type='UUID'}}",
-      "workspaceId": "{{request.pathSegments.[1]}}",
-      "amount": 0,
-      "paidByUserId": "user-bob",
-      "categoryId": "cat-groceries",
-      "date": "{{now format='yyyy-MM-dd'}}",
-      "note": null,
-      "status": "ACTIVE",
-      "settlementId": null,
-      "createdByUserId": "user-bob",
-      "createdAt": "{{now}}",
-      "updatedAt": "{{now}}",
-      "participants": []
+      "data": {
+        "id": "exp-{{randomValue type='UUID'}}",
+        "categoryId": "{{jsonPath request.body '$.categoryId'}}",
+        "categoryName": "Groceries",
+        "categoryIcon": "groceries",
+        "categoryColor": "#10b981",
+        "amount": "{{jsonPath request.body '$.amount'}}",
+        "currency": "JPY",
+        "effectiveDate": "{{jsonPath request.body '$.date'}}",
+        "note": "{{jsonPath request.body '$.note'}}",
+        "status": "ACTIVE",
+        "paidByUserId": "{{jsonPath request.body '$.paidByUserId'}}",
+        "paidByUserName": "{{jsonPath request.body '$.paidByUserId'}}"
+      }
     },
     "transformers": ["response-template"]
   }

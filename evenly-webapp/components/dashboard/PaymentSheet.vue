@@ -140,7 +140,7 @@ const { formatCurrency } = useFormatting()
 const { createPayment, loading: submitting } = usePayments()
 const { success, error: showError } = useToast()
 const { settleUpData, loading: settleUpLoading, fetchSettleUp } = useSettleUp()
-const { user } = useAuth()
+const { user, getCurrentUserId } = useAuth()
 
 const paymentAmount = ref(0)
 const paymentNote = ref('')
@@ -163,7 +163,7 @@ const currentUserBalance = computed(() => {
   // Priority 1: Use total balance from summary (same source as total balance card) for consistency
   if (props.currentUserTotalBalance !== undefined && props.currentUserTotalBalance !== null) {
     return {
-      userId: user.value?.id || 'current-user',
+      userId: getCurrentUserId() || 'current-user',
       paid: 0,
       expected: 0,
       balance: props.currentUserTotalBalance,
