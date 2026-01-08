@@ -355,6 +355,8 @@
     "active": "Active",
     "inactive": "Inactive",
     "nextDue": "Next due",
+    "overdue": "Overdue",
+    "dueSoon": "Due Soon",
     "payNow": "Pay",
     "confirmDelete": "Delete this subscription?",
     "loadFailed": "Failed to load subscriptions",

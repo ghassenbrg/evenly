@@ -355,6 +355,8 @@
     "active": "有効",
     "inactive": "無効",
     "nextDue": "次回支払日",
+    "overdue": "期限切れ",
+    "dueSoon": "間もなく期限",
     "payNow": "支払う",
     "confirmDelete": "このサブスクリプションを削除しますか？",
     "loadFailed": "サブスクリプションの読み込みに失敗しました",

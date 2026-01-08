@@ -1,28 +1,28 @@
 <template>
-  <div class="p-4 space-y-4">
+  <div class="p-4 space-y-4 pb-safe">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between mb-2">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-white">{{ t('subscriptions.title') || 'Subscriptions' }}</h2>
+          <h2 class="text-xl font-bold text-white">{{ t('subscriptions.title') || 'Subscriptions' }}</h2>
           <p v-if="subscriptions && subscriptions.length > 0" class="text-sm text-white/60 mt-0.5">
             {{ subscriptions.length }} {{ subscriptions.length === 1 ? 'subscription' : 'subscriptions' }}
           </p>
         </div>
       </div>
       <button
-        class="h-10 px-4 rounded-xl bg-emerald-500 text-slate-900 font-semibold hover:bg-emerald-400 active:bg-emerald-600 transition-colors flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+        class="h-12 w-12 rounded-2xl bg-emerald-500 text-slate-900 font-semibold hover:bg-emerald-400 active:bg-emerald-600 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-emerald-500/20 touch-manipulation"
         @click="openCreate"
+        :aria-label="t('subscriptions.add') || 'Add subscription'"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        {{ t('subscriptions.add') || 'Add' }}
       </button>
     </div>
 
@@ -85,79 +85,109 @@
       </div>
 
       <!-- Subscriptions List -->
-      <div v-else class="space-y-2">
+      <div v-else class="space-y-3">
         <div
-          v-for="sub in subscriptions"
+          v-for="sub in sortedSubscriptions"
           :key="sub.id"
-          class="bg-white/5 hover:bg-white/8 rounded-lg transition-colors group relative"
+          class="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl transition-all active:scale-[0.98] touch-manipulation"
+          :class="{
+            'border-2 border-red-500/50 hover:border-red-500/70': sub.isActive && sub.nextDueDate && isOverdue(sub),
+            'border-2 border-yellow-500/50 hover:border-yellow-500/70': sub.isActive && sub.nextDueDate && isDueSoon(sub) && !isOverdue(sub),
+            'border border-slate-700/50 hover:border-slate-600/50': !(sub.isActive && sub.nextDueDate && (isOverdue(sub) || isDueSoon(sub)))
+          }"
         >
           <button
             type="button"
             @click="openEdit(sub)"
-            class="w-full flex items-center justify-between py-3.5 px-2 pr-28 sm:pr-20"
+            class="w-full flex items-center gap-4 p-4"
           >
             <!-- Left Icon -->
             <div
-              class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
+              class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg"
               style="background: linear-gradient(135deg, #10b981 0%, #059669 100%)"
             >
-              <svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
 
             <!-- Middle Text Block -->
-            <div class="flex-1 min-w-0 px-3 text-left">
-              <div class="flex items-center gap-2 mb-0.5">
-                <div class="text-base font-medium text-white/90 text-left truncate">{{ sub.name }}</div>
+            <div class="flex-1 min-w-0 text-left">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <h3 class="text-lg font-semibold text-white truncate">{{ sub.name }}</h3>
                 <span
-                  :class="['text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0', sub.isActive ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700/50 text-white/60']"
+                  :class="['text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0', sub.isActive ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700/50 text-white/60']"
                 >
                   {{ sub.isActive ? (t('subscriptions.active') || 'Active') : (t('subscriptions.inactive') || 'Inactive') }}
                 </span>
+                <!-- Due Date Warning Indicators -->
+                <span
+                  v-if="sub.isActive && sub.nextDueDate && isOverdue(sub)"
+                  class="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 bg-red-500/20 text-red-400 flex items-center gap-1"
+                  :title="t('subscriptions.overdue') || 'Overdue'"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  {{ t('subscriptions.overdue') || 'Overdue' }}
+                </span>
+                <span
+                  v-else-if="sub.isActive && sub.nextDueDate && isDueSoon(sub)"
+                  class="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 bg-yellow-500/20 text-yellow-400 flex items-center gap-1"
+                  :title="t('subscriptions.dueSoon') || 'Due Soon'"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  {{ t('subscriptions.dueSoon') || 'Due Soon' }}
+                </span>
               </div>
-              <div class="text-sm text-white/55 mt-0.5 text-left">
-                {{ formatFrequency(sub) }}
-                <span v-if="sub.nextDueDate"> · {{ formatDate(sub.nextDueDate) }}</span>
-              </div>
-              <div v-if="sub.description" class="text-xs text-white/50 mt-1 text-left truncate">
-                {{ sub.description }}
+              <p class="text-xl font-bold text-white mb-0.5">
+                {{ formatCurrency(sub.amount, sub.currency) }}
+              </p>
+              <div class="flex items-center gap-2 text-sm text-white/60">
+                <span>{{ formatFrequency(sub) }}</span>
+                <span v-if="sub.nextDueDate" :class="{'text-red-400 font-semibold': isOverdue(sub), 'text-yellow-400 font-semibold': isDueSoon(sub)}">
+                  · {{ formatDate(sub.nextDueDate) }}
+                </span>
               </div>
             </div>
 
-            <!-- Right Amount -->
-            <div class="text-base font-semibold text-white/85 flex-shrink-0 mr-20 sm:mr-0">
-              {{ formatCurrency(sub.amount, sub.currency) }}
+            <!-- Right Arrow -->
+            <div class="flex-shrink-0">
+              <svg class="w-6 h-6 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
             </div>
           </button>
 
-          <!-- Action Buttons - Right Side (Mobile-first: larger, always visible) -->
-          <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+          <!-- Action Buttons - Bottom Row (Mobile-first: always visible) -->
+          <div class="flex items-center gap-2 px-4 pb-4 border-t border-slate-700/50 pt-3">
             <button
-              class="h-10 w-10 sm:h-8 sm:w-8 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 active:bg-slate-600 text-white/80 hover:text-white transition-colors flex items-center justify-center touch-manipulation shadow-lg"
+              class="flex-1 h-11 rounded-xl bg-slate-700/50 hover:bg-slate-600/50 active:bg-slate-600 text-white/90 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2 touch-manipulation font-medium text-sm"
               @click.stop="openEdit(sub)"
-              :title="t('common.edit') || 'Edit'"
             >
-              <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
+              {{ t('common.edit') || 'Edit' }}
             </button>
             <button
               v-if="sub.isActive"
-              class="h-10 w-10 sm:h-8 sm:w-8 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 active:bg-emerald-500/40 text-emerald-400 hover:text-emerald-300 transition-colors flex items-center justify-center touch-manipulation shadow-lg"
+              class="flex-1 h-11 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 active:bg-emerald-500/40 text-emerald-400 hover:text-emerald-300 transition-all active:scale-95 flex items-center justify-center gap-2 touch-manipulation font-medium text-sm"
               @click.stop="openPay(sub)"
-              :title="t('subscriptions.payNow') || 'Pay'"
             >
-              <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
+              {{ t('subscriptions.payNow') || 'Pay' }}
             </button>
             <button
-              class="h-10 w-10 sm:h-8 sm:w-8 rounded-lg bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center touch-manipulation shadow-lg"
+              class="h-11 w-11 rounded-xl bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 text-red-400 hover:text-red-300 transition-all active:scale-95 flex items-center justify-center touch-manipulation"
               @click.stop="confirmDelete(sub.id)"
               :title="t('common.delete') || 'Delete'"
             >
-              <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>
@@ -223,6 +253,32 @@ const totals = computed(() => {
   return Array.from(map.entries()).map(([currency, total]) => ({ currency, total }))
 })
 
+const sortedSubscriptions = computed(() => {
+  if (!subscriptions?.value) return []
+  
+  return [...subscriptions.value].sort((a, b) => {
+    // First, separate active and inactive
+    if (a.isActive !== b.isActive) {
+      // Active subscriptions come first
+      return a.isActive ? -1 : 1
+    }
+    
+    // Within the same active/inactive group, sort by nextDueDate ascending
+    const dateA = a.nextDueDate ? new Date(a.nextDueDate).getTime() : Number.MAX_SAFE_INTEGER
+    const dateB = b.nextDueDate ? new Date(b.nextDueDate).getTime() : Number.MAX_SAFE_INTEGER
+    
+    // If both have dates, sort ascending (earliest first)
+    // If one doesn't have a date, it goes to the end
+    if (dateA === Number.MAX_SAFE_INTEGER && dateB === Number.MAX_SAFE_INTEGER) {
+      return 0 // Both missing dates, maintain order
+    }
+    if (dateA === Number.MAX_SAFE_INTEGER) return 1 // A missing, goes after B
+    if (dateB === Number.MAX_SAFE_INTEGER) return -1 // B missing, goes after A
+    
+    return dateA - dateB // Ascending order (earliest first)
+  })
+})
+
 const load = async () => {
   await loadSubscriptions()
 }
@@ -280,6 +336,26 @@ const formatFrequency = (sub: any) => {
     return sub.frequency
   }
   return `${t('subscriptions.every') || 'Every'} ${sub.interval} ${sub.frequency.toLowerCase()}`
+}
+
+const isOverdue = (sub: any): boolean => {
+  if (!sub.nextDueDate || !sub.isActive) return false
+  const dueDate = new Date(sub.nextDueDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  dueDate.setHours(0, 0, 0, 0)
+  return dueDate < today
+}
+
+const isDueSoon = (sub: any): boolean => {
+  if (!sub.nextDueDate || !sub.isActive || isOverdue(sub)) return false
+  const dueDate = new Date(sub.nextDueDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  dueDate.setHours(0, 0, 0, 0)
+  const diffTime = dueDate.getTime() - today.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return diffDays >= 0 && diffDays <= 3
 }
 
 const workspacesStore = useWorkspacesStore()

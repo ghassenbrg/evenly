@@ -1,28 +1,28 @@
 <template>
-  <div class="p-4 space-y-4">
+  <div class="p-4 space-y-4 pb-safe">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between mb-2">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
           </svg>
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-white">{{ t('wallets.title') || 'Wallets' }}</h2>
+          <h2 class="text-xl font-bold text-white">{{ t('wallets.title') || 'Wallets' }}</h2>
           <p v-if="wallets.length > 0" class="text-sm text-white/60 mt-0.5">
             {{ wallets.length }} {{ wallets.length === 1 ? 'wallet' : 'wallets' }}
           </p>
         </div>
       </div>
       <button
-        class="h-10 px-4 rounded-xl bg-emerald-500 text-slate-900 font-semibold hover:bg-emerald-400 active:bg-emerald-600 transition-colors flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+        class="h-12 w-12 rounded-2xl bg-emerald-500 text-slate-900 font-semibold hover:bg-emerald-400 active:bg-emerald-600 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-emerald-500/20 touch-manipulation"
         @click="openCreate"
+        :aria-label="t('wallets.add') || 'Add wallet'"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        {{ t('wallets.add') || 'Add' }}
       </button>
     </div>
 
@@ -69,79 +69,82 @@
     </div>
 
     <!-- Wallets List -->
-    <div v-else class="space-y-2">
+    <div v-else class="space-y-3">
       <div
         v-for="wallet in sortedWallets"
         :key="wallet.id"
-        class="bg-white/5 hover:bg-white/8 rounded-lg transition-colors group relative"
+        class="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 hover:border-slate-600/50 rounded-2xl transition-all active:scale-[0.98] touch-manipulation"
       >
         <button
           type="button"
           @click="viewWallet(wallet.id)"
-          class="w-full flex items-center justify-between py-3.5 px-2 pr-28 sm:pr-20"
+          class="w-full flex items-center gap-4 p-4"
         >
           <!-- Left Icon -->
           <div
-            class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
+            class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg"
             :style="wallet.color ? { background: wallet.color } : { background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }"
           >
-            <svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
           </div>
 
           <!-- Middle Text Block -->
-          <div class="flex-1 min-w-0 px-3 text-left">
-            <div class="flex items-center gap-2 mb-0.5">
-              <div class="text-base font-medium text-white/90 text-left truncate">{{ wallet.name }}</div>
+          <div class="flex-1 min-w-0 text-left">
+            <div class="flex items-center gap-2 mb-1">
+              <h3 class="text-lg font-semibold text-white truncate">{{ wallet.name }}</h3>
               <span
                 v-if="wallet.isDefault"
-                class="text-xs px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-medium flex-shrink-0"
+                class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-medium flex-shrink-0"
               >
                 {{ t('wallets.default') || 'Default' }}
               </span>
             </div>
-            <div class="text-sm text-white/55 mt-0.5 text-left">
-              {{ wallet.currency }}
-            </div>
-            <div v-if="wallet.description" class="text-xs text-white/50 mt-1 text-left truncate">
-              {{ wallet.description }}
+            <p class="text-xl font-bold text-white mb-0.5">
+              {{ formatCurrency(wallet.balance, wallet.currency) }}
+            </p>
+            <div class="flex items-center gap-2 text-sm text-white/60">
+              <span>{{ wallet.currency }}</span>
+              <span v-if="wallet.description" class="truncate">· {{ wallet.description }}</span>
             </div>
           </div>
 
-          <!-- Right Amount -->
-          <div class="text-base font-semibold text-white/85 flex-shrink-0 mr-20 sm:mr-0">
-            {{ formatCurrency(wallet.balance, wallet.currency) }}
+          <!-- Right Arrow -->
+          <div class="flex-shrink-0">
+            <svg class="w-6 h-6 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
           </div>
         </button>
 
-        <!-- Action Buttons - Right Side (Mobile-first: larger, always visible) -->
-        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+        <!-- Action Buttons - Bottom Row (Mobile-first: always visible) -->
+        <div class="flex items-center gap-2 px-4 pb-4 border-t border-slate-700/50 pt-3">
           <button
-            class="h-10 w-10 sm:h-8 sm:w-8 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 active:bg-slate-600 text-white/80 hover:text-white transition-colors flex items-center justify-center touch-manipulation shadow-lg"
+            class="flex-1 h-11 rounded-xl bg-slate-700/50 hover:bg-slate-600/50 active:bg-slate-600 text-white/90 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2 touch-manipulation font-medium text-sm"
             @click.stop="openEdit(wallet)"
-            :title="t('common.edit') || 'Edit'"
           >
-            <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
+            {{ t('common.edit') || 'Edit' }}
           </button>
           <button
             v-if="!wallet.isDefault"
-            class="h-10 w-10 sm:h-8 sm:w-8 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 active:bg-slate-600 text-white/80 hover:text-white transition-colors flex items-center justify-center touch-manipulation shadow-lg"
+            class="h-11 w-11 rounded-xl bg-slate-700/50 hover:bg-slate-600/50 active:bg-slate-600 text-white/90 hover:text-white transition-all active:scale-95 flex items-center justify-center touch-manipulation"
             @click.stop="setDefault(wallet.id)"
             :title="t('wallets.makeDefault') || 'Set default'"
           >
-            <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
           </button>
           <button
-            class="h-10 w-10 sm:h-8 sm:w-8 rounded-lg bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center touch-manipulation shadow-lg"
+            class="h-11 w-11 rounded-xl bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 text-red-400 hover:text-red-300 transition-all active:scale-95 flex items-center justify-center touch-manipulation"
             @click.stop="confirmDelete(wallet.id)"
             :title="t('common.delete') || 'Delete'"
           >
-            <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>

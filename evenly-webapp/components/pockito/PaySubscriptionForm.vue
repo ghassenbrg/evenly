@@ -87,20 +87,20 @@
     </label>
 
     <!-- Action Buttons -->
-    <div class="flex gap-3 pt-2">
+    <div class="flex gap-3 pt-4 pb-safe">
       <button
         type="button"
-        class="flex-1 h-12 rounded-xl border border-slate-700/50 text-white/80 hover:text-white hover:border-slate-600/50 hover:bg-white/5 transition-colors font-medium flex items-center justify-center gap-2"
+        class="flex-1 h-14 rounded-2xl border-2 border-slate-700/50 text-white/90 hover:text-white hover:border-slate-600/50 hover:bg-white/5 active:bg-white/10 active:scale-95 transition-all font-semibold flex items-center justify-center gap-2 touch-manipulation"
         @click="emit('cancelled')"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
         {{ t('common.cancel') }}
       </button>
       <button
         type="submit"
-        class="flex-1 h-12 rounded-xl bg-emerald-500 text-slate-900 font-semibold hover:bg-emerald-400 active:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+        class="flex-1 h-14 rounded-2xl bg-emerald-500 text-slate-900 font-bold hover:bg-emerald-400 active:bg-emerald-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 touch-manipulation"
         :disabled="submitting || (form.skip ? false : !form.walletId)"
       >
         <svg v-if="!submitting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
