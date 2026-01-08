@@ -63,7 +63,7 @@ export const useAnalytics = () => {
     }
   }
 
-  const fetchCategoryAnalytics = async (workspaceId: string, startDate?: string, endDate?: string) => {
+  const fetchCategoryAnalytics = async (workspaceId: string, startDate?: string, endDate?: string, size?: number) => {
     loading.value = true
     error.value = null
     try {
@@ -71,6 +71,11 @@ export const useAnalytics = () => {
       const queryParams = new URLSearchParams()
       if (startDate) queryParams.append('startDate', startDate)
       if (endDate) queryParams.append('endDate', endDate)
+      // If size is 0 or undefined, don't add it (return all)
+      // If size is > 0, add it as a query parameter
+      if (size !== undefined && size > 0) {
+        queryParams.append('size', size.toString())
+      }
       const query = queryParams.toString()
       const path = `/api/workspaces/${workspaceId}/analytics/expenses-snapshot${query ? `?${query}` : ''}`
       expenseSnapshot.value = await api.get<ExpenseSnapshotResponse>(path)

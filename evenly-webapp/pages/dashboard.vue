@@ -45,12 +45,22 @@
         :others-percent="othersPercent"
         :others-color="othersColor"
         :loading="expenseSnapshotLoading"
+        @open-all-categories="handleOpenAllCategories"
       />
       
       <DashboardCategoriesBreakdownCard
         :items="categoryItems"
         :total-categories="categories.length"
         :loading="categoriesLoading"
+        @open-all-categories="handleOpenAllCategories"
+      />
+      
+      <DashboardAllCategoriesSnapshotSheet
+        v-if="activeWorkspaceId"
+        v-model="showAllCategoriesSheet"
+        :workspace-id="activeWorkspaceId"
+        :start-date="allCategoriesStartDate"
+        :end-date="allCategoriesEndDate"
       />
       
       <DashboardRecentExpensesCard
@@ -88,9 +98,19 @@ const recentExpensesLoading = ref(true)
 
 const showSettleUp = ref(false)
 const showPaymentSheet = ref(false)
+const showAllCategoriesSheet = ref(false)
 const selectedBalance = ref<Balance | null>(null)
-
 const selectedCurrentUserBalance = ref<Balance | null>(null)
+
+// Track date range for the all categories sheet (from the card's period selector)
+const allCategoriesStartDate = ref<string | undefined>(undefined)
+const allCategoriesEndDate = ref<string | undefined>(undefined)
+
+const handleOpenAllCategories = (startDate?: string, endDate?: string) => {
+  allCategoriesStartDate.value = startDate
+  allCategoriesEndDate.value = endDate
+  showAllCategoriesSheet.value = true
+}
 
 const handleOpenPayment = (balance: Balance, currentUserBalance?: Balance | null) => {
   selectedBalance.value = balance

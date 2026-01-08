@@ -119,13 +119,17 @@
 
         <!-- Others Label -->
         <div v-if="displayOthersPercent > 0" class="mt-3 flex flex-col items-center gap-2">
-          <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="handleOpenOthers"
+            class="flex items-center gap-2 transition-opacity hover:opacity-80"
+          >
             <div 
               class="w-3 h-3 rounded-sm"
               :style="{ background: displayOthersColor }"
             ></div>
             <span class="text-xs font-medium text-gray-200">{{ t('dashboard.others') }} {{ displayOthersPercent }}%</span>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -172,6 +176,7 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 const emit = defineEmits<{
   'period-change': [period: PeriodType, range?: { start: string | null; end: string | null }]
+  openAllCategories: [startDate?: string, endDate?: string]
 }>()
 
 const workspacesStore = useWorkspacesStore()
@@ -357,6 +362,11 @@ watch(activeWorkspaceId, async () => {
     await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
   }
 })
+
+const handleOpenOthers = () => {
+  const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
+  emit('openAllCategories', start, end)
+}
 
 const gradients = computed(() => {
   // Use displayItems (from API) if available, otherwise use props.items

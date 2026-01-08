@@ -79,7 +79,7 @@
     <!-- Bottom CTA -->
     <button
       type="button"
-      @click="emit('openAllCategories')"
+      @click="handleOpenAllCategories"
       class="w-full py-3 px-4 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-gray-200 font-medium flex items-center justify-center gap-2 transition-colors ring-1 ring-white/10"
     >
       <span>{{ t('dashboard.allCategories') }} ({{ displayTotalCategories }})</span>
@@ -127,7 +127,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   selectFilter: []
   'period-change': [period: PeriodType, range?: { start: string | null; end: string | null }]
-  openAllCategories: []
+  openAllCategories: [startDate?: string, endDate?: string]
   openCategory: [id: string]
 }>()
 
@@ -296,4 +296,9 @@ watch(activeWorkspaceId, async () => {
     await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
   }
 })
+
+const handleOpenAllCategories = () => {
+  const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
+  emit('openAllCategories', start, end)
+}
 </script>
