@@ -66,17 +66,27 @@
         </div>
       </div>
 
-      <!-- Settle Up Button (only for non-personal workspaces) -->
-      <button
-        v-if="!isPersonal && workspaceId"
-        @click="emit('settle-up')"
-        class="w-full mt-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        {{ t('dashboard.settleUp') }}
-      </button>
+      <!-- Action Buttons (only for non-personal workspaces) -->
+      <div v-if="!isPersonal && workspaceId" class="mt-4 flex gap-3">
+        <button
+          @click="emit('add-expense')"
+          class="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          {{ t('expenses.addExpense') }}
+        </button>
+        <button
+          @click="emit('settle-up')"
+          class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ t('dashboard.settleUp') }}
+        </button>
+      </div>
     </template>
   </div>
 </template>
@@ -99,6 +109,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'settle-up': []
+  'add-expense': []
 }>()
 
 const { formatCurrency } = useFormatting()

@@ -39,6 +39,12 @@
             <div class="flex-1 min-w-0 px-3">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-100">{{ item.name }}</span>
+                <span 
+                  v-if="item.id === null" 
+                  class="text-xs px-2 py-0.5 bg-slate-700/50 text-slate-300 rounded-full"
+                >
+                  {{ t('dashboard.remaining') }}
+                </span>
                 <span class="text-xs text-gray-400">
                   {{ item.expenseCount }} {{ item.expenseCount === 1 ? t('dashboard.expense') : t('dashboard.expenses') }}
                 </span>
@@ -126,11 +132,13 @@ const getFontAwesomeIcon = (iconClass: string | null | undefined) => {
 const allCategories = computed<CategoryItem[]>(() => {
   if (!expenseSnapshot.value || !expenseSnapshot.value.data.length) return []
   
-  // Map all categories (including "Others" if present)
+  // Map all categories (including "Remaining Categories" if present - categoryId: null)
   // Use spentPercentage from API which represents the percentage of total expenses
   return expenseSnapshot.value.data.map(item => ({
     id: item.categoryId,
-    name: item.categoryName || t('common.unknown'),
+    name: item.categoryId === null 
+      ? t('dashboard.otherCategories') 
+      : (item.categoryName || t('common.unknown')),
     iconClass: item.categoryIcon || 'fa-solid fa-ellipsis',
     color: item.categoryColor || '#64748b',
     expenseCount: item.expensesCount || 0,

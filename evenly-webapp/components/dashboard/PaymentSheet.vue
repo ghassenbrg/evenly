@@ -17,7 +17,7 @@
             :class="balance.balance < 0 ? 'text-rose-400' : 'text-emerald-400'"
             class="font-semibold"
           >
-            {{ formatCurrency(balance.balance) }}
+            {{ formatCurrency(balance.balance, workspaceCurrency) }}
           </span>
         </div>
       </div>
@@ -26,6 +26,7 @@
       <AmountInput
         v-model="paymentAmount"
         :label="t('dashboard.paymentAmount')"
+        :currency="workspaceCurrency"
         :hint="t('dashboard.enterAmount')"
         :placeholder="'0'"
       />
@@ -41,7 +42,7 @@
             :class="paymentAmount === quickAmount ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-gray-300 hover:bg-slate-700'"
             class="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            {{ formatCurrency(quickAmount) }}
+            {{ formatCurrency(quickAmount, workspaceCurrency) }}
           </button>
         </div>
       </div>
@@ -63,7 +64,7 @@
       <div v-if="paymentAmount > 0" class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-sm text-gray-300">{{ t('dashboard.paymentAmount') }}</span>
-          <span class="text-lg font-semibold text-emerald-400">{{ formatCurrency(paymentAmount) }}</span>
+          <span class="text-lg font-semibold text-emerald-400">{{ formatCurrency(paymentAmount, workspaceCurrency) }}</span>
         </div>
         
         <!-- Recipient's Remaining Balance -->
@@ -73,7 +74,7 @@
             :class="(balance.balance - paymentAmount) < 0 ? 'text-rose-400' : (balance.balance - paymentAmount) > 0 ? 'text-emerald-400' : 'text-gray-400'"
             class="font-medium"
           >
-            {{ (balance.balance - paymentAmount) < 0 ? '-' : (balance.balance - paymentAmount) > 0 ? '+' : '' }}{{ formatCurrency(Math.abs(balance.balance - paymentAmount)) }}
+            {{ (balance.balance - paymentAmount) < 0 ? '-' : (balance.balance - paymentAmount) > 0 ? '+' : '' }}{{ formatCurrency(Math.abs(balance.balance - paymentAmount), workspaceCurrency) }}
           </span>
         </div>
         
@@ -85,7 +86,7 @@
             :class="(currentUserBalance.balance + paymentAmount) < 0 ? 'text-rose-400' : (currentUserBalance.balance + paymentAmount) > 0 ? 'text-emerald-400' : 'text-gray-400'"
             class="font-medium"
           >
-            {{ (currentUserBalance.balance + paymentAmount) < 0 ? '-' : (currentUserBalance.balance + paymentAmount) > 0 ? '+' : '' }}{{ formatCurrency(Math.abs(currentUserBalance.balance + paymentAmount)) }}
+            {{ (currentUserBalance.balance + paymentAmount) < 0 ? '-' : (currentUserBalance.balance + paymentAmount) > 0 ? '+' : '' }}{{ formatCurrency(Math.abs(currentUserBalance.balance + paymentAmount), workspaceCurrency) }}
           </span>
           <span v-else-if="balancesLoading" class="text-gray-500 text-xs">{{ t('common.loading') }}</span>
           <span v-else class="text-gray-500 text-xs">—</span>
@@ -119,6 +120,7 @@ import { usePayments } from '~/composables/usePayments'
 import { useFormatting } from '~/composables/useFormatting'
 import { useSettleUp } from '~/composables/useSettleUp'
 import { useAuth } from '~/composables/useAuth'
+import { useWorkspacesStore } from '~/stores/workspaces'
 import type { Balance } from '~/types/api'
 
 interface Props {
@@ -141,10 +143,16 @@ const { createPayment, loading: submitting } = usePayments()
 const { success, error: showError } = useToast()
 const { settleUpData, loading: settleUpLoading, fetchSettleUp } = useSettleUp()
 const { user, getCurrentUserId } = useAuth()
+const workspacesStore = useWorkspacesStore()
 
 const paymentAmount = ref(0)
 const paymentNote = ref('')
 const loading = ref(false)
+
+// Get workspace currency
+const workspaceCurrency = computed(() => {
+  return workspacesStore.activeWorkspace?.currency || 'JPY'
+})
 
 // Load settle-up data when sheet opens to get current user balance
 watch(() => props.modelValue, async (isOpen) => {
@@ -242,7 +250,7 @@ const handleSubmit = async () => {
       note: paymentNote.value.trim() || undefined,
       effectiveDate: new Date().toISOString().split('T')[0] // Today's date
     })
-    success(`${t('dashboard.paymentCompleted')}: ${formatCurrency(paymentAmount.value)}`)
+    success(`${t('dashboard.paymentCompleted')}: ${formatCurrency(paymentAmount.value, workspaceCurrency.value)}`)
     emit('payment-completed')
     emit('update:modelValue', false)
   } catch (err: any) {

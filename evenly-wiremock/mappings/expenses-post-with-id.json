@@ -1,0 +1,42 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/api/workspaces/([a-z0-9-]+)/expenses/([a-z0-9-]+)",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      },
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+      "Access-Control-Allow-Headers": "origin, content-type, accept, authorization"
+    },
+    "jsonBody": {
+      "data": {
+        "id": "{{request.pathSegments.[3]}}",
+        "categoryId": "{{jsonPath request.body '$.categoryId'}}",
+        "categoryName": "Food",
+        "categoryIcon": "fa-solid fa-utensils",
+        "amount": "{{jsonPath request.body '$.amount'}}",
+        "currency": "{{jsonPath request.body '$.currency'}}",
+        "effectiveDate": "{{jsonPath request.body '$.effectiveDate'}}",
+        "note": "{{jsonPath request.body '$.note'}}",
+        "status": "ACTIVE",
+        "paidByUserId": "{{jsonPath request.body '$.paidByUserId'}}",
+        "paidByUserName": "{{jsonPath request.body '$.paidByUserName'}}",
+        "categoryColor": "#f43f5e"
+      }
+    },
+    "transformers": ["response-template"]
+  }
+}

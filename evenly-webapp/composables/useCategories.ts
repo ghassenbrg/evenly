@@ -7,11 +7,11 @@ export const useCategories = () => {
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
-  const fetchCategories = async (workspaceId: string) => {
+  const fetchCategories = async () => {
     loading.value = true
     error.value = null
     try {
-      categories.value = await api.get<Category[]>(`/api/workspaces/${workspaceId}/categories`)
+      categories.value = await api.get<Category[]>('/api/categories')
     } catch (err) {
       error.value = err as Error
       throw err
@@ -20,11 +20,11 @@ export const useCategories = () => {
     }
   }
 
-  const getCategory = async (workspaceId: string, categoryId: string) => {
+  const getCategory = async (categoryId: string) => {
     loading.value = true
     error.value = null
     try {
-      return await api.get<Category>(`/api/workspaces/${workspaceId}/categories/${categoryId}`)
+      return await api.get<Category>(`/api/categories/${categoryId}`)
     } catch (err) {
       error.value = err as Error
       throw err
@@ -33,11 +33,11 @@ export const useCategories = () => {
     }
   }
 
-  const createCategory = async (workspaceId: string, data: CreateCategoryRequest) => {
+  const createCategory = async (data: CreateCategoryRequest) => {
     loading.value = true
     error.value = null
     try {
-      const category = await api.post<Category>(`/api/workspaces/${workspaceId}/categories`, data)
+      const category = await api.post<Category>('/api/categories', data)
       categories.value.push(category)
       return category
     } catch (err) {
@@ -48,11 +48,11 @@ export const useCategories = () => {
     }
   }
 
-  const updateCategory = async (workspaceId: string, categoryId: string, data: UpdateCategoryRequest) => {
+  const updateCategory = async (categoryId: string, data: UpdateCategoryRequest) => {
     loading.value = true
     error.value = null
     try {
-      const category = await api.put<Category>(`/api/workspaces/${workspaceId}/categories/${categoryId}`, data)
+      const category = await api.put<Category>(`/api/categories/${categoryId}`, data)
       const index = categories.value.findIndex(c => c.id === categoryId)
       if (index !== -1) {
         categories.value[index] = category
@@ -66,11 +66,11 @@ export const useCategories = () => {
     }
   }
 
-  const deleteCategory = async (workspaceId: string, categoryId: string) => {
+  const deleteCategory = async (categoryId: string) => {
     loading.value = true
     error.value = null
     try {
-      await api.delete(`/api/workspaces/${workspaceId}/categories/${categoryId}`)
+      await api.delete(`/api/categories/${categoryId}`)
       categories.value = categories.value.filter(c => c.id !== categoryId)
     } catch (err) {
       error.value = err as Error

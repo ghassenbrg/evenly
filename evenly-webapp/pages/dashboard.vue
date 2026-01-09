@@ -19,6 +19,7 @@
         :workspace-id="activeWorkspaceId || undefined"
         :loading="balanceLoading"
         @settle-up="showSettleUp = true"
+        @add-expense="showCreateExpenseSheet = true"
       />
       
       <DashboardSettleUpSheet
@@ -67,6 +68,13 @@
         :expenses="recentExpenses as Expense[]"
         :loading="recentExpensesLoading"
       />
+      
+      <ExpensesCreateExpenseSheet
+        v-if="activeWorkspaceId"
+        v-model="showCreateExpenseSheet"
+        :workspace-id="activeWorkspaceId"
+        @expense-created="handleExpenseCreated"
+      />
     </template>
   </div>
 </template>
@@ -82,6 +90,7 @@ import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useCategories } from '~/composables/useCategories'
 import { useFormatting } from '~/composables/useFormatting'
+import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
 import type { Expense, Balance } from '~/types/api'
 
 const { t } = useI18n()
@@ -99,6 +108,7 @@ const recentExpensesLoading = ref(true)
 const showSettleUp = ref(false)
 const showPaymentSheet = ref(false)
 const showAllCategoriesSheet = ref(false)
+const showCreateExpenseSheet = ref(false)
 const selectedBalance = ref<Balance | null>(null)
 const selectedCurrentUserBalance = ref<Balance | null>(null)
 
@@ -123,6 +133,11 @@ const handlePaymentCompleted = () => {
   loadDashboard()
   // Emit settled event to SettleUpSheet if it's open
   // (The @settled listener will also call loadDashboard, but that's fine - it's idempotent)
+}
+
+const handleExpenseCreated = () => {
+  // Reload dashboard data after expense creation
+  loadDashboard()
 }
 
 const getDateRange = (period: 'month' | 'week' | 'all' | 'custom', customRange?: { start: string | null; end: string | null }) => {
@@ -184,7 +199,7 @@ const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'mont
       fetchSummary(activeWorkspaceId.value, start, end).finally(() => { balanceLoading.value = false }),
       fetchCategoryAnalytics(activeWorkspaceId.value, start, end).finally(() => { expenseSnapshotLoading.value = false }),
       fetchRecentExpenses(activeWorkspaceId.value, 5).finally(() => { recentExpensesLoading.value = false }),
-      fetchCategories(activeWorkspaceId.value)
+      fetchCategories()
     ])
   } catch (err) {
     balanceLoading.value = false

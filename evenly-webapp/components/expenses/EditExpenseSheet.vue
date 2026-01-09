@@ -33,24 +33,16 @@
 
     <!-- Content -->
     <div v-else-if="expense" class="space-y-6">
-      <!-- Expense Info (Read-only) -->
+      <!-- Category Selection -->
+      <CategoryPicker
+        v-model="selectedCategoryId"
+        :label="t('expenses.category')"
+        :required="true"
+      />
+
+      <!-- Paid By Info (Read-only) -->
       <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-        <div class="flex items-center gap-3 mb-3">
-          <div
-            class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-            :style="{ background: categoryGradient }"
-          >
-            <FontAwesomeIcon
-              :icon="getFontAwesomeIcon(expense.categoryIcon)"
-              class="w-5 h-5 text-white/80"
-            />
-          </div>
-          <div>
-            <p class="text-sm text-gray-400">{{ t('expenses.category') }}</p>
-            <p class="text-lg font-semibold text-white">{{ expense.categoryName || t('common.other') }}</p>
-          </div>
-        </div>
-        <div class="mt-2 flex items-center justify-between text-sm">
+        <div class="flex items-center justify-between text-sm">
           <span class="text-gray-400">{{ t('dashboard.paidBy') }}</span>
           <span class="text-white">{{ expense.paidByUserName || expense.paidByUserId }}</span>
         </div>
@@ -115,8 +107,6 @@
 import type { Expense } from '~/types/api'
 import { useExpenses } from '~/composables/useExpenses'
 import { useFormatting } from '~/composables/useFormatting'
-import { useFontAwesome } from '~/composables/useFontAwesome'
-import { useCategoryColor } from '~/composables/useCategoryColor'
 import { useToast } from '~/composables/useToast'
 
 interface Props {
@@ -136,29 +126,13 @@ const { t } = useI18n()
 const { formatCurrency } = useFormatting()
 const { updateExpense, deleteExpense, loading: submitting, getExpense } = useExpenses()
 const { success, error: showError } = useToast()
-const { parseIconClass } = useFontAwesome()
-const { colorToGradient } = useCategoryColor()
 
 const loading = ref(false)
 const deleting = ref(false)
 const expenseAmount = ref(0)
 const effectiveDate = ref('')
 const expenseNote = ref('')
-
-// Category gradient
-const categoryGradient = computed(() => {
-  if (!props.expense) return 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
-  return colorToGradient(props.expense.categoryColor)
-})
-
-// Helper to get Font Awesome icon from class string
-const getFontAwesomeIcon = (iconClass: string | null | undefined) => {
-  const parsed = parseIconClass(iconClass)
-  if (!parsed) {
-    return ['fas', 'ellipsis']
-  }
-  return [parsed.prefix, parsed.icon]
-}
+const selectedCategoryId = ref<string | null>(null)
 
 // Load expense details when sheet opens
 watch(() => props.modelValue, async (isOpen) => {
@@ -171,6 +145,7 @@ watch(() => props.modelValue, async (isOpen) => {
         expenseAmount.value = freshExpense.amount
         effectiveDate.value = freshExpense.effectiveDate
         expenseNote.value = freshExpense.note || ''
+        selectedCategoryId.value = freshExpense.categoryId || null
       }
     } catch (err) {
       showError(t('expenses.loadFailed'))
@@ -186,11 +161,12 @@ watch(() => props.expense, (expense) => {
     expenseAmount.value = expense.amount
     effectiveDate.value = expense.effectiveDate
     expenseNote.value = expense.note || ''
+    selectedCategoryId.value = expense.categoryId || null
   }
 }, { immediate: true })
 
 const canSubmit = computed(() => {
-  return expenseAmount.value > 0 && effectiveDate.value !== ''
+  return expenseAmount.value > 0 && effectiveDate.value !== '' && selectedCategoryId.value !== null
 })
 
 const handleSubmit = async () => {
@@ -199,6 +175,7 @@ const handleSubmit = async () => {
   try {
     await updateExpense(props.workspaceId, props.expense.id, {
       amount: expenseAmount.value,
+      categoryId: selectedCategoryId.value!,
       date: effectiveDate.value,
       note: expenseNote.value.trim() || undefined
     })

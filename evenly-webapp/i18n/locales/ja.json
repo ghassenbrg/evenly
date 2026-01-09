@@ -138,7 +138,35 @@
     "en": "English",
     "ja": "日本語",
     "money": "マネー管理",
-    "moneyDescription": "共有APIでサポートされているウォレット、取引、サブスクリプションにアクセスします。"
+    "moneyDescription": "共有APIでサポートされているウォレット、取引、サブスクリプションにアクセスします。",
+    "categories": {
+      "title": "カテゴリ",
+      "description": "支出カテゴリを管理します。カテゴリを作成、編集、または削除して支出を整理します。",
+      "manage": "カテゴリを管理",
+      "addCategory": "カテゴリを追加",
+      "createCategory": "カテゴリを作成",
+      "editCategory": "カテゴリを編集",
+      "name": "カテゴリ名",
+      "namePlaceholder": "例：食事、交通費",
+      "icon": "アイコン",
+      "iconPlaceholder": "例：fa-solid fa-utensils",
+      "iconHint": "Font Awesomeアイコンクラスを使用（例：fa-solid fa-utensils）",
+      "color": "色",
+      "colorHint": "このカテゴリの色を選択",
+      "preview": "プレビュー",
+      "categoryName": "カテゴリ名",
+      "noCategories": "カテゴリがまだありません。最初のカテゴリを作成して始めましょう。",
+      "loadError": "カテゴリの読み込みに失敗しました",
+      "createSuccess": "カテゴリが正常に作成されました",
+      "createError": "カテゴリの作成に失敗しました",
+      "updateSuccess": "カテゴリが正常に更新されました",
+      "updateError": "カテゴリの更新に失敗しました",
+      "deleteSuccess": "カテゴリが正常に削除されました",
+      "deleteError": "カテゴリの削除に失敗しました",
+      "confirmDelete": "このカテゴリを削除してもよろしいですか？",
+      "searchPlaceholder": "カテゴリを検索...",
+      "noResults": "検索条件に一致するカテゴリが見つかりませんでした"
+    }
   },
   "placeholders": {
     "dashboard": "ダッシュボードプレースホルダー",
@@ -156,6 +184,8 @@
     "expense": "支出",
     "expenses": "支出",
     "others": "その他",
+    "otherCategories": "その他のカテゴリ",
+    "remaining": "残り",
     "categoriesBreakdown": "カテゴリ内訳",
     "allCategories": "すべてのカテゴリ",
     "recentExpenses": "最近の支出",
@@ -275,6 +305,12 @@
     "deleted": "支払いを正常に削除しました",
     "deleteFailed": "支払いの削除に失敗しました",
     "confirmDelete": "この支払いを削除してもよろしいですか？"
+  },
+  "categories": {
+    "selectCategory": "カテゴリを選択",
+    "searchPlaceholder": "カテゴリを検索...",
+    "noResults": "カテゴリが見つかりません",
+    "noCategories": "利用可能なカテゴリがありません"
   },
   "dateRange": {
     "select": "日付範囲を選択",

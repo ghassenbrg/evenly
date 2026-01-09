@@ -17,39 +17,12 @@
     <!-- Content -->
     <div class="space-y-6">
       <!-- Category Selection -->
-      <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">
-          {{ t('expenses.category') }} <span class="text-red-400">*</span>
-        </label>
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            v-for="category in categories"
-            :key="category.id"
-            type="button"
-            @click="selectedCategoryId = category.id"
-            class="p-4 rounded-2xl border-2 transition-all active:scale-95 touch-manipulation"
-            :class="selectedCategoryId === category.id
-              ? 'border-emerald-500 bg-emerald-500/20'
-              : 'border-slate-700/50 bg-slate-800/50 hover:border-slate-600/50'"
-          >
-            <div class="flex flex-col items-center gap-2">
-              <div
-                class="w-12 h-12 rounded-full flex items-center justify-center"
-                :style="{ background: colorToGradient(category.color) }"
-              >
-                <FontAwesomeIcon
-                  :icon="getFontAwesomeIcon(category.icon)"
-                  class="w-6 h-6 text-white"
-                />
-              </div>
-              <span class="text-xs font-medium text-white text-center">{{ category.name }}</span>
-            </div>
-          </button>
-        </div>
-        <p v-if="!selectedCategoryId && submitted" class="text-xs text-red-400 mt-2">
-          {{ t('expenses.categoryRequired') || 'Please select a category' }}
-        </p>
-      </div>
+      <CategoryPicker
+        v-model="selectedCategoryId"
+        :label="t('expenses.category')"
+        :required="true"
+        :show-error="submitted"
+      />
 
       <!-- Amount Input -->
       <AmountInput
@@ -113,12 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category } from '~/types/api'
 import { useExpenses } from '~/composables/useExpenses'
-import { useCategories } from '~/composables/useCategories'
-import { useFormatting } from '~/composables/useFormatting'
-import { useFontAwesome } from '~/composables/useFontAwesome'
-import { useCategoryColor } from '~/composables/useCategoryColor'
 import { useToast } from '~/composables/useToast'
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAuth } from '~/composables/useAuth'
@@ -136,10 +104,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { createExpense, loading: submitting } = useExpenses()
-const { categories, fetchCategories } = useCategories()
 const { success, error: showError } = useToast()
-const { parseIconClass } = useFontAwesome()
-const { colorToGradient } = useCategoryColor()
 const workspacesStore = useWorkspacesStore()
 const { user: currentUser, loadUserProfile, getCurrentUserId } = useAuth()
 
@@ -153,29 +118,14 @@ const workspaceCurrency = computed(() => {
   return workspacesStore.activeWorkspace?.currency || 'JPY'
 })
 
-// Helper to get Font Awesome icon from class string
-const getFontAwesomeIcon = (iconClass: string | null | undefined) => {
-  const parsed = parseIconClass(iconClass)
-  if (!parsed) {
-    return ['fas', 'ellipsis']
-  }
-  return [parsed.prefix, parsed.icon]
-}
-
-// Load categories when sheet opens
-watch(() => props.modelValue, async (isOpen) => {
-  if (isOpen && props.workspaceId) {
-    try {
-      await fetchCategories(props.workspaceId)
-      // Reset form when opening
-      selectedCategoryId.value = null
-      expenseAmount.value = 0
-      effectiveDate.value = new Date().toISOString().split('T')[0]
-      expenseNote.value = ''
-      submitted.value = false
-    } catch (err) {
-      showError(t('expenses.loadFailed'))
-    }
+// Reset form when sheet opens
+watch(() => props.modelValue, (isOpen) => {
+  if (isOpen) {
+    selectedCategoryId.value = null
+    expenseAmount.value = 0
+    effectiveDate.value = new Date().toISOString().split('T')[0]
+    expenseNote.value = ''
+    submitted.value = false
   }
 })
 

@@ -128,7 +128,7 @@
               class="w-3 h-3 rounded-sm"
               :style="{ background: displayOthersColor }"
             ></div>
-            <span class="text-xs font-medium text-gray-200">{{ t('dashboard.others') }} {{ displayOthersPercent }}%</span>
+            <span class="text-xs font-medium text-gray-200">{{ t('dashboard.otherCategories') }} {{ displayOthersPercent }}%</span>
           </button>
         </div>
       </div>
