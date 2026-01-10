@@ -66,8 +66,9 @@
         </div>
       </div>
 
-      <!-- Action Buttons (only for non-personal workspaces) -->
-      <div v-if="!isPersonal && workspaceId" class="mt-4 flex gap-3">
+      <!-- Action Buttons -->
+      <div v-if="workspaceId" class="mt-4 flex gap-3">
+        <!-- Add Expense button - always visible for any workspace -->
         <button
           @click="emit('add-expense')"
           class="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
@@ -77,7 +78,9 @@
           </svg>
           {{ t('expenses.addExpense') }}
         </button>
+        <!-- Settle Up button - only for non-personal workspaces -->
         <button
+          v-if="!isPersonal"
           @click="emit('settle-up')"
           class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
         >

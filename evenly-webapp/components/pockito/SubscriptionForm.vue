@@ -269,12 +269,14 @@
               <span class="text-red-400">*</span>
             </label>
             <div class="relative">
-              <input
-                v-model="form.startDate"
-                type="date"
-                class="w-full bg-slate-800/50 border transition-colors rounded-xl px-4 py-3 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
-                :class="errors.startDate ? 'border-red-500/50' : 'border-slate-700/50'"
-              />
+              <div class="date-input-wrapper">
+                <input
+                  v-model="form.startDate"
+                  type="date"
+                  class="w-full bg-slate-800/50 border transition-colors rounded-xl px-4 py-3 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+                  :class="errors.startDate ? 'border-red-500/50' : 'border-slate-700/50'"
+                />
+              </div>
               <svg class="w-5 h-5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -290,11 +292,13 @@
               <span class="text-xs text-white/50 font-normal">({{ t('common.optional') }})</span>
             </label>
             <div class="relative">
-              <input
-                v-model="form.endDate"
-                type="date"
-                class="w-full bg-slate-800/50 border transition-colors rounded-xl px-4 py-3 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 border-slate-700/50"
-              />
+              <div class="date-input-wrapper">
+                <input
+                  v-model="form.endDate"
+                  type="date"
+                  class="w-full bg-slate-800/50 border transition-colors rounded-xl px-4 py-3 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 border-slate-700/50"
+                />
+              </div>
               <svg class="w-5 h-5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>

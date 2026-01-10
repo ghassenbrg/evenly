@@ -15,7 +15,7 @@
     </template>
 
     <!-- Content -->
-    <div class="space-y-6">
+    <div class="space-y-6 w-full">
       <!-- Category Selection -->
       <CategoryPicker
         v-model="selectedCategoryId"
@@ -37,11 +37,13 @@
         <label class="block text-sm font-medium text-slate-300 mb-2">
           {{ t('expenses.effectiveDate') }} <span class="text-red-400">*</span>
         </label>
-        <input
-          v-model="effectiveDate"
-          type="date"
-          class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[56px] touch-manipulation text-base"
-        />
+        <div class="date-input-wrapper">
+          <input
+            v-model="effectiveDate"
+            type="date"
+            class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[56px] touch-manipulation text-base"
+          />
+        </div>
       </div>
 
       <!-- Note Field -->
@@ -178,3 +180,4 @@ const handleSubmit = async () => {
   }
 }
 </script>
+

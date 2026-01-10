@@ -61,11 +61,13 @@
         <label class="block text-sm font-medium text-slate-300 mb-2">
           {{ t('payments.effectiveDate') }}
         </label>
-        <input
-          v-model="effectiveDate"
-          type="date"
-          class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
+        <div class="date-input-wrapper">
+          <input
+            v-model="effectiveDate"
+            type="date"
+            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
       </div>
 
       <!-- Note Field -->

@@ -34,7 +34,7 @@
             </div>
 
             <!-- Content -->
-            <div class="flex-1 overflow-y-auto px-6 py-4">
+            <div class="flex-1 overflow-y-auto px-6 py-4 overflow-x-hidden">
               <slot />
             </div>
 

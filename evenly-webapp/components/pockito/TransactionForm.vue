@@ -163,13 +163,15 @@
         <span class="text-red-400">*</span>
       </label>
       <div class="relative">
-        <input
-          v-model="form.effectiveDate"
-          type="date"
-          class="w-full bg-slate-800/50 border transition-colors rounded-2xl px-4 py-4 pl-12 text-white text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 min-h-[56px] touch-manipulation"
-          :class="errors.effectiveDate ? 'border-red-500/50' : 'border-slate-700/50'"
-          required
-        />
+        <div class="date-input-wrapper">
+          <input
+            v-model="form.effectiveDate"
+            type="date"
+            class="w-full bg-slate-800/50 border transition-colors rounded-2xl px-4 py-4 pl-12 text-white text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 min-h-[56px] touch-manipulation"
+            :class="errors.effectiveDate ? 'border-red-500/50' : 'border-slate-700/50'"
+            required
+          />
+        </div>
         <svg class="w-6 h-6 text-white/40 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
