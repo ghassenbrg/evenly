@@ -92,7 +92,7 @@ const showWorkspaceSwitch = computed(() => {
 
 // Show back button on non-main pages (and not on auth pages)
 const showBackButton = computed(() => {
-  const authPages = ['/login', '/register', '/', '/join', '/keycloak-callback']
+  const authPages = ['/login', '/register', '/', '/join']
   if (authPages.includes(route.path)) {
     return false
   }

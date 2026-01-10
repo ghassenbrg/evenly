@@ -1,92 +1,21 @@
-import Keycloak from 'keycloak-js'
+// Keycloak plugin is disabled - using REST-based authentication instead
+// This file is kept for reference but is no longer actively used
+// The backend handles Keycloak authentication via POST /auth/login and POST /auth/register
 
 export default defineNuxtPlugin(async () => {
-  const config = useRuntimeConfig()
-  const token = useCookie<string | null>('token', { default: () => null })
-  const user = useCookie<any | null>('user', { default: () => null })
-
-  const keycloak = new Keycloak({
-    url: config.public.keycloak.url,
-    realm: config.public.keycloak.realm,
-    clientId: config.public.keycloak.clientId
-  })
-
-  // Track initialization to avoid unexpected redirects on reloads
-  try {
-    // Check if we're on the callback page
-    const isCallback = window.location.pathname === '/keycloak-callback'
-    
-    // Initialize Keycloak with redirect-based flow only (no iframes)
-    // This avoids CSP errors from Keycloak's frame-ancestors policy
-    // Note: Even with checkLoginIframe: false, check-sso might attempt iframe checks
-    // CSP errors are expected and won't break functionality since we use redirects
-    // Note: Browser may show sandbox warnings for silent-check-sso.html iframe - this is expected
-    let authenticated = false
-    try {
-      authenticated = await keycloak.init({
-        onLoad: isCallback ? 'login-required' : 'check-sso',
-        pkceMethod: 'S256',
-        checkLoginIframe: false, // Disable iframe-based login checks
-        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
-        enableLogging: false,
-        redirectUri: window.location.origin + '/keycloak-callback'
-      })
-      
-      // Immediately clear hash after Keycloak processes it to prevent Vue Router warnings
-      // Vue Router tries to parse hash fragments as CSS selectors during navigation
-      if (isCallback && window.location.hash) {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search)
-      }
-    } catch (initError: any) {
-      // Handle CSP or other initialization errors gracefully
-      // If it's a CSP error, it's expected when Keycloak tries to use iframes
-      // The app will still work with redirect-based flows
-      if (initError?.message?.includes('Content Security Policy') || 
-          initError?.message?.includes('frame-ancestors')) {
-        console.warn('Keycloak CSP warning (expected when iframes are disabled):', initError.message)
-        // Try to check if user is already authenticated via token in storage
-        if (keycloak.token && keycloak.authenticated) {
-          authenticated = true
-        }
-      } else if (initError?.error === 'invalid_redirect_uri' || 
-                 initError?.message?.includes('Invalid parameter: redirect_uri') ||
-                 initError?.error_description?.includes('redirect_uri')) {
-        console.error('Keycloak redirect URI error:', initError)
-        console.error('Please configure the following redirect URIs in Keycloak client settings:')
-        console.error(`  - ${window.location.origin}/keycloak-callback`)
-        console.error(`  - ${window.location.origin}/* (or use wildcard)`)
-        // Don't set authenticated if redirect URI is invalid
-        authenticated = false
-      } else {
-        console.error('Keycloak initialization error:', initError)
-      }
-    }
-
-    if (authenticated) {
-      // User is authenticated, store token and user info
-      token.value = keycloak.token || null
-      
-      // Load user profile - will be handled by useAuth composable
-      // Don't load here to avoid CORS issues, let the composable handle it with token fallback
-
-      // Set up token refresh
-      keycloak.onTokenExpired = () => {
-        keycloak.updateToken(30).then((refreshed) => {
-          if (refreshed) {
-            token.value = keycloak.token || null
-          }
-        }).catch(() => {
-          // Token refresh failed, logout
-          keycloak.logout({ redirectUri: window.location.origin + '/login' })
-        })
-      }
-    } else {
-      // Clear any stale auth cookies so the UI doesn't think we're logged in
-      token.value = null
-      user.value = null
-    }
-  } catch (error) {
-    console.error('Keycloak initialization error:', error)
+  // Provide a minimal mock Keycloak object for backward compatibility
+  // Components should use useAuth() composable instead
+  const keycloak = {
+    authenticated: false,
+    token: null,
+    idToken: null,
+    tokenParsed: null,
+    idTokenParsed: null,
+    login: () => Promise.reject(new Error('Keycloak is disabled. Use REST-based authentication.')),
+    logout: () => Promise.reject(new Error('Keycloak is disabled. Use REST-based authentication.')),
+    register: () => Promise.reject(new Error('Keycloak is disabled. Use REST-based authentication.')),
+    updateToken: () => Promise.resolve(false),
+    onTokenExpired: null as any
   }
 
   return {

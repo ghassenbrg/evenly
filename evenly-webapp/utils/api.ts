@@ -4,19 +4,58 @@ export interface ApiError {
   error?: string
   message?: string
   status?: number
+  errors?: Array<{
+    field: string
+    message: string
+  }>
+}
+
+interface KeycloakTokenResponse {
+  access_token: string
+  refresh_token?: string
+  expires_in: number
+  refresh_expires_in: number
+  token_type: string
+}
+
+const refreshKeycloakToken = async (config: any, refreshToken: string): Promise<KeycloakTokenResponse | null> => {
+  try {
+    const keycloakUrl = config.public.keycloak.url
+    const realm = config.public.keycloak.realm
+    const clientId = config.public.keycloak.clientId
+    const tokenEndpoint = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`
+
+    const formData = new URLSearchParams()
+    formData.append('grant_type', 'refresh_token')
+    formData.append('client_id', clientId)
+    formData.append('refresh_token', refreshToken)
+
+    const response = await fetch(tokenEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formData.toString()
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Token refresh failed:', error)
+    return null
+  }
 }
 
 export const useApi = (baseOverride?: string) => {
   const config = useRuntimeConfig()
   const token = useCookie<string | null>('token', { default: () => null })
-  const { $keycloak } = useNuxtApp()
+  const refreshToken = useCookie<string | null>('refreshToken', { default: () => null })
 
   const getAuthToken = (): string | null => {
-    // Prefer Keycloak token if available
-    if (process.client && $keycloak && $keycloak.authenticated && $keycloak.token) {
-      return $keycloak.token
-    }
-    // Fallback to cookie token
+    // Use Keycloak token from cookie
     return token.value
   }
 
@@ -39,15 +78,55 @@ export const useApi = (baseOverride?: string) => {
         const errorData: ApiError = await res.json().catch(() => ({}))
         errorData.status = res.status
         
-        // Only redirect to login on 401 for authenticated requests (not during login itself)
-        if (res.status === 401 && path !== '/auth/login' && authToken) {
-          token.value = null
-          // If using Keycloak, logout and redirect to login
-          if (process.client && $keycloak) {
-            await $keycloak.logout({ redirectUri: window.location.origin + '/login' })
-          } else {
-            await navigateTo('/login')
+        // Handle 401 - try to refresh token if we have one
+        if (res.status === 401 && path !== '/auth/login' && path !== '/auth/register' && authToken && refreshToken.value) {
+          // Try to refresh the token
+          const tokenData = await refreshKeycloakToken(config, refreshToken.value)
+          
+          if (tokenData) {
+            // Update tokens
+            token.value = tokenData.access_token
+            if (tokenData.refresh_token) {
+              refreshToken.value = tokenData.refresh_token
+            }
+            
+            // Retry the request with the new token
+            headers.Authorization = `Bearer ${tokenData.access_token}`
+            const retryRes = await fetch(`${base}${path}`, { ...options, headers })
+            if (retryRes.ok) {
+              if (retryRes.status === 204) {
+                return null as T
+              }
+              const json = await retryRes.json()
+              // Handle response extraction (same logic as below)
+              if (json && typeof json === 'object') {
+                if (path === '/api/notifications/unread-count' && 'data' in json && typeof json.data === 'object' && 'count' in json.data) {
+                  return { unreadCount: json.data.count } as T
+                }
+                if (path === '/api/notifications' && 'data' in json && 'unreadCount' in json) {
+                  return json as T
+                }
+                if (('data' in json && Array.isArray(json.data)) && ('page' in json || 'sort' in json)) {
+                  return json as T
+                }
+                if (path.includes('/analytics/expenses-snapshot') && 'data' in json && 'categoriesCount' in json) {
+                  return json as T
+                }
+                if ('data' in json) {
+                  return json.data as T
+                }
+                if ('workspace' in json) {
+                  return json.workspace as T
+                }
+              }
+              return json as T
+            }
           }
+          
+          // Refresh failed or retry failed, clear tokens and redirect to login
+          token.value = null
+          refreshToken.value = null
+          await navigateTo('/login')
           throw new Error('Unauthorized')
         }
         

@@ -1588,6 +1588,17 @@
             "icon": "fa-solid fa-ellipsis",
             "color": "#64748b"
         }
+    },
+    "POST /auth/register": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLW5ldyIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSJ9",
+        "user": {
+            "id": "user-new",
+            "email": "user@example.com",
+            "displayName": "New User",
+            "username": "newuser",
+            "preferredCurrency": "USD",
+            "createdAt": "2024-01-01T00:00:00Z"
+        }
     }
 
 }

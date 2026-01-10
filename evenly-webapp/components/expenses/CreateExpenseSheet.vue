@@ -139,8 +139,8 @@ const handleSubmit = async () => {
   
   // Try to load user profile if not available
   if (!currentUser.value?.id && process.client) {
-    const { $keycloak } = useNuxtApp()
-    if ($keycloak && $keycloak.authenticated) {
+    const { isAuthenticated, loadUserProfile } = useAuth()
+    if (isAuthenticated.value) {
       try {
         await loadUserProfile()
         await nextTick() // Wait for reactive update

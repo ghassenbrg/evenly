@@ -1,187 +1,233 @@
-import type { User } from '~/types/api'
-import { useCookie } from '#imports'
+import type { User, LoginRequest, RegisterRequest, AuthResponse } from '~/types/api'
+import { useCookie, navigateTo, useRuntimeConfig } from '#imports'
+
+interface KeycloakTokenResponse {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  refresh_expires_in: number
+  token_type: string
+}
 
 export const useAuth = () => {
+  const config = useRuntimeConfig()
   const token = useCookie<string | null>('token', { default: () => null })
+  const refreshToken = useCookie<string | null>('refreshToken', { default: () => null })
   const user = useCookie<User | null>('user', { default: () => null })
-  const { $keycloak } = useNuxtApp()
+  const api = useApi()
 
-  const login = async (redirectPath?: string) => {
-    if (!$keycloak) {
-      throw new Error('Keycloak not initialized')
-    }
-    
-    const safeRedirectPath = redirectPath && redirectPath.startsWith('/') ? redirectPath : null
-    if (process.client) {
-      if (safeRedirectPath) {
-        sessionStorage.setItem('postLoginRedirect', safeRedirectPath)
-      } else {
+  const getKeycloakTokenEndpoint = () => {
+    const keycloakUrl = config.public.keycloak.url
+    const realm = config.public.keycloak.realm
+    return `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`
+  }
+
+  const login = async (credentials: LoginRequest, redirectPath?: string) => {
+    try {
+      const tokenEndpoint = getKeycloakTokenEndpoint()
+      const clientId = config.public.keycloak.clientId
+
+      // Call Keycloak token endpoint with password grant
+      const formData = new URLSearchParams()
+      formData.append('grant_type', 'password')
+      formData.append('client_id', clientId)
+      formData.append('username', credentials.username)
+      formData.append('password', credentials.password)
+
+      const response = await fetch(tokenEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData.toString()
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        const error = new Error(errorData.error_description || errorData.error || 'Login failed')
+        ;(error as any).status = response.status
+        throw error
+      }
+
+      const tokenData: KeycloakTokenResponse = await response.json()
+      
+      // Store tokens
+      token.value = tokenData.access_token
+      refreshToken.value = tokenData.refresh_token
+      
+      // Extract user info from token
+      await loadUserProfile()
+      
+      // Handle redirect
+      const safeRedirectPath = redirectPath && redirectPath.startsWith('/') ? redirectPath : '/dashboard'
+      if (process.client) {
         sessionStorage.removeItem('postLoginRedirect')
       }
-    }
-
-    const callbackUri = window.location.origin + '/keycloak-callback'
-    try {
-      await $keycloak.login({
-        redirectUri: callbackUri
-      })
+      await navigateTo(safeRedirectPath, { replace: true })
+      
+      return {
+        token: tokenData.access_token,
+        user: user.value!
+      } as AuthResponse
     } catch (error: any) {
-      if (error?.error === 'invalid_redirect_uri' || 
-          error?.message?.includes('Invalid parameter: redirect_uri')) {
-        console.error('Keycloak redirect URI not configured. Please add the following to Keycloak client settings:')
-        console.error(`  Valid Redirect URIs: ${callbackUri}`)
-        console.error(`  Web Origins: ${window.location.origin}`)
-        throw new Error(`Redirect URI not configured in Keycloak. Please add: ${callbackUri}`)
+      console.error('Login error:', error)
+      throw error
+    }
+  }
+
+  const register = async (data: RegisterRequest, redirectPath?: string) => {
+    try {
+      const response = await api.post<AuthResponse>('/auth/register', data)
+      
+      // Store token and user info
+      token.value = response.token
+      user.value = response.user
+      
+      // Handle redirect
+      const safeRedirectPath = redirectPath && redirectPath.startsWith('/') ? redirectPath : '/dashboard'
+      if (process.client) {
+        sessionStorage.removeItem('postLoginRedirect')
       }
+      await navigateTo(safeRedirectPath, { replace: true })
+      
+      return response
+    } catch (error: any) {
+      console.error('Registration error:', error)
       throw error
     }
   }
 
   const logout = async () => {
-    if (!$keycloak) {
-      token.value = null
-      user.value = null
-      return
+    // Optionally call Keycloak logout endpoint
+    if (refreshToken.value && process.client) {
+      try {
+        const keycloakUrl = config.public.keycloak.url
+        const realm = config.public.keycloak.realm
+        const logoutEndpoint = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/logout`
+        const clientId = config.public.keycloak.clientId
+
+        const formData = new URLSearchParams()
+        formData.append('client_id', clientId)
+        formData.append('refresh_token', refreshToken.value)
+
+        await fetch(logoutEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData.toString()
+        }).catch(() => {
+          // Ignore logout errors
+        })
+      } catch (error) {
+        // Ignore logout errors
+        console.error('Logout error:', error)
+      }
     }
-    
-    await $keycloak.logout({
-      redirectUri: `${window.location.origin}/login`
-    })
-    
+
     token.value = null
+    refreshToken.value = null
     user.value = null
+    
+    // Navigate to login page
+    await navigateTo('/login', { replace: true })
   }
 
   const updateToken = async () => {
-    if (!$keycloak || !$keycloak.authenticated) {
+    if (!refreshToken.value) {
       return false
     }
-    
+
     try {
-      const refreshed = await $keycloak.updateToken(30)
-      if (refreshed) {
-        token.value = $keycloak.token || null
-        
-        // Update user profile if token was refreshed
-        if ($keycloak.authenticated) {
-          await loadUserProfile()
-        }
+      const tokenEndpoint = getKeycloakTokenEndpoint()
+      const clientId = config.public.keycloak.clientId
+
+      // Call Keycloak token endpoint with refresh_token grant
+      const formData = new URLSearchParams()
+      formData.append('grant_type', 'refresh_token')
+      formData.append('client_id', clientId)
+      formData.append('refresh_token', refreshToken.value)
+
+      const response = await fetch(tokenEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData.toString()
+      })
+
+      if (!response.ok) {
+        // Refresh token expired or invalid, clear tokens
+        token.value = null
+        refreshToken.value = null
+        user.value = null
+        return false
       }
-      return refreshed
+
+      const tokenData: KeycloakTokenResponse = await response.json()
+      
+      // Update tokens
+      token.value = tokenData.access_token
+      if (tokenData.refresh_token) {
+        refreshToken.value = tokenData.refresh_token
+      }
+      
+      // Update user profile if needed
+      await loadUserProfile()
+      
+      return true
     } catch (error) {
       console.error('Token refresh failed:', error)
-      await logout()
+      // Clear tokens on error
+      token.value = null
+      refreshToken.value = null
+      user.value = null
       return false
     }
   }
 
   const loadUserProfile = async () => {
-    if (!$keycloak || !$keycloak.authenticated) {
-      return
-    }
-      
+    // User profile is loaded from the login/register response
+    // No additional API call needed
+    if (!user.value && token.value) {
+      // If we have a token but no user, try to decode it
       try {
-        // Decode token to get user info (JWT token contains user info)
-        if ($keycloak.token) {
-          const tokenParts = $keycloak.token.split('.')
-          if (tokenParts.length === 3) {
-            const payload = JSON.parse(atob(tokenParts[1]))
-            user.value = {
-              id: payload.sub || '',
-              email: payload.email || '',
-              displayName: payload.name || `${payload.given_name || ''} ${payload.family_name || ''}`.trim() || payload.preferred_username || '',
-              username: payload.preferred_username || payload.preferred_username,
-              createdAt: payload.iat 
-                ? new Date(payload.iat * 1000).toISOString() 
-                : new Date().toISOString()
-            } as User
-          }
+        const tokenParts = token.value.split('.')
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]))
+          user.value = {
+            id: payload.sub || payload.id || '',
+            email: payload.email || '',
+            displayName: payload.name || payload.displayName || payload.preferred_username || '',
+            username: payload.preferred_username || payload.username,
+            preferredCurrency: payload.preferredCurrency,
+            locale: payload.locale,
+            timezone: payload.timezone,
+            createdAt: payload.iat 
+              ? new Date(payload.iat * 1000).toISOString() 
+              : new Date().toISOString()
+          } as User
         }
       } catch (tokenErr) {
         console.error('Failed to extract user info from token:', tokenErr)
-        // Keep existing user value if available
       }
+    }
   }
 
   const getCurrentUserId = (): string | null => {
-    // Try to get from user cookie first
-    if (user.value?.id) {
-      return user.value.id
-    }
-    
-    // Fallback: extract from Keycloak token directly
-    if (process.client && $keycloak && $keycloak.authenticated) {
-      try {
-        // Try Keycloak's parsed token properties first (easier and more reliable)
-        if ($keycloak.idTokenParsed?.sub) {
-          return $keycloak.idTokenParsed.sub
-        }
-        if ($keycloak.tokenParsed?.sub) {
-          return $keycloak.tokenParsed.sub
-        }
-        
-        // Fallback: manually parse the token
-        if ($keycloak.token) {
-          const tokenParts = $keycloak.token.split('.')
-          if (tokenParts.length === 3) {
-            const payload = JSON.parse(atob(tokenParts[1]))
-            return payload.sub || null
-          }
-        }
-        
-        // Also try idToken if available
-        if ($keycloak.idToken) {
-          const tokenParts = $keycloak.idToken.split('.')
-          if (tokenParts.length === 3) {
-            const payload = JSON.parse(atob(tokenParts[1]))
-            return payload.sub || null
-          }
-        }
-      } catch (err) {
-        console.error('Failed to extract user ID from Keycloak:', err)
-      }
-    }
-    
-    return null
+    return user.value?.id || null
   }
 
   const isAuthenticated = computed(() => {
-    if (process.client && $keycloak) {
-      if ($keycloak.authenticated) {
-        return true
-      }
-      // Fall back to stored cookies while Keycloak finishes initializing
-      return !!token.value && !!user.value
-    }
     return !!token.value && !!user.value
   })
-
-  // Watch for Keycloak authentication state changes
-  if (process.client && $keycloak) {
-    // Only watch if keycloak is initialized
-    watch(() => $keycloak?.authenticated, async (authenticated) => {
-      if (authenticated && $keycloak) {
-        token.value = $keycloak.token || null
-        // Wait a bit for token to be fully available
-        await nextTick()
-        await loadUserProfile()
-        
-        // Set up token refresh
-        $keycloak.onTokenExpired = () => {
-          updateToken()
-        }
-      } else {
-        token.value = null
-        user.value = null
-      }
-    }, { immediate: false }) // Don't run immediately, wait for plugin initialization
-  }
 
   return {
     user: readonly(user),
     token: readonly(token),
     isAuthenticated,
     login,
+    register,
     logout,
     updateToken,
     loadUserProfile,
