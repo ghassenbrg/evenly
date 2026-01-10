@@ -117,13 +117,12 @@
           <label class="block text-sm font-medium text-slate-300 mb-2">
             {{ t('settings.categories.icon') }} <span class="text-red-400">*</span>
           </label>
-          <input
+          <IconPickerButton
             v-model="formData.icon"
-            type="text"
-            class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[56px] touch-manipulation text-base"
+            :color="formData.color"
             :placeholder="t('settings.categories.iconPlaceholder')"
+            :title="t('settings.categories.selectIcon') || 'Select an Icon'"
           />
-          <p class="text-xs text-slate-400 mt-2">{{ t('settings.categories.iconHint') }}</p>
         </div>
 
         <!-- Category Color -->
