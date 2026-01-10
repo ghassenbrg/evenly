@@ -91,7 +91,6 @@
 import { useExpenses } from '~/composables/useExpenses'
 import { useToast } from '~/composables/useToast'
 import { useWorkspacesStore } from '~/stores/workspaces'
-import { useAuth } from '~/composables/useAuth'
 
 interface Props {
   modelValue: boolean
@@ -108,7 +107,6 @@ const { t } = useI18n()
 const { createExpense, loading: submitting } = useExpenses()
 const { success, error: showError } = useToast()
 const workspacesStore = useWorkspacesStore()
-const { user: currentUser, loadUserProfile, getCurrentUserId } = useAuth()
 
 const selectedCategoryId = ref<string | null>(null)
 const expenseAmount = ref(0)
@@ -138,30 +136,10 @@ const canSubmit = computed(() => {
 const handleSubmit = async () => {
   submitted.value = true
   if (!canSubmit.value || !props.workspaceId) return
-  
-  // Try to load user profile if not available
-  if (!currentUser.value?.id && process.client) {
-    const { isAuthenticated, loadUserProfile } = useAuth()
-    if (isAuthenticated.value) {
-      try {
-        await loadUserProfile()
-        await nextTick() // Wait for reactive update
-      } catch (err) {
-        console.error('Failed to load user profile:', err)
-      }
-    }
-  }
-  
-  const userId = getCurrentUserId()
-  if (!userId) {
-    showError(t('expenses.userNotFound') || 'User not found. Please try logging in again.')
-    return
-  }
 
   try {
     await createExpense(props.workspaceId, {
       amount: expenseAmount.value,
-      paidByUserId: userId,
       categoryId: selectedCategoryId.value!,
       date: effectiveDate.value,
       note: expenseNote.value.trim() || undefined

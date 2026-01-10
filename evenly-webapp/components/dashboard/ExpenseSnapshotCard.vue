@@ -20,7 +20,7 @@
           <div v-for="i in 4" :key="i" class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-full bg-slate-700/50 animate-pulse"></div>
             <div class="w-px h-8 bg-slate-700/30"></div>
-            <div class="flex-1 space-y-2">
+            <div class="flex-1 flex flex-col space-y-2">
               <div class="h-4 w-24 bg-slate-700/50 rounded animate-pulse"></div>
               <div class="h-3 w-12 bg-slate-700/30 rounded animate-pulse"></div>
             </div>
@@ -38,9 +38,9 @@
     <template v-else>
 
     <!-- Two Column Layout -->
-    <div class="flex justify-between items-start gap-4">
+    <div ref="containerRef" class="flex justify-between items-start gap-4">
       <!-- Left Column: Category List -->
-      <div class="flex-1 space-y-3">
+      <div ref="leftColumnRef" class="flex-1 space-y-3">
           <div
             v-for="item in displayItems"
             :key="item.key"
@@ -62,7 +62,7 @@
 
           <!-- Text Block -->
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-100">{{ item.label }}</span>
               <span class="text-sm font-semibold text-gray-200">{{ item.percent }}%</span>
             </div>
@@ -73,10 +73,11 @@
       <!-- Right Column: Pie Chart -->
       <div class="flex-shrink-0 flex flex-col items-center">
         <svg
-          :width="chartSize"
-          :height="chartSize"
+          :width="responsiveChartSize"
+          :height="responsiveChartSize"
           viewBox="0 0 200 200"
           class="overflow-visible"
+          style="max-width: 100%; height: auto;"
         >
           <defs>
             <filter id="shadow">
@@ -203,6 +204,49 @@ const radius = 80
 const gapAngle = 2 // degrees gap between slices
 const centerX = 0
 const centerY = 0
+
+// Refs to measure container dimensions
+const containerRef = ref<HTMLElement | null>(null)
+const leftColumnRef = ref<HTMLElement | null>(null)
+const containerWidth = ref(0)
+const leftColumnWidth = ref(0)
+
+// Responsive chart size - based on remaining space
+const responsiveChartSize = computed(() => {
+  if (!process.client || containerWidth.value === 0 || leftColumnWidth.value === 0) {
+    return chartSize // Default size on SSR or before measurement
+  }
+  
+  // Calculate remaining space: container width - left column width - gap (16px = gap-4)
+  const gap = 16 // gap-4 = 1rem = 16px
+  const remainingSpace = containerWidth.value - leftColumnWidth.value - gap
+  
+  // Chart size should fit in remaining space (use 95% to leave some margin)
+  const minSize = 120 // Minimum chart size
+  const maxSize = chartSize // Maximum chart size (180px)
+  
+  // Use remaining space, but clamp between min and max
+  const calculatedSize = Math.max(minSize, Math.min(maxSize, remainingSpace * 0.95))
+  
+  return calculatedSize
+})
+
+// Update container dimensions
+const updateDimensions = () => {
+  if (!process.client || !containerRef.value || !leftColumnRef.value) return
+  
+  containerWidth.value = containerRef.value.offsetWidth
+  leftColumnWidth.value = leftColumnRef.value.offsetWidth
+}
+
+// Watch for container and left column changes
+watch([containerRef, leftColumnRef], () => {
+  if (process.client) {
+    nextTick(() => {
+      updateDimensions()
+    })
+  }
+})
 
 const selectedPeriod = ref<PeriodType>('month')
 const customRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
@@ -348,11 +392,56 @@ const displayOthersCount = computed(() => computedItems.value.length > 0 ? compu
 const displayOthersPercent = computed(() => computedItems.value.length > 0 ? computedOthersPercent.value : props.othersPercent)
 const displayOthersColor = computed(() => computedItems.value.length > 0 ? computedOthersColor.value : props.othersColor)
 
-// Load initial data
+// Update dimensions when data changes (items might change width)
+watch([displayItems, isLoading], () => {
+  if (process.client && !isLoading.value) {
+    nextTick(() => {
+      updateDimensions()
+    })
+  }
+})
+
+// Store resize observer for cleanup
+let resizeObserver: ResizeObserver | null = null
+
+// Load initial data and set up resize observer
 onMounted(async () => {
+  // Set up ResizeObserver to watch container and left column sizes
+  if (process.client) {
+    // Wait for next tick to ensure DOM is ready
+    await nextTick()
+    updateDimensions()
+    
+    // Use ResizeObserver for better performance than window resize
+    resizeObserver = new ResizeObserver(() => {
+      updateDimensions()
+    })
+    
+    if (containerRef.value) {
+      resizeObserver.observe(containerRef.value)
+    }
+    if (leftColumnRef.value) {
+      resizeObserver.observe(leftColumnRef.value)
+    }
+    
+    // Fallback to window resize as well
+    window.addEventListener('resize', updateDimensions)
+  }
+  
+  // Load initial expense snapshot data
   if (activeWorkspaceId.value) {
     const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
     await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+  }
+})
+
+// Clean up resize observer
+onUnmounted(() => {
+  if (process.client) {
+    if (resizeObserver) {
+      resizeObserver.disconnect()
+    }
+    window.removeEventListener('resize', updateDimensions)
   }
 })
 

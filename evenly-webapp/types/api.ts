@@ -247,7 +247,6 @@ export interface UpdateCategoryRequest {
 export interface CreateExpenseRequest {
   workspaceId?: string  // Optional - backend may determine from context
   amount: number
-  paidByUserId: string
   categoryId: string
   date: string
   note?: string

@@ -137,12 +137,23 @@
   },
   "settings": {
     "title": "設定",
+    "searchPlaceholder": "設定を検索...",
+    "noResults": "検索条件に一致する設定が見つかりませんでした",
     "language": "言語",
     "languageDescription": "希望する言語を選択",
     "en": "English",
     "ja": "日本語",
     "money": "マネー管理",
     "moneyDescription": "共有APIでサポートされているウォレット、取引、サブスクリプションにアクセスします。",
+    "pockito": {
+      "title": "Pockito",
+      "description": "ウォレット、取引、サブスクリプションで個人の財務を管理します。",
+      "explore": "Pockitoを探索",
+      "features": "機能",
+      "walletsDescription": "複数のウォレットを作成して管理し、異なるアカウントと通貨でお金を追跡します。",
+      "transactionsDescription": "詳細なカテゴリ分類で、すべての収入と支出の取引を記録して追跡します。",
+      "subscriptionsDescription": "支払い日追跡機能付きで、定期購入と自動支払いを管理します。"
+    },
     "categories": {
       "title": "カテゴリ",
       "description": "支出カテゴリを管理します。カテゴリを作成、編集、または削除して支出を整理します。",
@@ -335,6 +346,7 @@
     "noNotifications": "通知はまだありません",
     "loadFailed": "通知の読み込みに失敗しました",
     "loadingMore": "さらに読み込み中...",
+    "noMoreNotifications": "これ以上の通知はありません",
     "markAllAsRead": "すべて既読にする",
     "markingAllAsRead": "すべて既読にしています...",
     "unknownWorkspace": "不明なワークスペース",

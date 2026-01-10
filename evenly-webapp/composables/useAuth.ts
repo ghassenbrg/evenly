@@ -195,8 +195,13 @@ export const useAuth = () => {
         const tokenParts = token.value.split('.')
         if (tokenParts.length === 3) {
           const payload = JSON.parse(atob(tokenParts[1]))
+          const userId = payload.preferred_username || payload.sub || payload.id || payload.user_id || payload.userId
+          if (!userId) {
+            console.error('Token does not contain a user ID (preferred_username, sub, id, user_id, or userId)')
+            return
+          }
           user.value = {
-            id: payload.sub || payload.id || '',
+            id: userId,
             email: payload.email || '',
             displayName: payload.name || payload.displayName || payload.preferred_username || '',
             username: payload.preferred_username || payload.username,
@@ -215,7 +220,46 @@ export const useAuth = () => {
   }
 
   const getCurrentUserId = (): string | null => {
-    return user.value?.id || null
+    // First try to get from user object
+    if (user.value?.id) {
+      return user.value.id
+    }
+    
+    // If user object doesn't have ID but we have a token, try to extract it
+    if (token.value) {
+      try {
+        const tokenParts = token.value.split('.')
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]))
+          const userId = payload.preferred_username || payload.sub || payload.id || payload.user_id || payload.userId
+          if (userId) {
+            // Set or update the user object with at least the ID
+            if (!user.value) {
+              user.value = {
+                id: userId,
+                email: payload.email || '',
+                displayName: payload.name || payload.displayName || payload.preferred_username || '',
+                username: payload.preferred_username || payload.username,
+                preferredCurrency: payload.preferredCurrency,
+                locale: payload.locale,
+                timezone: payload.timezone,
+                createdAt: payload.iat 
+                  ? new Date(payload.iat * 1000).toISOString() 
+                  : new Date().toISOString()
+              } as User
+            } else {
+              // Update existing user object with ID if missing
+              user.value.id = userId
+            }
+            return userId
+          }
+        }
+      } catch (tokenErr) {
+        console.error('Failed to extract user ID from token:', tokenErr)
+      }
+    }
+    
+    return null
   }
 
   const isAuthenticated = computed(() => {

@@ -81,7 +81,7 @@
       
       <!-- End of List -->
       <div v-else-if="displayedGroups.length > 0 && !hasMore" class="text-center py-8">
-        <p class="text-sm text-white/40">{{ t('common.noMoreItems') }}</p>
+        <p class="text-sm text-white/40">{{ t('notifications.noMoreNotifications') }}</p>
       </div>
     </template>
   </div>

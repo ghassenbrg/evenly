@@ -137,12 +137,23 @@
   },
   "settings": {
     "title": "Settings",
+    "searchPlaceholder": "Search settings...",
+    "noResults": "No settings found matching your search",
     "language": "Language",
     "languageDescription": "Choose your preferred language",
     "en": "English",
     "ja": "日本語",
     "money": "Money management",
     "moneyDescription": "Access wallets, transactions, and subscriptions backed by the shared API.",
+    "pockito": {
+      "title": "Pockito",
+      "description": "Manage your personal finances with wallets, transactions, and subscriptions.",
+      "explore": "Explore Pockito",
+      "features": "Features",
+      "walletsDescription": "Create and manage multiple wallets to track your money across different accounts and currencies.",
+      "transactionsDescription": "Record and track all your income and expense transactions with detailed categorization.",
+      "subscriptionsDescription": "Manage recurring subscriptions and automatic payments with due date tracking."
+    },
     "categories": {
       "title": "Categories",
       "description": "Manage your expense categories. Create, edit, or delete categories to organize your expenses.",
@@ -334,6 +345,7 @@
     "noNotifications": "No notifications yet",
     "loadFailed": "Failed to load notifications",
     "loadingMore": "Loading more...",
+    "noMoreNotifications": "No more notifications",
     "markAllAsRead": "Mark all as read",
     "markingAllAsRead": "Marking all as read...",
     "unknownWorkspace": "Unknown workspace",

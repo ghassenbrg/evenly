@@ -67,6 +67,7 @@
       <DashboardRecentExpensesCard
         :expenses="recentExpenses as Expense[]"
         :loading="recentExpensesLoading"
+        @open-expense="handleExpenseClick"
       />
       
       <ExpensesCreateExpenseSheet
@@ -74,6 +75,15 @@
         v-model="showCreateExpenseSheet"
         :workspace-id="activeWorkspaceId"
         @expense-created="handleExpenseCreated"
+      />
+      
+      <ExpensesEditExpenseSheet
+        v-if="activeWorkspaceId"
+        v-model="showEditExpenseSheet"
+        :workspace-id="activeWorkspaceId"
+        :expense="selectedExpense"
+        @expense-updated="handleExpenseUpdated"
+        @expense-deleted="handleExpenseDeleted"
       />
     </template>
   </div>
@@ -91,6 +101,7 @@ import { useAnalytics } from '~/composables/useAnalytics'
 import { useCategories } from '~/composables/useCategories'
 import { useFormatting } from '~/composables/useFormatting'
 import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
+import ExpensesEditExpenseSheet from '~/components/expenses/EditExpenseSheet.vue'
 import type { Expense, Balance } from '~/types/api'
 
 const { t } = useI18n()
@@ -109,8 +120,10 @@ const showSettleUp = ref(false)
 const showPaymentSheet = ref(false)
 const showAllCategoriesSheet = ref(false)
 const showCreateExpenseSheet = ref(false)
+const showEditExpenseSheet = ref(false)
 const selectedBalance = ref<Balance | null>(null)
 const selectedCurrentUserBalance = ref<Balance | null>(null)
+const selectedExpense = ref<Expense | null>(null)
 
 // Track date range for the all categories sheet (from the card's period selector)
 const allCategoriesStartDate = ref<string | undefined>(undefined)
@@ -137,6 +150,24 @@ const handlePaymentCompleted = () => {
 
 const handleExpenseCreated = () => {
   // Reload dashboard data after expense creation
+  loadDashboard()
+}
+
+const handleExpenseClick = (expenseId: string) => {
+  const expense = recentExpenses.value.find(e => e.id === expenseId)
+  if (expense) {
+    selectedExpense.value = expense as Expense
+    showEditExpenseSheet.value = true
+  }
+}
+
+const handleExpenseUpdated = () => {
+  // Reload dashboard data after expense update
+  loadDashboard()
+}
+
+const handleExpenseDeleted = () => {
+  // Reload dashboard data after expense delete
   loadDashboard()
 }
 

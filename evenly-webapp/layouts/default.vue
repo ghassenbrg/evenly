@@ -108,7 +108,12 @@ const pageTitle = computed(() => {
     '/expenses': t('navigation.expenses'),
     '/history': t('navigation.history'),
     '/settings': t('navigation.settings'),
-    '/notifications': t('navigation.notifications')
+    '/notifications': t('navigation.notifications'),
+    '/settings/categories': t('settings.categories.title'),
+    '/settings/pockito': t('settings.pockito.title'),
+    '/wallets': t('wallets.title'),
+    '/transactions': t('transactions.title'),
+    '/subscriptions': t('subscriptions.title')
   }
   return titles[route.path] || t('app.name')
 })
