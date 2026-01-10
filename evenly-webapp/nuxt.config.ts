@@ -24,10 +24,11 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-title', content: 'Evenly' }
       ],
       link: [
-        { rel: 'manifest', href: '/manifest.webmanifest' },
-        { rel: 'icon', type: 'image/svg+xml', href: '/icons/favicon.svg' },
-        { rel: 'apple-touch-icon', href: '/icons/favicon.svg' },
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '/icons/favicon.svg' }
+        { rel: 'manifest', href: '/manifest.webmanifest?v=2' },
+        { rel: 'icon', type: 'image/svg+xml', href: '/icons/favicon.svg?v=2' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/icons/favicon.png?v=2' },
+        { rel: 'apple-touch-icon', href: '/icons/favicon.png?v=2' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/icons/favicon.png?v=2' }
       ]
     },
     pageTransition: false
@@ -54,10 +55,10 @@ export default defineNuxtConfig({
       background_color: '#1e293b',
       theme_color: '#1e293b',
       icons: [
-        { src: '/icons/favicon.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
-        { src: '/icons/favicon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
-        { src: '/icons/favicon.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'maskable' },
-        { src: '/icons/favicon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' }
+        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
       ]
     },
     workbox: {
