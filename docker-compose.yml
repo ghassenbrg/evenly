@@ -13,10 +13,12 @@ services:
   evenly-core:
     build: ./evenly-core
     environment:
-      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-evenly}
+      DB_URL: jdbc:postgresql://db:${DB_PORT:-5432}/${POSTGRES_DB:-evenly}
       DB_USER: ${DB_USER:-evenly}
       DB_PASSWORD: ${DB_PASSWORD:-evenly}
-      JWT_SECRET: ${JWT_SECRET:-fe97b7ab529670b6f9ea2378a0ea6ad8}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-http://keycloak:9090}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-evenly}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-evenly-backend}
     depends_on:
       - db
     ports:

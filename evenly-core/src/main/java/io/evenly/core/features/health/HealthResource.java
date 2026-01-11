@@ -1,4 +1,4 @@
-package io.evenly.core.api;
+package io.evenly.core.features.health;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.*;
@@ -16,4 +16,3 @@ public class HealthResource {
         return Map.of("status", "ok");
     }
 }
-

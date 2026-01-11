@@ -1,4 +1,4 @@
-package io.evenly.core.config;
+package io.evenly.core.shared.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

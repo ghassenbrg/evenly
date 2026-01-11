@@ -1,4 +1,4 @@
-package io.evenly.core.data;
+package io.evenly.core.shared.database;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

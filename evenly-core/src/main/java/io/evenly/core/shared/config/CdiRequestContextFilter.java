@@ -1,4 +1,4 @@
-package io.evenly.core.config;
+package io.evenly.core.shared.config;
 
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -63,4 +63,3 @@ public class CdiRequestContextFilter implements ContainerRequestFilter, Containe
         }
     }
 }
-
