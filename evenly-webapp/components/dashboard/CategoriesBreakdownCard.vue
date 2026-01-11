@@ -138,6 +138,8 @@ const { colorToGradient } = useCategoryColor()
 
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
+// Use shared analytics composable to access data (fetched by parent dashboard page)
+// Note: Parent dashboard page handles initial data fetching, this component only fetches on period change
 const { expenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
 
 // Combine prop loading with analytics loading
@@ -282,20 +284,9 @@ const getCategoryGradient = (accent: string): string => {
   return gradients[accent] || gradients.green
 }
 
-// Load initial data
-onMounted(async () => {
-  if (activeWorkspaceId.value) {
-    const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
-    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
-  }
-})
-
-watch(activeWorkspaceId, async () => {
-  if (activeWorkspaceId.value) {
-    const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
-    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
-  }
-})
+// Note: Data is fetched by parent dashboard page, no need to fetch on mount
+// Only fetch when user changes period (user-initiated action)
+// Parent dashboard will reload data when workspace changes
 
 const handleOpenAllCategories = () => {
   const { start, end } = getDateRange(selectedPeriod.value, customRange.value)

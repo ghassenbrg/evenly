@@ -182,11 +182,13 @@ const emit = defineEmits<{
 
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
+// Use shared analytics composable to access data (fetched by parent dashboard page)
 const { categoryAnalytics, expenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
 const { parseIconClass } = useFontAwesome()
 const { colorToGradient } = useCategoryColor()
 
 // Combine prop loading with analytics loading
+// Note: Parent dashboard page handles initial data fetching, this component only fetches on period change
 const isLoading = computed(() => props.loading || analyticsLoading.value)
 
 // Helper to get Font Awesome icon from class string
@@ -404,7 +406,7 @@ watch([displayItems, isLoading], () => {
 // Store resize observer for cleanup
 let resizeObserver: ResizeObserver | null = null
 
-// Load initial data and set up resize observer
+// Set up resize observer
 onMounted(async () => {
   // Set up ResizeObserver to watch container and left column sizes
   if (process.client) {
@@ -428,11 +430,7 @@ onMounted(async () => {
     window.addEventListener('resize', updateDimensions)
   }
   
-  // Load initial expense snapshot data
-  if (activeWorkspaceId.value) {
-    const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
-    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
-  }
+  // Note: Data is fetched by parent dashboard page, no need to fetch here
 })
 
 // Clean up resize observer
@@ -445,10 +443,15 @@ onUnmounted(() => {
   }
 })
 
-watch(activeWorkspaceId, async () => {
-  if (activeWorkspaceId.value) {
-    const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
-    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+// Watch for workspace changes - parent will handle data fetching
+// Only fetch when period changes (user interaction)
+watch(activeWorkspaceId, () => {
+  // Parent dashboard will reload data when workspace changes
+  // Only need to update dimensions if needed
+  if (process.client) {
+    nextTick(() => {
+      updateDimensions()
+    })
   }
 })
 

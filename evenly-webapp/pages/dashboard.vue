@@ -294,21 +294,27 @@ const getAccentFromColor = (color: string): 'green' | 'rose' | 'sky' | 'indigo' 
   return 'green'
 }
 
-watch(activeWorkspaceId, () => {
+// Watch for workspace changes and reload dashboard
+watch(activeWorkspaceId, (newWorkspaceId, oldWorkspaceId) => {
+  // Only reload if workspace actually changed (not on initial undefined -> value)
+  if (!newWorkspaceId || newWorkspaceId === oldWorkspaceId) return
+  
   // Set loading states before clearing to show skeletons
   balanceLoading.value = true
   expenseSnapshotLoading.value = true
   recentExpensesLoading.value = true
   clear()
   loadDashboard()
-}, { immediate: true })
+})
 
+// Initial load on mount
 onMounted(() => {
   if (!activeWorkspace.value) {
     workspacesStore.fetchWorkspaces().then(() => {
-      loadDashboard()
+      // Watcher will trigger when activeWorkspaceId is set after fetch
     })
-  } else {
+  } else if (activeWorkspaceId.value) {
+    // Load dashboard if workspace is already available on mount
     loadDashboard()
   }
 })

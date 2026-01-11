@@ -110,7 +110,9 @@ const { colorToGradient } = useCategoryColor()
 
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
-const { recentExpenses, loading: analyticsLoading, fetchRecentExpenses } = useAnalytics()
+// Use shared analytics composable to access data (fetched by parent dashboard page)
+// Note: Parent dashboard page handles data fetching, this component just displays the data
+const { recentExpenses, loading: analyticsLoading } = useAnalytics()
 
 // Combine prop loading with analytics loading
 const isLoading = computed(() => props.loading || analyticsLoading.value)
@@ -150,17 +152,8 @@ const displayedExpenses = computed(() => {
     }))
 })
 
-// Load initial data
-onMounted(async () => {
-  if (activeWorkspaceId.value) {
-    await fetchRecentExpenses(activeWorkspaceId.value, 3)
-  }
-})
-
-watch(activeWorkspaceId, async () => {
-  if (activeWorkspaceId.value) {
-    await fetchRecentExpenses(activeWorkspaceId.value, 3)
-  }
-})
+// Note: Data is fetched by parent dashboard page via fetchRecentExpenses(workspaceId, 5)
+// No need to fetch here - parent passes data as props
+// The component will use props.expenses or recentExpenses from the shared composable
 </script>
 
