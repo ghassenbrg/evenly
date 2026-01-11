@@ -27,7 +27,16 @@ public class WorkspaceServiceMock implements WorkspaceService {
     
     @Override
     public List<Workspace> findAllForUser(String userId) {
-        return mockDataProvider.getUserWorkspaces().getOrDefault(userId, new ArrayList<>());
+        // For demo purposes, return workspaces for "gbargougui" for any authenticated user
+        // This allows the demo to work regardless of the actual Keycloak user ID
+        List<Workspace> userWorkspaces = mockDataProvider.getUserWorkspaces().getOrDefault(userId, new ArrayList<>());
+        
+        // If no workspaces found for this user, return demo workspaces for "gbargougui"
+        if (userWorkspaces.isEmpty()) {
+            userWorkspaces = mockDataProvider.getUserWorkspaces().getOrDefault("gbargougui", new ArrayList<>());
+        }
+        
+        return userWorkspaces;
     }
     
     @Override

@@ -1,28 +1,29 @@
 package io.evenly.core.features.auth;
 
+import io.evenly.core.features.auth.dto.AuthResponse;
+import io.evenly.core.features.auth.dto.RegisterRequest;
 import io.evenly.core.features.auth.dto.User;
 import io.evenly.core.features.auth.UserService;
 import io.evenly.core.shared.security.Authenticated;
 import io.evenly.core.shared.security.SecurityContextProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * User authentication and profile endpoints.
- * 
- * This endpoint requires authentication - clients must include a valid
- * Keycloak JWT token in the Authorization header: "Bearer <token>"
  */
-@Path("/api/user")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
-@Authenticated
 public class UserResource {
 
     @Inject
@@ -31,8 +32,66 @@ public class UserResource {
     @Inject
     private UserService userService;
 
+    /**
+     * Register a new user.
+     * This endpoint does not require authentication.
+     */
+    @POST
+    @Path("/auth/register")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response register(@Valid RegisterRequest request) {
+        // Generate a user ID (in real implementation, this would come from Keycloak)
+        String userId = request.getUsername(); // Use username as ID for mock
+        
+        // Check if user already exists
+        if (userService.findById(userId).isPresent()) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("errorCode", "USER_ALREADY_EXISTS");
+            errorResponse.put("message", "User with this username already exists");
+            errorResponse.put("details", new HashMap<>());
+            errorResponse.put("traceId", UUID.randomUUID().toString());
+            return Response.status(Response.Status.CONFLICT)
+                .entity(errorResponse)
+                .build();
+        }
+        
+        // In a real implementation, we would:
+        // 1. Create user in Keycloak
+        // 2. Get JWT token from Keycloak
+        // 3. Store user in database
+        
+        // For mock implementation, we'll create a simple token
+        // In production, this would be a real JWT from Keycloak
+        String mockToken = "mock-jwt-token-" + userId;
+        
+        // Create user using service
+        User user;
+        if (userService instanceof io.evenly.core.features.auth.UserServiceMock) {
+            user = ((io.evenly.core.features.auth.UserServiceMock) userService).create(
+                userId,
+                request.getEmail(),
+                request.getUsername(),
+                request.getDisplayName(),
+                request.getPreferredCurrency()
+            );
+        } else {
+            // Fallback to getOrCreate if not using mock service
+            user = userService.getOrCreate(userId, request.getEmail(), request.getUsername());
+            user.setDisplayName(request.getDisplayName());
+            user.setPreferredCurrency(request.getPreferredCurrency() != null ? request.getPreferredCurrency() : "USD");
+        }
+        
+        AuthResponse authResponse = new AuthResponse(mockToken, user);
+        return Response.ok(authResponse).build();
+    }
+
+    /**
+     * Get current authenticated user.
+     * This endpoint requires authentication.
+     */
     @GET
-    @Path("/me")
+    @Path("/user/me")
+    @Authenticated
     public Response getCurrentUser() {
         return securityContext.getUserId()
             .map(userId -> {

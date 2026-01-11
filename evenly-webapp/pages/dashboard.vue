@@ -100,6 +100,7 @@ import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useCategories } from '~/composables/useCategories'
 import { useFormatting } from '~/composables/useFormatting'
+import { useCategoryColor } from '~/composables/useCategoryColor'
 import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
 import ExpensesEditExpenseSheet from '~/components/expenses/EditExpenseSheet.vue'
 import type { Expense, Balance } from '~/types/api'
@@ -107,9 +108,10 @@ import type { Expense, Balance } from '~/types/api'
 const { t } = useI18n()
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspacesStore)
-const { summary, balanceSummary, categoryAnalytics, recentExpenses, loading, error, fetchSummary, fetchCategoryAnalytics, fetchRecentExpenses, clear } = useAnalytics()
+const { summary, balanceSummary, categoryAnalytics, expenseSnapshot, recentExpenses, loading, error, fetchSummary, fetchCategoryAnalytics, fetchRecentExpenses, clear } = useAnalytics()
 const { categories, loading: categoriesLoading, fetchCategories } = useCategories()
 const { formatCurrency } = useFormatting()
+const { colorToGradient } = useCategoryColor()
 
 // Track individual loading states - initialize as true for initial load
 const balanceLoading = ref(true)
@@ -241,6 +243,22 @@ const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'mont
 
 
 const expenseSnapshotItems = computed(() => {
+  // Use expenseSnapshot data directly if available (preferred)
+  if (expenseSnapshot.value && expenseSnapshot.value.data.length > 0) {
+    return expenseSnapshot.value.data
+      .filter(item => item.categoryId !== null)
+      .slice(0, 4)
+      .map(item => ({
+        key: item.categoryId || 'others',
+        label: item.categoryName || t('common.unknown'),
+        percent: item.spentPercentage || 0,
+        count: item.expensesCount || 0,
+        color: colorToGradient(item.categoryColor || '#64748b'),
+        iconClass: item.categoryIcon || 'fa-solid fa-ellipsis'
+      }))
+  }
+  
+  // Fallback to categoryAnalytics if expenseSnapshot is not available
   if (!categoryAnalytics.value.length) return []
   
   const total = categoryAnalytics.value.reduce((sum, item) => sum + item.total, 0)
@@ -251,8 +269,8 @@ const expenseSnapshotItems = computed(() => {
       label: item.category?.name || t('common.unknown'),
       percent: total > 0 ? Math.round((item.total / total) * 100) : 0,
       count: item.count,
-      color: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', // Default color since API doesn't provide it
-      icon: (item.category?.icon || 'others') as 'groceries' | 'rent' | 'bills' | 'internet' | 'others'
+      color: colorToGradient(item.category?.color || '#64748b'),
+      iconClass: item.category?.icon || 'fa-solid fa-ellipsis'
     }))
   
   return topItems
@@ -273,16 +291,35 @@ const othersPercent = computed(() => {
 const othersColor = 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
 
 const categoryItems = computed(() => {
+  // Use expenseSnapshot data directly if available (preferred)
+  if (expenseSnapshot.value && expenseSnapshot.value.data.length > 0) {
+    return expenseSnapshot.value.data
+      .filter(item => item.categoryId !== null)
+      .sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0))
+      .slice(0, 4)
+      .map(item => ({
+        id: item.categoryId || '',
+        name: item.categoryName || t('common.unknown'),
+        iconClass: item.categoryIcon || 'fa-solid fa-ellipsis',
+        expenseCount: item.expensesCount || 0,
+        totalAmount: item.totalAmount || 0,
+        accent: getAccentFromColor(item.categoryColor || '#64748b') as 'green' | 'rose' | 'sky' | 'indigo',
+        color: item.categoryColor || '#64748b'
+      }))
+  }
+  
+  // Fallback to categoryAnalytics
   return [...categoryAnalytics.value]
     .sort((a, b) => b.total - a.total)
     .slice(0, 4)
     .map(item => ({
       id: item.categoryId,
       name: item.category?.name || t('common.unknown'),
-      icon: (item.category?.icon || 'other') as 'groceries' | 'rent' | 'bills' | 'mobile',
+      iconClass: item.category?.icon || 'fa-solid fa-ellipsis',
       expenseCount: item.count,
       totalAmount: item.total,
-      accent: 'green' as 'green' | 'rose' | 'sky' | 'indigo' // Default since API doesn't provide color
+      accent: getAccentFromColor(item.category?.color || '#64748b') as 'green' | 'rose' | 'sky' | 'indigo',
+      color: item.category?.color || '#64748b'
     }))
 })
 
@@ -296,8 +333,9 @@ const getAccentFromColor = (color: string): 'green' | 'rose' | 'sky' | 'indigo' 
 
 // Watch for workspace changes and reload dashboard
 watch(activeWorkspaceId, (newWorkspaceId, oldWorkspaceId) => {
-  // Only reload if workspace actually changed (not on initial undefined -> value)
-  if (!newWorkspaceId || newWorkspaceId === oldWorkspaceId) return
+  // Only reload if workspace actually changed and is valid
+  if (!newWorkspaceId) return
+  if (newWorkspaceId === oldWorkspaceId) return
   
   // Set loading states before clearing to show skeletons
   balanceLoading.value = true
@@ -305,13 +343,18 @@ watch(activeWorkspaceId, (newWorkspaceId, oldWorkspaceId) => {
   recentExpensesLoading.value = true
   clear()
   loadDashboard()
-})
+}, { immediate: false })
 
 // Initial load on mount
 onMounted(() => {
   if (!activeWorkspace.value) {
     workspacesStore.fetchWorkspaces().then(() => {
-      // Watcher will trigger when activeWorkspaceId is set after fetch
+      // Ensure activeWorkspaceId is set and load dashboard
+      if (activeWorkspaceId.value) {
+        loadDashboard()
+      }
+    }).catch((err) => {
+      console.error('Failed to fetch workspaces:', err)
     })
   } else if (activeWorkspaceId.value) {
     // Load dashboard if workspace is already available on mount

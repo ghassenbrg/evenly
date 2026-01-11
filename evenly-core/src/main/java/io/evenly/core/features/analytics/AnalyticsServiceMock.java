@@ -1,6 +1,5 @@
 package io.evenly.core.features.analytics;
 
-import io.evenly.core.features.categories.dto.Category;
 import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.workspaces.dto.Workspace;
 import io.evenly.core.shared.common.MockDataProvider;
@@ -104,7 +103,7 @@ public class AnalyticsServiceMock implements AnalyticsService {
                 ExpenseSnapshotItem newItem = new ExpenseSnapshotItem();
                 newItem.setCategoryId(categoryId.equals("uncategorized") ? null : categoryId);
                 newItem.setCategoryName(categoryName);
-                newItem.setCategoryIcon(expense.getCategoryIcon() != null ? expense.getCategoryIcon() : "📦");
+                newItem.setCategoryIcon(expense.getCategoryIcon() != null ? expense.getCategoryIcon() : "fa-solid fa-box");
                 newItem.setCategoryColor(expense.getCategoryColor() != null ? expense.getCategoryColor() : "#85C1E2");
                 newItem.setTotalAmount(BigDecimal.ZERO);
                 newItem.setExpensesCount(0);

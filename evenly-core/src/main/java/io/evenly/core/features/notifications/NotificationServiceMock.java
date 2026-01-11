@@ -22,7 +22,15 @@ public class NotificationServiceMock implements NotificationService {
     
     @Override
     public List<Notification> findAllForUser(String userId) {
-        return mockDataProvider.getUserNotifications().getOrDefault(userId, new ArrayList<>());
+        // For demo purposes, return notifications for "gbargougui" for any authenticated user
+        List<Notification> userNotifications = mockDataProvider.getUserNotifications().getOrDefault(userId, new ArrayList<>());
+        
+        // If no notifications found for this user, return demo notifications for "gbargougui"
+        if (userNotifications.isEmpty()) {
+            userNotifications = mockDataProvider.getUserNotifications().getOrDefault("gbargougui", new ArrayList<>());
+        }
+        
+        return userNotifications;
     }
     
     @Override

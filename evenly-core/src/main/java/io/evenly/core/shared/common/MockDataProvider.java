@@ -55,9 +55,11 @@ public class MockDataProvider {
     }
     
     private void initializeUsers() {
+        // Primary demo user: gbargougui
+        createUser("gbargougui", "gbargougui@example.com", "gbargougui", "Ghassen Bargougui");
+        // Additional users for testing multi-user scenarios
         createUser("user1", "alice@example.com", "alice", "Alice Johnson");
         createUser("user2", "bob@example.com", "bob", "Bob Smith");
-        createUser("gbargougui", "charlie@example.com", "charlie", "Charlie Brown");
         createUser("user4", "diana@example.com", "diana", "Diana Prince");
     }
     
@@ -87,7 +89,7 @@ public class MockDataProvider {
     
     private void initializeGlobalCategories() {
         String[] categoryNames = {"Food", "Transport", "Shopping", "Entertainment", "Bills", "Health", "Travel", "Other"};
-        String[] categoryIcons = {"🍕", "🚗", "🛒", "🎬", "💡", "🏥", "✈️", "📦"};
+        String[] categoryIcons = {"fa-solid fa-pizza-slice", "fa-solid fa-car", "fa-solid fa-cart-shopping", "fa-solid fa-film", "fa-solid fa-lightbulb", "fa-solid fa-hospital", "fa-solid fa-plane", "fa-solid fa-box"};
         String[] categoryColors = {"#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E2"};
         
         for (int i = 0; i < categoryNames.length; i++) {
@@ -106,16 +108,16 @@ public class MockDataProvider {
     }
     
     private void initializeWorkspaces() {
-        // Workspace 1: Shared apartment
+        // Workspace 1: Shared apartment (primary demo workspace for gbargougui)
         Workspace ws1 = createWorkspace("ws1", "Shared Apartment", "EQUAL", "USD", 2000.0, false);
+        userWorkspaces.computeIfAbsent("gbargougui", k -> new ArrayList<>()).add(ws1);
         userWorkspaces.computeIfAbsent("user1", k -> new ArrayList<>()).add(ws1);
         userWorkspaces.computeIfAbsent("user2", k -> new ArrayList<>()).add(ws1);
-        userWorkspaces.computeIfAbsent("gbargougui", k -> new ArrayList<>()).add(ws1);
         
         List<WorkspaceMember> members1 = new ArrayList<>();
-        members1.add(createMember("user1", "OWNER", users.get("user1"), 33.33));
+        members1.add(createMember("gbargougui", "OWNER", users.get("gbargougui"), 33.34));
+        members1.add(createMember("user1", "MEMBER", users.get("user1"), 33.33));
         members1.add(createMember("user2", "MEMBER", users.get("user2"), 33.33));
-        members1.add(createMember("gbargougui", "MEMBER", users.get("gbargougui"), 33.34));
         workspaceMembers.put("ws1", members1);
         
         initializeWorkspaceCategories("ws1");
@@ -123,20 +125,21 @@ public class MockDataProvider {
         initializeWorkspacePayments("ws1");
         initializeWorkspaceSettlements("ws1");
         
-        // Workspace 2: Personal workspace
+        // Workspace 2: Personal workspace for gbargougui
         Workspace ws2 = createWorkspace("ws2", "Personal", "EQUAL", "USD", null, true);
-        userWorkspaces.computeIfAbsent("user1", k -> new ArrayList<>()).add(ws2);
+        userWorkspaces.computeIfAbsent("gbargougui", k -> new ArrayList<>()).add(ws2);
         List<WorkspaceMember> members2 = new ArrayList<>();
-        members2.add(createMember("user1", "OWNER", users.get("user1"), 100.0));
+        members2.add(createMember("gbargougui", "OWNER", users.get("gbargougui"), 100.0));
         workspaceMembers.put("ws2", members2);
         initializeWorkspaceCategories("ws2");
+        initializeWorkspaceExpenses("ws2");
         
-        // Workspace 3: Vacation trip
+        // Workspace 3: Vacation trip (additional workspace)
         Workspace ws3 = createWorkspace("ws3", "Summer Trip", "EQUAL", "EUR", 3000.0, false);
-        userWorkspaces.computeIfAbsent("user1", k -> new ArrayList<>()).add(ws3);
+        userWorkspaces.computeIfAbsent("gbargougui", k -> new ArrayList<>()).add(ws3);
         userWorkspaces.computeIfAbsent("user4", k -> new ArrayList<>()).add(ws3);
         List<WorkspaceMember> members3 = new ArrayList<>();
-        members3.add(createMember("user1", "OWNER", users.get("user1"), 50.0));
+        members3.add(createMember("gbargougui", "OWNER", users.get("gbargougui"), 50.0));
         members3.add(createMember("user4", "MEMBER", users.get("user4"), 50.0));
         workspaceMembers.put("ws3", members3);
         initializeWorkspaceCategories("ws3");
@@ -170,7 +173,7 @@ public class MockDataProvider {
     private void initializeWorkspaceCategories(String workspaceId) {
         List<Category> categories = new ArrayList<>();
         String[] names = {"Groceries", "Utilities", "Rent", "Restaurants", "Transport"};
-        String[] icons = {"🛒", "💡", "🏠", "🍽️", "🚇"};
+        String[] icons = {"fa-solid fa-cart-shopping", "fa-solid fa-lightbulb", "fa-solid fa-house", "fa-solid fa-utensils", "fa-solid fa-train-subway"};
         String[] colors = {"#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8"};
         
         for (int i = 0; i < names.length; i++) {
@@ -225,7 +228,17 @@ public class MockDataProvider {
             expense.setEffectiveDate(LocalDate.now().minusDays(amounts.length - i));
             expense.setNote(notes[i]);
             expense.setStatus(i < 8 ? "ACTIVE" : "SETTLED");
-            WorkspaceMember paidBy = members.get(random.nextInt(members.size()));
+            // Prefer gbargougui as the payer for demo consistency, but mix it up occasionally
+            WorkspaceMember paidBy;
+            if (workspaceId.equals("ws1") && random.nextDouble() < 0.6) {
+                // For ws1, prefer gbargougui 60% of the time
+                paidBy = members.stream()
+                    .filter(m -> "gbargougui".equals(m.getUserId()))
+                    .findFirst()
+                    .orElse(members.get(random.nextInt(members.size())));
+            } else {
+                paidBy = members.get(random.nextInt(members.size()));
+            }
             expense.setPaidByUserId(paidBy.getUserId());
             expense.setPaidByUserName(paidBy.getUser().getDisplayName());
             expenses.add(expense);
@@ -238,11 +251,30 @@ public class MockDataProvider {
         List<WorkspaceMember> members = workspaceMembers.get(workspaceId);
         if (members == null || members.size() < 2) return;
         
+        // Find gbargougui member if exists
+        WorkspaceMember gbargouguiMember = members.stream()
+            .filter(m -> "gbargougui".equals(m.getUserId()))
+            .findFirst()
+            .orElse(null);
+        
         for (int i = 0; i < 3; i++) {
             Payment payment = new Payment();
             payment.setId(workspaceId + "-pay-" + (i + 1));
-            WorkspaceMember payee = members.get((i + 1) % members.size());
-            WorkspaceMember payer = members.get(i % members.size());
+            
+            // For demo consistency, involve gbargougui in payments when possible
+            WorkspaceMember payee, payer;
+            if (gbargouguiMember != null && workspaceId.equals("ws1")) {
+                // For ws1, make gbargougui the payer in most cases
+                payer = gbargouguiMember;
+                payee = members.stream()
+                    .filter(m -> !"gbargougui".equals(m.getUserId()))
+                    .findFirst()
+                    .orElse(members.get((i + 1) % members.size()));
+            } else {
+                payee = members.get((i + 1) % members.size());
+                payer = members.get(i % members.size());
+            }
+            
             payment.setPayeeUserId(payee.getUserId());
             payment.setPayeeUserName(payee.getUser().getDisplayName());
             payment.setAmount(new BigDecimal("50.00"));
@@ -262,11 +294,17 @@ public class MockDataProvider {
         List<WorkspaceMember> members = workspaceMembers.get(workspaceId);
         if (members == null || members.isEmpty()) return;
         
+        // Prefer gbargougui as the creator for demo consistency
+        WorkspaceMember creator = members.stream()
+            .filter(m -> "gbargougui".equals(m.getUserId()))
+            .findFirst()
+            .orElse(members.get(0));
+        
         Settlement settlement = new Settlement();
         settlement.setId(workspaceId + "-sett-1");
         settlement.setWorkspaceId(workspaceId);
-        settlement.setCreatedByUserId(members.get(0).getUserId());
-        settlement.setCreatedBy(members.get(0).getUser());
+        settlement.setCreatedByUserId(creator.getUserId());
+        settlement.setCreatedBy(creator.getUser());
         settlement.setCreatedAt(OffsetDateTime.now().minusDays(7));
         settlements.add(settlement);
         workspaceSettlements.put(workspaceId, settlements);

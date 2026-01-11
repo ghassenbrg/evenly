@@ -39,7 +39,37 @@ public class UserServiceMock implements UserService {
             user.setTimezone("America/New_York");
             user.setCreatedAt(OffsetDateTime.now());
             users.put(userId, user);
+        } else {
+            // Update existing user with provided information if different
+            if (email != null && !email.equals(user.getEmail())) {
+                user.setEmail(email);
+            }
+            if (username != null && !username.equals(user.getUsername())) {
+                user.setUsername(username);
+            }
         }
+        return user;
+    }
+    
+    /**
+     * Create a new user (for registration).
+     */
+    public User create(String userId, String email, String username, String displayName, String preferredCurrency) {
+        Map<String, User> users = mockDataProvider.getUsers();
+        if (users.containsKey(userId)) {
+            throw new RuntimeException("User already exists");
+        }
+        
+        User user = new User();
+        user.setId(userId);
+        user.setEmail(email);
+        user.setUsername(username);
+        user.setDisplayName(displayName != null ? displayName : username);
+        user.setPreferredCurrency(preferredCurrency != null ? preferredCurrency : "USD");
+        user.setLocale("en-US");
+        user.setTimezone("America/New_York");
+        user.setCreatedAt(OffsetDateTime.now());
+        users.put(userId, user);
         return user;
     }
 }

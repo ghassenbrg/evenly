@@ -45,8 +45,7 @@ public class BalanceResource {
             .orElseThrow(() -> new SecurityException("User not authenticated"));
         
         SettleUpResponse settleUp = balanceService.getSettleUpForWorkspace(workspaceId, userId);
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", settleUp);
-        return Response.ok(response).build();
+        // Webapp expects the settle-up data directly, not wrapped
+        return Response.ok(settleUp).build();
     }
 }
