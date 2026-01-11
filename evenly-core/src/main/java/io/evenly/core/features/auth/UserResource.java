@@ -1,5 +1,7 @@
 package io.evenly.core.features.auth;
 
+import io.evenly.core.features.auth.dto.User;
+import io.evenly.core.features.auth.UserService;
 import io.evenly.core.shared.security.Authenticated;
 import io.evenly.core.shared.security.SecurityContextProvider;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -8,6 +10,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,20 +28,29 @@ public class UserResource {
     @Inject
     private SecurityContextProvider securityContext;
 
+    @Inject
+    private UserService userService;
+
     @GET
     @Path("/me")
     public Response getCurrentUser() {
         return securityContext.getUserId()
             .map(userId -> {
-                Map<String, Object> userInfo = Map.of(
-                    "id", userId,
-                    "username", securityContext.getUsername().orElse("unknown"),
-                    "email", securityContext.getEmail().orElse("unknown")
+                User user = userService.getOrCreate(
+                    userId,
+                    securityContext.getEmail().orElse(userId + "@example.com"),
+                    securityContext.getUsername().orElse(userId)
                 );
-                return Response.ok(userInfo).build();
+                return Response.ok(user).build();
             })
             .orElse(Response.status(Response.Status.UNAUTHORIZED)
-                .entity(Map.of("error", "User not authenticated"))
+                .entity(createErrorResponse("User not authenticated"))
                 .build());
+    }
+    
+    private Map<String, String> createErrorResponse(String error) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", error);
+        return errorResponse;
     }
 }

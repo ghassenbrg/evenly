@@ -11,6 +11,8 @@ import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.ext.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -30,6 +32,7 @@ import java.io.IOException;
 @ApplicationScoped
 public class CdiRequestContextFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(CdiRequestContextFilter.class);
     private static final String REQUEST_CONTEXT_KEY = "cdi.request.context.controller";
 
     @Override
@@ -44,7 +47,7 @@ public class CdiRequestContextFilter implements ContainerRequestFilter, Containe
             }
         } catch (Exception e) {
             // If context activation fails, log but don't fail the request
-            System.err.println("Failed to activate CDI request context: " + e.getMessage());
+            logger.error("Failed to activate CDI request context", e);
         }
     }
 
@@ -59,7 +62,7 @@ public class CdiRequestContextFilter implements ContainerRequestFilter, Containe
             }
         } catch (Exception e) {
             // If context deactivation fails, log but don't fail the response
-            System.err.println("Failed to deactivate CDI request context: " + e.getMessage());
+            logger.error("Failed to deactivate CDI request context", e);
         }
     }
 }

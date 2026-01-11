@@ -22,8 +22,9 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.ext.Provider;
 import org.eclipse.microprofile.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -35,12 +36,14 @@ import java.util.Optional;
  * JWT Authentication Filter for Keycloak integration.
  * Validates JWT tokens from Keycloak and sets security context.
  * 
- * This filter is bound to endpoints annotated with @Authenticated.
+ * This filter is bound to endpoints annotated with @Authenticated via JwtAuthFeature.
+ * Note: This filter does NOT have @Provider annotation to prevent it from applying globally.
  */
-@Provider
 @Priority(Priorities.AUTHENTICATION)
 @ApplicationScoped
 public class JwtAuthFilter implements ContainerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
 
     private volatile String keycloakUrl;
     private volatile String keycloakRealm;
@@ -58,13 +61,27 @@ public class JwtAuthFilter implements ContainerRequestFilter {
                     try {
                         // Use CDI to get Config to avoid HK2 injection issues
                         Config config = CDI.current().select(Config.class).get();
-                        keycloakUrl = config.getOptionalValue("keycloak.url", String.class)
+                        
+                        // Treat empty strings as missing (use defaults)
+                        Optional<String> keycloakUrlOpt = config.getOptionalValue("keycloak.url", String.class);
+                        Optional<String> realmOpt = config.getOptionalValue("keycloak.realm", String.class);
+                        Optional<String> clientIdOpt = config.getOptionalValue("keycloak.client.id", String.class);
+                        
+                        keycloakUrl = keycloakUrlOpt
+                            .filter(url -> url != null && !url.trim().isEmpty())
                             .orElse("http://localhost:9090");
-                        keycloakRealm = config.getOptionalValue("keycloak.realm", String.class)
+                        keycloakRealm = realmOpt
+                            .filter(realm -> realm != null && !realm.trim().isEmpty())
                             .orElse("evenly");
-                        keycloakClientId = config.getOptionalValue("keycloak.client.id", String.class)
+                        keycloakClientId = clientIdOpt
+                            .filter(id -> id != null && !id.trim().isEmpty())
                             .orElse("evenly-backend");
-                        jwksUrl = config.getOptionalValue("keycloak.jwks.url", String.class);
+                        jwksUrl = config.getOptionalValue("keycloak.jwks.url", String.class)
+                            .filter(url -> url != null && !url.trim().isEmpty());
+                        
+                        logger.debug("Keycloak configuration loaded - URL: {}, Realm: {}, Client ID: {}", 
+                            keycloakUrl, keycloakRealm, keycloakClientId);
+                        
                         configInitialized = true;
                     } catch (Exception e) {
                         // Fallback to defaults if CDI is not available yet
@@ -94,7 +111,18 @@ public class JwtAuthFilter implements ContainerRequestFilter {
             String jwksUrlString = jwksUrl.orElseGet(() -> 
                 String.format("%s/realms/%s/protocol/openid-connect/certs", keycloakUrl, keycloakRealm));
             
-            URL jwksUrlObj = URI.create(jwksUrlString).toURL();
+            URI uri = URI.create(jwksUrlString);
+            
+            if (!uri.isAbsolute()) {
+                throw new IllegalStateException(
+                    String.format("JWKS URL is not absolute: '%s'. Keycloak URL: '%s', Realm: '%s'. " +
+                                "Please ensure keycloak.url includes protocol (http:// or https://)",
+                                jwksUrlString, keycloakUrl, keycloakRealm));
+            }
+            
+            logger.debug("Initializing JWT processor with JWKS URL: {}", jwksUrlString);
+            
+            URL jwksUrlObj = uri.toURL();
             ResourceRetriever resourceRetriever = new DefaultResourceRetriever();
             JWKSource<SecurityContext> jwkSource = JWKSourceBuilder.create(
                 new URLBasedJWKSetSource<SecurityContext>(jwksUrlObj, resourceRetriever)
@@ -126,6 +154,7 @@ public class JwtAuthFilter implements ContainerRequestFilter {
         String authHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
         
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            logger.debug("Missing or invalid Authorization header for {}", requestContext.getUriInfo().getRequestUri());
             requestContext.abortWith(
                 Response.status(Response.Status.UNAUTHORIZED)
                     .entity("{\"error\":\"Missing or invalid Authorization header\"}")
@@ -146,13 +175,17 @@ public class JwtAuthFilter implements ContainerRequestFilter {
                 .orElse(null);
             
             if (audience != null && !audience.equals(keycloakClientId)) {
-                // Allow if audience matches or if no specific client ID is required
-                // Keycloak tokens may have multiple audiences
+                logger.debug("Token audience mismatch: expected {}, got {}", keycloakClientId, audience);
             }
 
             // Set security context with user information
-            String userId = claimsSet.getSubject();
+            // Use preferred_username as user ID (subject may be null in some Keycloak tokens)
             String username = claimsSet.getStringClaim("preferred_username");
+            String userId = claimsSet.getSubject();
+            // If subject is null, use preferred_username as the user ID
+            if (userId == null || userId.trim().isEmpty()) {
+                userId = username;
+            }
             String email = claimsSet.getStringClaim("email");
             
             // Store claims in request context for later use
@@ -162,12 +195,14 @@ public class JwtAuthFilter implements ContainerRequestFilter {
             requestContext.setProperty("user.email", email);
             
         } catch (ParseException | BadJOSEException | JOSEException e) {
+            logger.warn("Token validation failed: {}", e.getMessage());
             requestContext.abortWith(
                 Response.status(Response.Status.UNAUTHORIZED)
                     .entity("{\"error\":\"Invalid or expired token: " + e.getMessage() + "\"}")
                     .build()
             );
         } catch (Exception e) {
+            logger.error("Unexpected error during token validation", e);
             requestContext.abortWith(
                 Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\":\"Authentication error: " + e.getMessage() + "\"}")

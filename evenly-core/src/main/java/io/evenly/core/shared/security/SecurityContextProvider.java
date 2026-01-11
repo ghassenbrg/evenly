@@ -1,5 +1,6 @@
 package io.evenly.core.shared.security;
 
+import java.text.ParseException;
 import java.util.Optional;
 
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -7,6 +8,8 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides access to the current user's security context from JWT claims.
@@ -14,6 +17,8 @@ import jakarta.ws.rs.core.Context;
  */
 @RequestScoped
 public class SecurityContextProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(SecurityContextProvider.class);
 
     @Context
     private ContainerRequestContext requestContext;
@@ -25,7 +30,28 @@ public class SecurityContextProvider {
         if (requestContext == null) {
             return Optional.empty();
         }
+        
         Object userId = requestContext.getProperty("user.id");
+        
+        // Try to get from JWT claims as fallback
+        if (userId == null) {
+            Object claimsObj = requestContext.getProperty("jwt.claims");
+            if (claimsObj instanceof JWTClaimsSet) {
+                try {
+                    JWTClaimsSet claims = (JWTClaimsSet) claimsObj;
+                    String sub = claims.getSubject();
+                    if (sub == null || sub.trim().isEmpty()) {
+                        sub = claims.getStringClaim("preferred_username");
+                    }
+                    userId = sub;
+                } catch (ParseException e) {
+                    logger.debug("Error reading user ID from JWT claims", e);
+                } catch (Exception e) {
+                    logger.debug("Error reading user ID from JWT claims", e);
+                }
+            }
+        }
+        
         return userId != null ? Optional.of(userId.toString()) : Optional.empty();
     }
 
