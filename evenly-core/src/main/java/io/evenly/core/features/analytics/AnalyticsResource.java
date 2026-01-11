@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import io.evenly.core.features.analytics.dto.BalanceSummary;
 import io.evenly.core.features.analytics.dto.ExpenseSnapshotResponse;
+import io.evenly.core.features.analytics.dto.ExpenseSummary;
 
 /**
  * Analytics endpoints.
@@ -65,5 +66,14 @@ public class AnalyticsResource {
         Map<String, Object> response = new HashMap<>();
         response.put("data", expenses);
         return Response.ok(response).build();
+    }
+
+    @GET
+    @Path("/expenses-summary")
+    public Response getExpensesSummary(@PathParam("workspaceId") String workspaceId,
+                                        @QueryParam("startDate") LocalDate startDate,
+                                        @QueryParam("endDate") LocalDate endDate) {
+        ExpenseSummary summary = analyticsService.getExpensesSummary(workspaceId, startDate, endDate);
+        return Response.ok(summary).build();
     }
 }

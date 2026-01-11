@@ -262,17 +262,13 @@ const computedItems = computed(() => {
     }))
 })
 
-// Use categoriesCount from API response
-const computedTotalCategories = computed(() => {
-  if (expenseSnapshot.value && expenseSnapshot.value.categoriesCount) {
-    return expenseSnapshot.value.categoriesCount
-  }
-  return 0
-})
-
 // Use computed values if available, otherwise fall back to props
 const displayItems = computed(() => computedItems.value.length > 0 ? computedItems.value : props.items)
-const displayTotalCategories = computed(() => computedTotalCategories.value > 0 ? computedTotalCategories.value : props.totalCategories)
+// Simply use categoriesCount from expenses-snapshot API
+const displayTotalCategories = computed(() => {
+  if (!expenseSnapshot.value) return 0
+  return expenseSnapshot.value.categoriesCount || 0
+})
 
 const getCategoryGradient = (accent: string): string => {
   const gradients: Record<string, string> = {

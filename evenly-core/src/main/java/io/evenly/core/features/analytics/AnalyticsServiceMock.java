@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import io.evenly.core.features.analytics.dto.BalanceSummary;
 import io.evenly.core.features.analytics.dto.ExpenseSnapshotResponse;
 import io.evenly.core.features.analytics.dto.ExpenseSnapshotItem;
+import io.evenly.core.features.analytics.dto.ExpenseSummary;
+import io.evenly.core.features.analytics.dto.LinearChartDataPoint;
 
 /**
  * Mock implementation of AnalyticsService.
@@ -145,5 +147,131 @@ public class AnalyticsServiceMock implements AnalyticsService {
         response.setRemainingCategoriesCount(remainingCategoriesCount);
         
         return response;
+    }
+    
+    @Override
+    public ExpenseSummary getExpensesSummary(String workspaceId, LocalDate startDate, LocalDate endDate) {
+        Workspace workspace = mockDataProvider.getWorkspaces().get(workspaceId);
+        if (workspace == null) {
+            throw new RuntimeException("Workspace not found");
+        }
+        
+        // Filter expenses by date range
+        List<Expense> expenses = mockDataProvider.getWorkspaceExpenses().getOrDefault(workspaceId, new ArrayList<>())
+            .stream()
+            .filter(e -> {
+                if (startDate != null && e.getEffectiveDate().isBefore(startDate)) {
+                    return false;
+                }
+                if (endDate != null && e.getEffectiveDate().isAfter(endDate)) {
+                    return false;
+                }
+                return true;
+            })
+            .collect(Collectors.toList());
+        
+        // Calculate totals
+        BigDecimal totalAmount = expenses.stream()
+            .map(Expense::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        int expensesCount = expenses.size();
+        
+        // Calculate average per day
+        long daysBetween = 1;
+        if (startDate != null && endDate != null) {
+            daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        } else if (startDate != null) {
+            daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, LocalDate.now()) + 1;
+        } else if (endDate != null) {
+            // If only endDate is provided, use expenses date range
+            if (!expenses.isEmpty()) {
+                LocalDate minDate = expenses.stream()
+                    .map(Expense::getEffectiveDate)
+                    .min(LocalDate::compareTo)
+                    .orElse(endDate);
+                daysBetween = java.time.temporal.ChronoUnit.DAYS.between(minDate, endDate) + 1;
+            }
+        } else {
+            // If no dates provided, use expenses date range
+            if (!expenses.isEmpty()) {
+                LocalDate minDate = expenses.stream()
+                    .map(Expense::getEffectiveDate)
+                    .min(LocalDate::compareTo)
+                    .orElse(LocalDate.now());
+                LocalDate maxDate = expenses.stream()
+                    .map(Expense::getEffectiveDate)
+                    .max(LocalDate::compareTo)
+                    .orElse(LocalDate.now());
+                daysBetween = java.time.temporal.ChronoUnit.DAYS.between(minDate, maxDate) + 1;
+            }
+        }
+        
+        BigDecimal averagePerDay = daysBetween > 0
+            ? totalAmount.divide(BigDecimal.valueOf(daysBetween), 2, java.math.RoundingMode.HALF_UP)
+            : BigDecimal.ZERO;
+        
+        // Find largest expense
+        BigDecimal largestExpenseAmount = expenses.stream()
+            .map(Expense::getAmount)
+            .max(BigDecimal::compareTo)
+            .orElse(BigDecimal.ZERO);
+        
+        // Generate linear chart data - aggregate expenses by date
+        Map<LocalDate, BigDecimal> dailyTotals = new HashMap<>();
+        for (Expense expense : expenses) {
+            dailyTotals.merge(expense.getEffectiveDate(), expense.getAmount(), BigDecimal::add);
+        }
+        
+        // Determine date range for chart
+        LocalDate chartStartDate = startDate;
+        LocalDate chartEndDate = endDate;
+        if (chartStartDate == null || chartEndDate == null) {
+            if (!expenses.isEmpty()) {
+                if (chartStartDate == null) {
+                    chartStartDate = expenses.stream()
+                        .map(Expense::getEffectiveDate)
+                        .min(LocalDate::compareTo)
+                        .orElse(LocalDate.now().minusDays(30));
+                }
+                if (chartEndDate == null) {
+                    chartEndDate = expenses.stream()
+                        .map(Expense::getEffectiveDate)
+                        .max(LocalDate::compareTo)
+                        .orElse(LocalDate.now());
+                }
+            } else {
+                // No expenses, use default range
+                chartStartDate = LocalDate.now().minusDays(30);
+                chartEndDate = LocalDate.now();
+            }
+        }
+        
+        // Generate data points for all days in range (including days with no expenses)
+        // Use daily amounts (not cumulative) for trend visualization
+        List<LinearChartDataPoint> linearChartData = new ArrayList<>();
+        LocalDate currentDate = chartStartDate;
+        
+        while (!currentDate.isAfter(chartEndDate)) {
+            BigDecimal dayAmount = dailyTotals.getOrDefault(currentDate, BigDecimal.ZERO);
+            
+            LinearChartDataPoint point = new LinearChartDataPoint();
+            point.setDate(currentDate.toString());
+            point.setAmount(dayAmount);
+            linearChartData.add(point);
+            
+            currentDate = currentDate.plusDays(1);
+        }
+        
+        // Build response
+        ExpenseSummary summary = new ExpenseSummary();
+        summary.setTotalAmount(totalAmount);
+        summary.setExpensesCount(expensesCount);
+        summary.setAveragePerDay(averagePerDay);
+        summary.setCurrency(workspace.getCurrency());
+        summary.setLargestExpenseAmount(largestExpenseAmount);
+        summary.setLinearChartData(linearChartData);
+        
+        return summary;
     }
 }

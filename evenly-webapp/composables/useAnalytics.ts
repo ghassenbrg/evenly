@@ -1,13 +1,15 @@
 import type { BalanceSummary, ExpenseSnapshotResponse, ExpenseSnapshotItem, Expense } from '~/types/api'
 import { useApi } from '~/utils/api'
 
+// Shared state - singleton pattern (like useToast)
+const balanceSummary = ref<BalanceSummary | null>(null)
+const expenseSnapshot = ref<ExpenseSnapshotResponse | null>(null)
+const recentExpenses = ref<Expense[]>([])
+const loading = ref(false)
+const error = ref<Error | null>(null)
+
 export const useAnalytics = () => {
   const api = useApi()
-  const balanceSummary = ref<BalanceSummary | null>(null)
-  const expenseSnapshot = ref<ExpenseSnapshotResponse | null>(null)
-  const recentExpenses = ref<Expense[]>([])
-  const loading = ref(false)
-  const error = ref<Error | null>(null)
 
   // For backward compatibility with existing UI
   const summary = computed(() => {
