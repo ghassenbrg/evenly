@@ -7,8 +7,8 @@ CREATE TABLE expenses (
     currency VARCHAR(3) NOT NULL,
     effective_date DATE NOT NULL,
     note TEXT,
-    paid_by_user_id UUID NOT NULL,
-    created_by_user_id UUID NOT NULL,
+    paid_by_user_id VARCHAR(100) NOT NULL,
+    created_by_user_id VARCHAR(100) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT expenses_amount_check CHECK (amount > 0)

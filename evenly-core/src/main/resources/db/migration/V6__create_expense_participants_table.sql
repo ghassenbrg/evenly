@@ -1,7 +1,7 @@
 -- Create expense_participants table
 CREATE TABLE expense_participants (
     expense_id UUID NOT NULL,
-    user_id UUID NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     PRIMARY KEY (expense_id, user_id)
 );
 

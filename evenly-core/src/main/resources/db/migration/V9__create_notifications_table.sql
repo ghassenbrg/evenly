@@ -1,7 +1,7 @@
 -- Create notifications table
 CREATE TABLE notifications (
     id UUID PRIMARY KEY,
-    user_id UUID NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     type VARCHAR(50) NOT NULL,
     content TEXT NOT NULL,
     workspace_id UUID,

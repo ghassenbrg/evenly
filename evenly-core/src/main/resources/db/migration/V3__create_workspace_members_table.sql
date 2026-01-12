@@ -1,7 +1,7 @@
 -- Create workspace_members table
 CREATE TABLE workspace_members (
     workspace_id UUID NOT NULL,
-    user_id UUID NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     role VARCHAR(20) NOT NULL,
     weight_percent NUMERIC(5,2) NOT NULL DEFAULT 100.00,
     personal_monthly_limit NUMERIC(15,2),

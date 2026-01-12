@@ -2,8 +2,8 @@
 CREATE TABLE payments (
     id UUID PRIMARY KEY,
     workspace_id UUID NOT NULL,
-    payee_user_id UUID NOT NULL,
-    paid_by_user_id UUID NOT NULL,
+    payee_user_id VARCHAR(100) NOT NULL,
+    paid_by_user_id VARCHAR(100) NOT NULL,
     amount NUMERIC(15,2) NOT NULL,
     currency VARCHAR(3) NOT NULL,
     effective_date DATE NOT NULL,

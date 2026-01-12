@@ -1,6 +1,6 @@
 -- Create users table
 CREATE TABLE users (
-    id UUID PRIMARY KEY,
+    id VARCHAR(100) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     display_name VARCHAR(255) NOT NULL,
     username VARCHAR(100) NOT NULL UNIQUE,
