@@ -153,6 +153,38 @@ public class WorkspaceServiceMock implements WorkspaceService {
     }
     
     @Override
+    public Workspace createPersonalWorkspace(String userId, String currency) {
+        String workspaceId = "ws-" + userId + "-personal";
+        Workspace workspace = new Workspace();
+        workspace.setId(workspaceId);
+        workspace.setName("Personal");
+        workspace.setDefaultSplitMode("EQUAL");
+        workspace.setCurrency(currency != null ? currency : "USD");
+        workspace.setMonthlySharedLimit(null);
+        workspace.setIsPersonal(true);
+        workspace.setCreatedAt(OffsetDateTime.now());
+        workspace.setUpdatedAt(OffsetDateTime.now());
+        
+        mockDataProvider.getWorkspaces().put(workspaceId, workspace);
+        mockDataProvider.getUserWorkspaces().computeIfAbsent(userId, k -> new ArrayList<>()).add(workspace);
+        
+        // Add user as owner member
+        User user = mockDataProvider.getUsers().get(userId);
+        if (user != null) {
+            List<WorkspaceMember> members = new ArrayList<>();
+            WorkspaceMember member = new WorkspaceMember();
+            member.setUserId(userId);
+            member.setRole("OWNER");
+            member.setUser(user);
+            member.setWeightPercent(100.0);
+            members.add(member);
+            mockDataProvider.getWorkspaceMembers().put(workspaceId, members);
+        }
+        
+        return workspace;
+    }
+    
+    @Override
     public void updateMemberWeights(String workspaceId, UpdateMemberWeightsRequest request) {
         List<WorkspaceMember> members = mockDataProvider.getWorkspaceMembers().get(workspaceId);
         if (members == null) {

@@ -172,6 +172,39 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
     }
 
     @Override
+    public io.evenly.core.features.workspaces.dto.Workspace createPersonalWorkspace(String userId, String currency) { // userId is now username (String)
+        UUID workspaceUuid = UUID.randomUUID();
+        
+        // Create personal workspace
+        Workspace workspace = Workspace.builder()
+            .id(workspaceUuid)
+            .name("Personal")
+            .defaultSplitMode("EQUAL")
+            .monthlySharedLimit(null)
+            .isPersonal(true)
+            .currency(currency != null ? currency : "USD")
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
+
+        workspace = workspaceRepository.save(workspace);
+
+        // Add user as OWNER member
+        WorkspaceMember ownerMember = WorkspaceMember.builder()
+            .workspaceId(workspaceUuid)
+            .userId(userId) // userId is now username (String)
+            .role("OWNER")
+            .weightPercent(new BigDecimal("100.00"))
+            .personalMonthlyLimit(null)
+            .joinedAt(OffsetDateTime.now())
+            .build();
+
+        workspaceMemberRepository.save(ownerMember);
+
+        return toDto(workspace);
+    }
+
+    @Override
     public void updateMemberWeights(String workspaceId, UpdateMemberWeightsRequest request) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         workspaceRepository.findById(workspaceUuid)

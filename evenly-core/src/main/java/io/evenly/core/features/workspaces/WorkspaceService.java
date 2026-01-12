@@ -23,4 +23,5 @@ public interface WorkspaceService {
     Workspace updateSettings(String workspaceId, UpdateWorkspaceSettingsRequest request);
     List<WorkspaceMember> findMembers(String workspaceId);
     void updateMemberWeights(String workspaceId, UpdateMemberWeightsRequest request);
+    Workspace createPersonalWorkspace(String userId, String currency);
 }
