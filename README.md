@@ -1,299 +1,435 @@
-# Evenly – Mobile-First Expense Splitting App
+# Evenly Database Schema Design
 
-A complete mobile-first PWA for tracking and splitting expenses with friends and roommates. Built with Nuxt 3 frontend, Keycloak authentication, and WireMock-mocked backend API.
+## Overview
 
-## Quick Start
+This document describes the normalized PostgreSQL database schema for the Evenly expense tracking application. The schema is designed to support shared expense tracking, workspace management, settlements, payments, and user notifications.
 
-1. **Navigate to the webapp directory:**
-   ```bash
-   cd evenly-webapp
-   ```
+The schema follows **Third Normal Form (3NF)** principles to minimize data redundancy while maintaining query performance through strategic indexing.
 
-2. **Create environment file:**
-   ```bash
-   # Create .env file with the following variables:
-   NUXT_PUBLIC_API_BASE=http://localhost:8080
-   NUXT_PUBLIC_KEYCLOAK_URL=https://auth.ghassen.io
-   NUXT_PUBLIC_KEYCLOAK_REALM=pockito
-   NUXT_PUBLIC_KEYCLOAK_CLIENT_ID=pockito-web
-   ```
+## Entity Relationship Overview
 
-3. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+- **Users** can belong to multiple **Workspaces**
+- **Workspaces** contain **Expenses**, **Categories**, **Payments**, and **Settlements**
+- **Expenses** have multiple **Participants** (many-to-many)
+- **Settlements** contain multiple **Transfers** between users
+- **Workspaces** can have **Invites** for joining
+- **Users** receive **Notifications**
 
-4. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
+## Tables
 
-Then open:
-- **Webapp**: http://localhost:3000
-- **WireMock API**: http://localhost:8080 (if using docker-compose)
-- **WireMock Admin**: http://localhost:8080/__admin (if using docker-compose)
+### 1. `users`
 
-## Architecture
+Stores user account information. Users are authenticated externally (e.g., Keycloak), but their profile data is stored here.
 
-### Frontend (`evenly-webapp`)
-- **Nuxt 3** SPA with TypeScript
-- **Vue 3** Composition API
-- **Pinia** for state management
-- **Tailwind CSS** for styling
-- **PWA** support (installable, service worker, offline shell)
-- **Keycloak** authentication integration
-- **i18n** internationalization (English/Japanese)
-- **Mobile-first** design (optimized for 360-430px width)
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY | Unique user identifier (matches external auth system) |
+| `email` | VARCHAR(255) | NOT NULL, UNIQUE | User's email address |
+| `display_name` | VARCHAR(255) | NOT NULL | User's display name |
+| `username` | VARCHAR(100) | NOT NULL, UNIQUE | Username for display |
+| `avatar_url` | TEXT | NULL | URL to user's avatar image |
+| `preferred_currency` | VARCHAR(3) | NOT NULL | ISO 4217 currency code (e.g., 'JPY', 'USD') |
+| `locale` | VARCHAR(10) | NOT NULL, DEFAULT 'en-US' | User's locale preference (e.g., 'en-US', 'ja-JP') |
+| `timezone` | VARCHAR(50) | NOT NULL, DEFAULT 'UTC' | User's timezone (e.g., 'UTC', 'Asia/Tokyo') |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Account creation timestamp |
 
-### Backend Mocking (`evenly-wiremock`)
-- **WireMock** server providing complete API mocks
-- All endpoints from REQUIREMENTS.md are mocked
-- Realistic mock data and stateful responses
-- Ready to swap with real Helidon backend
+**Indexes:**
+- Primary key on `id`
+- Unique index on `email`
+- Unique index on `username`
+- Index on `preferred_currency` (for currency-based queries)
 
-### Services
-- `wiremock` - Mock API server (port 8080)
-- `evenly-webapp` - Nuxt frontend (port 3000)
-- `evenly-core` - Real backend (disabled by default, use `--profile production`)
+**Business Rules:**
+- Email must be unique across all users
+- Username must be unique across all users
+- Preferred currency should reference a valid currency code (enforced via application logic or FK to currencies table if needed)
 
-## Features
+---
 
-✅ **Authentication**
-- **Keycloak** SSO integration
-- OAuth 2.0 / OpenID Connect
-- PKCE flow for security
-- Automatic token refresh
-- Protected routes with middleware
+### 2. `workspaces`
 
-✅ **Workspaces**
-- Create and manage workspaces
-- Switch between workspaces
-- Equal and weighted split modes
-- Monthly budget limits
+Represents a shared expense group (e.g., a couple, roommates, or project team). Each workspace has its own currency and split mode configuration.
 
-✅ **Dynamic Categories**
-- Icon-based category picker
-- Custom colors
-- Fully dynamic (create/edit/delete)
-- Workspace-scoped
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY | Unique workspace identifier |
+| `name` | VARCHAR(255) | NOT NULL | Workspace display name |
+| `default_split_mode` | VARCHAR(20) | NOT NULL, CHECK | Split mode: 'EQUAL' or 'WEIGHTED' |
+| `monthly_shared_limit` | NUMERIC(15,2) | NULL | Optional monthly budget limit for the workspace |
+| `is_personal` | BOOLEAN | NOT NULL, DEFAULT FALSE | Whether this is a personal workspace (single user) |
+| `currency` | VARCHAR(3) | NOT NULL | ISO 4217 currency code for this workspace |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Workspace creation timestamp |
+| `updated_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Last update timestamp (auto-updated on changes) |
 
-✅ **Expenses**
-- Add shared or personal expenses
-- Filter by type and date range
-- Participant selection
-- Edit/delete active expenses
-- Locked settled expenses
-- Grouped by day (Today, Yesterday, Weekday, Full Date)
-- Lazy loading with infinite scroll
-- Category icons and visual indicators
-- Notes and metadata support
+**Indexes:**
+- Primary key on `id`
+- Index on `currency` (for currency-based queries)
+- Index on `is_personal` (for filtering personal workspaces)
 
-✅ **Balance & Settlement**
-- Real-time balance calculation
-- Settlement preview with transfers
-- Settlement history
-- View settled expenses
+**Check Constraints:**
+- `default_split_mode IN ('EQUAL', 'WEIGHTED')`
+- `monthly_shared_limit IS NULL OR monthly_shared_limit > 0`
 
-✅ **Analytics & Dashboard**
-- Dashboard with balance summary
-- Category breakdown with visual indicators
-- Recent expenses list
-- Monthly/weekly/custom period expense tracking
-- Interactive SVG charts (no external dependencies)
-- Budget progress tracking
-- Shared vs personal totals
-- Expense trends and statistics
+**Business Rules:**
+- Currency should reference a valid currency code
+- Personal workspaces typically have only one member
+- Monthly shared limit is optional and can be NULL
 
-✅ **Mobile-First UI**
-- Bottom tab navigation
-- Floating Action Button (FAB)
-- Bottom sheet modals
-- Toast notifications
-- iOS safe-area support
-- Native-like transitions
-- Dark mode optimized
-- Responsive date range picker
-- Infinite scroll for expense lists
-- Grouped expense timeline view
+---
 
-## Project Structure
+### 3. `workspace_members`
 
-```
-/
-├── docker-compose.yml          # Orchestrates WireMock + frontend
-├── evenly-webapp/              # Nuxt 3 frontend
-│   ├── components/             # Vue components
-│   │   ├── dashboard/         # Dashboard cards (Balance, Categories, Recent Expenses)
-│   │   ├── expenses/           # Expense components (MonthlyTotalCard, ExpenseItem)
-│   │   └── DateRangePicker.vue # Reusable date range picker
-│   ├── composables/            # Composables (useAuth, useToast, useFormatting)
-│   ├── i18n/                   # Internationalization (en.json, ja.json)
-│   ├── layouts/                # Layout templates
-│   ├── middleware/             # Route middleware (auth, guest)
-│   ├── pages/                  # Route pages
-│   │   └── keycloak-callback.vue # Keycloak OAuth callback handler
-│   ├── plugins/                # Nuxt plugins
-│   │   └── keycloak.client.ts  # Keycloak initialization
-│   ├── stores/                 # Pinia stores (auth, workspaces)
-│   ├── types/                  # TypeScript types
-│   └── utils/                  # Utilities (API client)
-├── evenly-core/                # Helidon backend (Java)
-└── evenly-wiremock/            # WireMock mocks
-    ├── mappings/               # API endpoint mappings
-    └── __files/                # Mock data files
-```
+Junction table representing the many-to-many relationship between users and workspaces. Stores role and weight information for each member.
 
-## API Endpoints (Mocked)
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `workspace_id` | UUID | NOT NULL, FK → workspaces.id | Reference to workspace |
+| `user_id` | UUID | NOT NULL, FK → users.id | Reference to user |
+| `role` | VARCHAR(20) | NOT NULL, CHECK | Member role: 'OWNER' or 'MEMBER' |
+| `weight_percent` | NUMERIC(5,2) | NOT NULL, DEFAULT 100.00 | Weight percentage for weighted splits (0-100) |
+| `personal_monthly_limit` | NUMERIC(15,2) | NULL | Optional personal monthly budget limit |
+| `joined_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | When the user joined the workspace |
 
-All endpoints from REQUIREMENTS.md are available via WireMock:
+**Primary Key:** `(workspace_id, user_id)`
 
-### Auth
-- Authentication is handled via **Keycloak** (OAuth 2.0 / OpenID Connect)
-- No direct API endpoints for login/register
-- Token-based API authentication using Keycloak access tokens
+**Indexes:**
+- Composite primary key on `(workspace_id, user_id)`
+- Index on `user_id` (for finding all workspaces a user belongs to)
+- Index on `workspace_id` (for finding all members of a workspace)
+- Index on `role` (for filtering by role)
 
-### Workspaces
-- `GET /api/workspaces` - List workspaces
-- `POST /api/workspaces` - Create workspace
-- `GET /api/workspaces/{id}` - Get workspace
-- `PUT /api/workspaces/{id}/settings` - Update settings
-- `PUT /api/workspaces/{id}/members/weights` - Update member weights
+**Foreign Keys:**
+- `workspace_id` → `workspaces.id` ON DELETE CASCADE
+- `user_id` → `users.id` ON DELETE CASCADE
 
-### Categories
-- `GET /api/categories` - List categories
-- `POST /api/categories` - Create category
-- `PUT /api/categories/{id}` - Update category
-- `DELETE /api/categories/{id}` - Delete (disable) category
+**Check Constraints:**
+- `role IN ('OWNER', 'MEMBER')`
+- `weight_percent >= 0 AND weight_percent <= 100`
+- `personal_monthly_limit IS NULL OR personal_monthly_limit > 0`
 
-### Expenses
-- `GET /api/expenses` - List expenses
-- `POST /api/expenses` - Create expense
-- `PUT /api/expenses/{id}` - Update expense
-- `DELETE /api/expenses/{id}` - Delete expense
+**Business Rules:**
+- Each workspace must have at least one OWNER
+- Weight percentages should sum to 100 for all members in a workspace (enforced via application logic)
+- When a workspace is deleted, all member records are deleted (CASCADE)
+- When a user is deleted, all their workspace memberships are deleted (CASCADE)
 
-### Analytics
-- `GET /api/analytics/summary` - Summary analytics
-- `GET /api/analytics/categories` - Category breakdown
+---
 
-### Balance & Settlement
-- `GET /api/balance` - Get balances
-- `POST /api/settlements` - Create settlement
-- `GET /api/settlements` - List settlements
-- `GET /api/settlements/{id}` - Get settlement
-- `GET /api/settlements/{id}/expenses` - Get settlement expenses
-- `GET /api/settlements/{id}/transfers` - Get settlement transfers
+### 4. `categories`
 
-## Development
+Expense categories. Can be workspace-specific (workspace_id IS NOT NULL) or global (workspace_id IS NULL).
 
-### Frontend Development
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY | Unique category identifier |
+| `workspace_id` | UUID | NULL, FK → workspaces.id | Reference to workspace (NULL for global categories) |
+| `name` | VARCHAR(255) | NOT NULL | Category display name |
+| `slug` | VARCHAR(255) | NOT NULL | URL-friendly identifier |
+| `icon` | VARCHAR(100) | NOT NULL | Icon identifier (e.g., 'groceries', 'fa-solid fa-utensils') |
+| `color` | VARCHAR(7) | NOT NULL | Hex color code (e.g., '#10b981') |
+| `is_active` | BOOLEAN | NOT NULL, DEFAULT TRUE | Whether the category is active (soft delete) |
+| `sort_order` | INTEGER | NOT NULL, DEFAULT 0 | Display order within workspace/global list |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Category creation timestamp |
+| `updated_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Last update timestamp |
 
-```bash
-cd evenly-webapp
-npm install
-npm run dev
-```
+**Indexes:**
+- Primary key on `id`
+- Index on `workspace_id` (for filtering workspace categories)
+- Unique index on `(workspace_id, slug)` (ensures unique slugs per workspace/global)
+- Index on `is_active` (for filtering active categories)
+- Index on `(workspace_id, sort_order)` (for ordered category lists)
 
-The app will be available at http://localhost:3000
+**Foreign Keys:**
+- `workspace_id` → `workspaces.id` ON DELETE CASCADE (when workspace is deleted, its categories are deleted)
 
-### Environment Variables
+**Check Constraints:**
+- `color` matches hex color pattern (e.g., '#[0-9A-Fa-f]{6}')
+- `sort_order >= 0`
 
-Create a `.env` file in `evenly-webapp/` directory:
+**Business Rules:**
+- Global categories (workspace_id IS NULL) are shared across all workspaces
+- Workspace-specific categories override global ones when both exist
+- Categories are soft-deleted (is_active = FALSE) rather than hard-deleted to preserve expense history
+- Slug must be unique within the same workspace (or globally if workspace_id IS NULL)
 
-```env
-NUXT_PUBLIC_API_BASE=http://localhost:8080
-NUXT_PUBLIC_KEYCLOAK_URL=https://auth.ghassen.io
-NUXT_PUBLIC_KEYCLOAK_REALM=pockito
-NUXT_PUBLIC_KEYCLOAK_CLIENT_ID=pockito-web
-```
+---
 
-**Important:** After updating `.env` file, restart the dev server for changes to take effect.
+### 5. `expenses`
 
-### Keycloak Configuration
+Records of expenses made within a workspace. Each expense is paid by one user and can have multiple participants.
 
-The app uses Keycloak for authentication. Make sure to configure the Keycloak client:
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY | Unique expense identifier |
+| `workspace_id` | UUID | NOT NULL, FK → workspaces.id | Reference to workspace |
+| `category_id` | UUID | NULL, FK → categories.id | Reference to category (nullable for uncategorized) |
+| `amount` | NUMERIC(15,2) | NOT NULL | Expense amount |
+| `currency` | VARCHAR(3) | NOT NULL | ISO 4217 currency code |
+| `effective_date` | DATE | NOT NULL | Date when the expense occurred |
+| `note` | TEXT | NULL | Optional note/description |
+| `paid_by_user_id` | UUID | NOT NULL, FK → users.id | User who paid the expense |
+| `created_by_user_id` | UUID | NOT NULL, FK → users.id | User who created the expense record |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Expense creation timestamp |
+| `updated_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Last update timestamp |
 
-1. **Valid Redirect URIs:**
-   - `http://localhost:3000/keycloak-callback`
-   - `http://localhost:3000/*` (or use wildcard)
+**Indexes:**
+- Primary key on `id`
+- Index on `workspace_id` (for listing expenses by workspace)
+- Index on `category_id` (for filtering by category)
+- Index on `paid_by_user_id` (for finding expenses paid by a user)
+- Composite index on `(workspace_id, effective_date DESC)` (for paginated expense lists)
+- Composite index on `(workspace_id, status, effective_date DESC)` (for filtered pagination)
+- Index on `effective_date` (for date range queries)
 
-2. **Web Origins:**
-   - `http://localhost:3000`
+**Foreign Keys:**
+- `workspace_id` → `workspaces.id` ON DELETE RESTRICT (prevent deletion if expenses exist)
+- `category_id` → `categories.id` ON DELETE SET NULL (preserve expense if category deleted)
+- `paid_by_user_id` → `users.id` ON DELETE RESTRICT
+- `created_by_user_id` → `users.id` ON DELETE RESTRICT
 
-3. **Client Settings:**
-   - Access Type: `public`
-   - Standard Flow Enabled: `ON`
-   - PKCE Code Challenge Method: `S256`
+**Check Constraints:**
+- `amount > 0`
+- `currency` is valid ISO 4217 code (application-level validation)
 
-### Using Real Backend
+**Business Rules:**
+- Amount must be positive
+- Currency should match workspace currency (enforced via application logic)
 
-To use the real Helidon backend instead of WireMock:
+---
 
-```bash
-docker compose --profile production up --build
-```
+### 6. `expense_participants`
 
-This will start:
-- PostgreSQL database
-- Helidon backend (evenly-core)
-- Nuxt frontend
+Junction table representing which users participate in (share) an expense. Used to calculate how expenses are split.
 
-Update `NUXT_PUBLIC_API_BASE` in `.env` if backend runs on different port.
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `expense_id` | UUID | NOT NULL, FK → expenses.id | Reference to expense |
+| `user_id` | UUID | NOT NULL, FK → users.id | Reference to participating user |
 
-## Testing the UI
+**Primary Key:** `(expense_id, user_id)`
 
-1. Start the app: `cd evenly-webapp && npm run dev`
-2. Open http://localhost:3000
-3. Click "Sign In" to authenticate via Keycloak
-4. After authentication, explore the mobile-first interface:
-   - **Dashboard**: Balance summary, category breakdown, recent expenses
-   - **Expenses**: Monthly totals with charts, filtered expense lists
-   - **History**: Settlement history and past expenses
-   - **Settings**: Workspace management, categories, language selection
-   - Add expenses via FAB button
-   - Switch between workspaces
-   - View analytics and trends
+**Indexes:**
+- Composite primary key on `(expense_id, user_id)`
+- Index on `user_id` (for finding all expenses a user participates in)
+- Index on `expense_id` (for finding all participants of an expense)
 
-## Mobile Testing
+**Foreign Keys:**
+- `expense_id` → `expenses.id` ON DELETE CASCADE
+- `user_id` → `users.id` ON DELETE CASCADE
 
-The app is optimized for mobile devices (360-430px width). To test:
+**Business Rules:**
+- Each expense must have at least one participant (enforced via application logic)
+- Participants should be members of the expense's workspace (enforced via application logic)
+- When an expense is deleted, all participant records are deleted (CASCADE)
+- In business logic, if no participants are specified in the request when creating an expense, all workspace members are treated as participants by default.
 
-1. Open Chrome DevTools
-2. Toggle device toolbar (Cmd/Ctrl + Shift + M)
-3. Select iPhone SE or similar small device
-4. Test touch interactions, bottom sheets, and navigation
 
-## Key Technologies
+---
 
-- **Nuxt 3** - Vue.js framework with SSR capabilities
-- **Vue 3** - Progressive JavaScript framework
-- **TypeScript** - Type-safe JavaScript
-- **Pinia** - State management
-- **Tailwind CSS** - Utility-first CSS framework
-- **Keycloak** - Identity and access management
-- **keycloak-js** - Keycloak JavaScript adapter
-- **@nuxtjs/i18n** - Internationalization plugin
-- **@vite-pwa/nuxt** - PWA support
-- **Chart.js** - Chart library (for future use)
+### 7. `payments`
 
-## Internationalization
+Records of direct payments between users within a workspace. Separate from expenses, these represent money transfers (e.g., reimbursements, direct payments).
 
-The app supports multiple languages:
-- **English** (en) - Default
-- **Japanese** (ja) - 日本語
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY | Unique payment identifier |
+| `workspace_id` | UUID | NOT NULL, FK → workspaces.id | Reference to workspace |
+| `payee_user_id` | UUID | NOT NULL, FK → users.id | User receiving the payment |
+| `paid_by_user_id` | UUID | NOT NULL, FK → users.id | User making the payment |
+| `amount` | NUMERIC(15,2) | NOT NULL | Payment amount |
+| `currency` | VARCHAR(3) | NOT NULL | ISO 4217 currency code |
+| `effective_date` | DATE | NOT NULL | Date when payment occurred |
+| `note` | TEXT | NULL | Optional note/description |
+| `status` | VARCHAR(20) | NOT NULL, CHECK | Status: 'COMPLETED', 'PENDING', or 'FAILED' |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Payment creation timestamp |
+| `updated_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Last update timestamp |
 
-Language can be switched via the language switcher in the UI. All user-facing strings are translatable.
+**Indexes:**
+- Primary key on `id`
+- Index on `workspace_id` (for listing payments by workspace)
+- Index on `payee_user_id` (for finding payments received by a user)
+- Index on `paid_by_user_id` (for finding payments made by a user)
+- Index on `status` (for filtering by status)
+- Composite index on `(workspace_id, effective_date DESC)` (for paginated payment lists)
+- Composite index on `(workspace_id, status, effective_date DESC)` (for filtered pagination)
 
-## Next Steps
+**Foreign Keys:**
+- `workspace_id` → `workspaces.id` ON DELETE RESTRICT
+- `payee_user_id` → `users.id` ON DELETE RESTRICT
+- `paid_by_user_id` → `users.id` ON DELETE RESTRICT
 
-The frontend is complete and ready for backend integration. When the real Helidon backend is ready:
+**Check Constraints:**
+- `status IN ('COMPLETED', 'PENDING', 'FAILED')`
+- `amount > 0`
+- `payee_user_id != paid_by_user_id` (user cannot pay themselves)
 
-1. Remove WireMock from docker-compose.yml
-2. Update `NUXT_PUBLIC_API_BASE` in `.env` if needed
-3. Ensure Keycloak is properly configured for production
-4. The frontend will work with the real API without changes
+**Business Rules:**
+- Amount must be positive
+- Payee and payer must be different users
+- Currency should match workspace currency (enforced via application logic)
+- Both payee and payer should be members of the workspace (enforced via application logic)
 
-All API contracts match REQUIREMENTS.md exactly.
+---
 
-## Requirements
+### 10. `invites`
 
-See `REQUIREMENTS.md` for complete specification.
+Workspace invitation codes that allow users to join workspaces without explicit invitation.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY | Unique invite identifier |
+| `workspace_id` | UUID | NOT NULL, FK → workspaces.id | Reference to workspace |
+| `code` | VARCHAR(50) | NOT NULL, UNIQUE | Unique invitation code |
+| `max_uses` | INTEGER | NOT NULL | Maximum number of times the invite can be used |
+| `uses_count` | INTEGER | NOT NULL, DEFAULT 0 | Current number of times the invite has been used |
+| `expires_at` | TIMESTAMPTZ | NULL | Expiration timestamp (NULL = never expires) |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Invite creation timestamp |
+
+**Indexes:**
+- Primary key on `id`
+- Unique index on `code` (for fast lookup by code)
+- Index on `workspace_id` (for listing invites by workspace)
+- Index on `expires_at` (for finding expired invites)
+
+**Foreign Keys:**
+- `workspace_id` → `workspaces.id` ON DELETE CASCADE
+
+**Check Constraints:**
+- `max_uses > 0`
+- `uses_count >= 0 AND uses_count <= max_uses`
+- `expires_at IS NULL OR expires_at > created_at`
+
+**Business Rules:**
+- Code must be unique across all invites
+- Uses count cannot exceed max uses
+- Invite is considered expired if expires_at is set and current time > expires_at
+- When a workspace is deleted, all its invites are deleted (CASCADE)
+
+---
+
+### 11. `notifications`
+
+User notifications for various events (expense added, payment received, etc.).
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY | Unique notification identifier |
+| `user_id` | UUID | NOT NULL, FK → users.id | User who receives the notification |
+| `type` | VARCHAR(50) | NOT NULL | Notification type (e.g., 'message', 'alert', 'reminder') |
+| `content` | TEXT | NOT NULL | Notification message content |
+| `workspace_id` | UUID | NULL, FK → workspaces.id | Reference to workspace (if notification is workspace-related) |
+| `read` | BOOLEAN | NOT NULL, DEFAULT FALSE | Whether the notification has been read |
+| `timestamp` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Notification creation timestamp |
+| `context` | VARCHAR(50) | NOT NULL, DEFAULT 'general' | Context of the notification (e.g., 'PAYMENT', 'EXPENSE', 'WORKSPACE', 'GENERAL') |
+
+
+**Indexes:**
+- Primary key on `id`
+- Index on `user_id` (for finding all notifications for a user)
+- Index on `workspace_id` (for workspace-related notifications)
+- Composite index on `(user_id, read, timestamp DESC)` (for unread notifications list)
+- Index on `timestamp` (for chronological ordering)
+
+**Foreign Keys:**
+- `user_id` → `users.id` ON DELETE CASCADE
+- `workspace_id` → `workspaces.id` ON DELETE SET NULL (preserve notification if workspace deleted)
+
+**Business Rules:**
+- Each notification belongs to one user
+- Workspace_id is optional (some notifications may not be workspace-specific)
+- When a user is deleted, all their notifications are deleted (CASCADE)
+- When a workspace is deleted, notifications are preserved but workspace_id is set to NULL
+
+---
+
+### 12. `currencies`
+
+Reference data table for supported currencies. This is typically read-only and populated with standard currency data.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `code` | VARCHAR(3) | PRIMARY KEY | ISO 4217 currency code (e.g., 'JPY', 'USD') |
+| `name` | VARCHAR(100) | NOT NULL | Currency display name (e.g., 'Japanese Yen') |
+| `symbol` | VARCHAR(10) | NOT NULL | Currency symbol (e.g., '¥', '$') |
+
+**Indexes:**
+- Primary key on `code`
+
+**Business Rules:**
+- Code must be a valid ISO 4217 currency code
+- This table is typically populated once and rarely updated
+- Used for validation and display purposes
+
+---
+
+## Relationships Summary
+
+1. **Users ↔ Workspaces**: Many-to-many via `workspace_members`
+2. **Workspaces → Categories**: One-to-many (categories can be global or workspace-specific)
+3. **Workspaces → Expenses**: One-to-many
+4. **Expenses ↔ Users**: Many-to-many via `expense_participants` (participants) + direct FK (paid_by)
+5. **Workspaces → Payments**: One-to-many
+8. **Workspaces → Invites**: One-to-many
+9. **Users → Notifications**: One-to-many
+
+## Indexing Strategy
+
+### Primary Indexes
+- All tables have UUID primary keys for efficient lookups
+
+### Foreign Key Indexes
+- All foreign keys are indexed to optimize JOIN operations
+
+### Composite Indexes
+- `(workspace_id, effective_date DESC)` on expenses and payments for paginated date-sorted lists
+- `(workspace_id, status, effective_date DESC)` for filtered pagination
+- `(workspace_id, slug)` on categories for unique slug enforcement
+- `(user_id, read, timestamp DESC)` on notifications for unread notifications queries
+- `(settlement_id, from_user_id, to_user_id)` on transfers for settlement queries
+
+### Query Optimization Indexes
+- Status fields are indexed for filtering
+- Date fields are indexed for range queries
+- Workspace_id is indexed on all workspace-related tables for efficient workspace-scoped queries
+
+## Referential Integrity Rules
+
+### ON DELETE CASCADE
+- `workspace_members` when workspace or user is deleted
+- `expense_participants` when expense or user is deleted
+- `transfers` when settlement is deleted
+- `invites` when workspace is deleted
+- `notifications` when user is deleted
+
+### ON DELETE RESTRICT
+- `expenses` when workspace is deleted (prevent data loss)
+- `payments` when workspace is deleted (prevent data loss)
+- `settlements` when workspace is deleted (prevent data loss)
+- `expenses` when paid_by_user or created_by_user is deleted (prevent orphaned expenses)
+- `payments` when payee or payer is deleted (prevent orphaned payments)
+- `settlements` when creator is deleted (prevent orphaned settlements)
+- `transfers` when from_user or to_user is deleted (prevent orphaned transfers)
+
+### ON DELETE SET NULL
+- `expenses.category_id` when category is deleted (preserve expense, mark as uncategorized)
+- `expenses.settlement_id` when settlement is deleted (preserve expense, mark as active)
+- `notifications.workspace_id` when workspace is deleted (preserve notification, remove workspace reference)
+
+## Data Types Rationale
+
+- **UUID**: Used for all primary keys for distributed system compatibility and security (no sequential IDs)
+- **NUMERIC(15,2)**: Used for monetary amounts to ensure precision (supports up to 999 trillion with 2 decimal places)
+- **TIMESTAMPTZ**: Used for all timestamps to handle timezone-aware operations
+- **VARCHAR**: Used with appropriate length limits based on expected data size
+- **TEXT**: Used for potentially long text fields (notes, content)
+- **BOOLEAN**: Used for simple true/false flags
+- **DATE**: Used for effective dates (no time component needed)
+
+## Future Considerations
+
+1. **Audit Trail**: Consider adding `created_by` and `updated_by` audit fields to critical tables
+2. **Soft Deletes**: Some tables (expenses, payments) might benefit from soft delete flags instead of hard deletes
+3. **Versioning**: Consider adding version numbers for optimistic locking on frequently updated tables
+4. **Partitioning**: For high-volume tables (expenses, payments), consider date-based partitioning
+5. **Full-Text Search**: Consider adding full-text search indexes on note and content fields
+6. **Currency Conversion**: Consider adding exchange rate tracking if multi-currency support is needed
