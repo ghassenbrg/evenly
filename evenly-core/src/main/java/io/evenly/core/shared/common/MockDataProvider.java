@@ -145,6 +145,21 @@ public class MockDataProvider {
         workspaceMembers.put("ws3", members3);
         initializeWorkspaceCategories("ws3");
         initializeWorkspaceExpenses("ws3");
+        
+        // Workspace 4: Weighted workspace (team project with different contribution weights)
+        Workspace ws4 = createWorkspace("ws4", "Team Project", "WEIGHTED", "USD", 5000.0, false);
+        userWorkspaces.computeIfAbsent("gbargougui", k -> new ArrayList<>()).add(ws4);
+        userWorkspaces.computeIfAbsent("user1", k -> new ArrayList<>()).add(ws4);
+        userWorkspaces.computeIfAbsent("user2", k -> new ArrayList<>()).add(ws4);
+        userWorkspaces.computeIfAbsent("user4", k -> new ArrayList<>()).add(ws4);
+        List<WorkspaceMember> members4 = new ArrayList<>();
+        members4.add(createMember("gbargougui", "OWNER", users.get("gbargougui"), 40.0));  // 40% weight
+        members4.add(createMember("user1", "MEMBER", users.get("user1"), 30.0));          // 30% weight
+        members4.add(createMember("user2", "MEMBER", users.get("user2"), 20.0));          // 20% weight
+        members4.add(createMember("user4", "MEMBER", users.get("user4"), 10.0));          // 10% weight
+        workspaceMembers.put("ws4", members4);
+        initializeWorkspaceCategories("ws4");
+        initializeWorkspaceExpenses("ws4");
     }
     
     private Workspace createWorkspace(String id, String name, String splitMode, String currency, 

@@ -22,7 +22,7 @@
             <p class="text-xs font-semibold text-slate-400 uppercase">{{ t('workspace.title') }}</p>
           </div>
           
-          <div v-if="workspaces.length > 0" class="max-h-48 overflow-y-auto">
+          <div v-if="workspaces && workspaces.length > 0" class="max-h-64 overflow-y-auto">
             <button
               v-for="workspace in workspaces"
               :key="workspace.id"
@@ -42,7 +42,7 @@
                   </span>
                 </div>
                 <p class="text-xs text-slate-400">
-                  {{ workspace.isPersonal ? t('workspace.personalDescription') : workspace.defaultSplitMode }}
+                  {{ workspace.isPersonal ? t('workspace.personalDescription') : getSplitModeLabel(workspace.defaultSplitMode) }}
                 </p>
               </div>
               <svg
@@ -81,9 +81,12 @@
 </template>
 
 <script setup lang="ts">
-  const { t } = useI18n()
+const { t } = useI18n()
 const workspacesStore = useWorkspacesStore()
-const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspacesStore)
+const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspacesStore)
+
+// Access workspaces directly from store to ensure reactivity
+const workspaces = computed(() => workspacesStore.workspaces)
 
 const showMenu = ref(false)
 const showCreateSheet = ref(false)
@@ -96,6 +99,15 @@ const selectWorkspace = (id: string) => {
 const handleWorkspaceCreated = () => {
   showCreateSheet.value = false
   showMenu.value = false
+}
+
+const getSplitModeLabel = (splitMode: 'EQUAL' | 'WEIGHTED'): string => {
+  if (splitMode === 'EQUAL') {
+    return t('workspace.splitModeEqual')
+  } else if (splitMode === 'WEIGHTED') {
+    return t('workspace.splitModeWeighted')
+  }
+  return splitMode
 }
 
 // Close menu when clicking outside

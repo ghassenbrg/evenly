@@ -127,7 +127,7 @@
 
     <template #footer>
       <button
-        @click="showInviteSheet = false"
+        @click="handleInviteSheetDone"
         class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-xl transition-colors"
       >
         {{ t('common.done') || 'Done' }}
@@ -187,10 +187,12 @@ watch(() => props.modelValue, async (newVal) => {
       form.value.currency = currencies.value.find(c => c.code === 'USD')?.code || currencies.value[0].code
     }
   } else {
-    showInviteSheet.value = false
-    inviteCode.value = null
-    inviteLink.value = null
-    createdWorkspaceId.value = null
+    // Only reset if invite sheet is not showing
+    if (!showInviteSheet.value) {
+      inviteCode.value = null
+      inviteLink.value = null
+      createdWorkspaceId.value = null
+    }
   }
 })
 
@@ -226,12 +228,15 @@ const handleSubmit = async () => {
     }
     
     success(t('workspace.created'))
-    emit('created')
-    emit('update:modelValue', false)
     
-    // Show invite sheet after a brief delay
-    await nextTick()
-    showInviteSheet.value = true
+    // Show invite sheet before closing create sheet
+    if (inviteCode.value && inviteLink.value) {
+      showInviteSheet.value = true
+    } else {
+      // If no invite was created, just close and emit
+      emit('update:modelValue', false)
+      emit('created')
+    }
   } catch (err: any) {
     error(err.message || t('workspace.createFailed'))
   } finally {
@@ -251,6 +256,16 @@ const copyInviteLink = async () => {
     await navigator.clipboard.writeText(inviteLink.value)
     success(t('workspace.inviteLinkCopied') || 'Invite link copied!')
   }
+}
+
+const handleInviteSheetDone = () => {
+  showInviteSheet.value = false
+  emit('update:modelValue', false)
+  emit('created')
+  // Reset form and invite data
+  inviteCode.value = null
+  inviteLink.value = null
+  createdWorkspaceId.value = null
 }
 </script>
 

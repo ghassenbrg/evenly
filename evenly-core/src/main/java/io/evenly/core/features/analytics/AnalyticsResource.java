@@ -21,7 +21,7 @@ import io.evenly.core.features.analytics.dto.ExpenseSummary;
 /**
  * Analytics endpoints.
  */
-@Path("/api/workspaces/{workspaceId}/analytics")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 @Authenticated
@@ -37,7 +37,7 @@ public class AnalyticsResource {
     private SecurityContextProvider securityContext;
 
     @GET
-    @Path("/balance-summary")
+    @Path("/workspaces/{workspaceId}/analytics/balance-summary")
     public Response getBalanceSummary(@PathParam("workspaceId") String workspaceId,
                                       @QueryParam("startDate") LocalDate startDate,
                                       @QueryParam("endDate") LocalDate endDate) {
@@ -49,7 +49,7 @@ public class AnalyticsResource {
     }
 
     @GET
-    @Path("/expenses-snapshot")
+    @Path("/workspaces/{workspaceId}/analytics/expenses-snapshot")
     public Response getExpensesSnapshot(@PathParam("workspaceId") String workspaceId,
                                         @QueryParam("startDate") LocalDate startDate,
                                         @QueryParam("endDate") LocalDate endDate,
@@ -59,7 +59,7 @@ public class AnalyticsResource {
     }
 
     @GET
-    @Path("/recent-expenses")
+    @Path("/workspaces/{workspaceId}/analytics/recent-expenses")
     public Response getRecentExpenses(@PathParam("workspaceId") String workspaceId,
                                       @QueryParam("size") @DefaultValue("5") int size) {
         List<Expense> expenses = expenseService.findRecentForWorkspace(workspaceId, size);
@@ -69,7 +69,7 @@ public class AnalyticsResource {
     }
 
     @GET
-    @Path("/expenses-summary")
+    @Path("/workspaces/{workspaceId}/analytics/expenses-summary")
     public Response getExpensesSummary(@PathParam("workspaceId") String workspaceId,
                                         @QueryParam("startDate") LocalDate startDate,
                                         @QueryParam("endDate") LocalDate endDate) {

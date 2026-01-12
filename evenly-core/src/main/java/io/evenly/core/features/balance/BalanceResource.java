@@ -17,7 +17,7 @@ import io.evenly.core.features.balance.dto.SettleUpResponse;
 /**
  * Balance and settle-up endpoints.
  */
-@Path("/api/workspaces/{workspaceId}")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 @Authenticated
@@ -30,7 +30,7 @@ public class BalanceResource {
     private SecurityContextProvider securityContext;
 
     @GET
-    @Path("/balance")
+    @Path("/workspaces/{workspaceId}/balance")
     public Response getBalance(@PathParam("workspaceId") String workspaceId) {
         List<Balance> balances = balanceService.getBalanceForWorkspace(workspaceId);
         Map<String, Object> response = new HashMap<>();
@@ -39,7 +39,7 @@ public class BalanceResource {
     }
 
     @GET
-    @Path("/settle-up")
+    @Path("/workspaces/{workspaceId}/settle-up")
     public Response getSettleUp(@PathParam("workspaceId") String workspaceId) {
         String userId = securityContext.getUserId()
             .orElseThrow(() -> new SecurityException("User not authenticated"));

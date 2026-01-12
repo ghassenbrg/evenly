@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Workspace, CreateWorkspaceRequest, UpdateWorkspaceSettingsRequest } from '~/types/api'
+import type { Workspace, CreateWorkspaceRequest, UpdateWorkspaceSettingsRequest, UpdateMemberWeightsRequest } from '~/types/api'
 import { useApi } from '~/utils/api'
 import { useCookie } from '#imports'
 
@@ -83,6 +83,29 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
     return workspace
   }
 
+  const deleteWorkspace = async (id: string) => {
+    if (isPersonalWorkspace(id)) {
+      throw new Error('Cannot delete personal workspace')
+    }
+    await api.delete(`/api/workspaces/${id}`)
+    const index = workspaces.value.findIndex(w => w.id === id)
+    if (index !== -1) {
+      workspaces.value.splice(index, 1)
+    }
+    // If deleted workspace was active, switch to another workspace
+    if (activeWorkspaceId.value === id) {
+      const personalWorkspace = workspaces.value.find(w => w.isPersonal)
+      activeWorkspaceId.value = personalWorkspace?.id || workspaces.value[0]?.id || null
+    }
+  }
+
+  const updateMemberWeights = async (id: string, data: UpdateMemberWeightsRequest) => {
+    if (isPersonalWorkspace(id)) {
+      throw new Error('Cannot modify personal workspace member weights')
+    }
+    await api.put(`/api/workspaces/${id}/members/weights`, data)
+  }
+
   const setActiveWorkspace = (id: string) => {
     if (workspaces.value.some(w => w.id === id)) {
       activeWorkspaceId.value = id
@@ -101,6 +124,8 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
     fetchWorkspaces,
     createWorkspace,
     updateWorkspaceSettings,
+    updateMemberWeights,
+    deleteWorkspace,
     setActiveWorkspace,
     isPersonalWorkspace,
     canModifyWorkspace

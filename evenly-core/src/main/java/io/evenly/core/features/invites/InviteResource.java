@@ -17,7 +17,7 @@ import io.evenly.core.features.invites.dto.CreateInviteRequest;
 /**
  * Workspace invitation endpoints.
  */
-@Path("/api/workspaces/{workspaceId}/invites")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 @Authenticated
@@ -30,6 +30,7 @@ public class InviteResource {
     private SecurityContextProvider securityContext;
 
     @POST
+    @Path("/workspaces/{workspaceId}/invites")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createInvite(@PathParam("workspaceId") String workspaceId,
                                  @Valid CreateInviteRequest request) {

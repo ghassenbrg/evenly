@@ -115,12 +115,41 @@
     "monthlyBudget": "Monthly Shared Budget",
     "monthlyBudgetPlaceholder": "100000",
     "creating": "Creating...",
+    "edit": "Edit Workspace",
+    "updated": "Workspace updated successfully",
+    "updateFailed": "Failed to update workspace",
+    "delete": "Delete Workspace",
+    "deleteConfirm": "Delete Workspace",
+    "deleteWarning": "Are you sure you want to delete this workspace? This action cannot be undone.",
+    "deleting": "Deleting...",
+    "deleted": "Workspace deleted successfully",
+    "deleteFailed": "Failed to delete workspace",
+    "personalWorkspaceNote": "Personal workspaces cannot be modified or deleted.",
+    "members": "Members",
+    "noMembers": "No members",
+    "owner": "Owner",
+    "member": "Member",
+    "invite": "Invite Members",
     "inviteTitle": "Invite Members",
     "inviteDescription": "Share this code or link with others to invite them to your workspace.",
+    "createInvite": "Create Invite",
+    "inviteCreated": "Invite created successfully",
+    "inviteFailed": "Failed to create invite",
     "inviteCode": "Invite Code",
     "inviteLink": "Invite Link",
     "inviteCodeCopied": "Invite code copied!",
-    "inviteLinkCopied": "Invite link copied!"
+    "inviteLinkCopied": "Invite link copied!",
+    "editWeights": "Edit Weights",
+    "editWeightsDescription": "Adjust the weight percentages for each member. The total must equal 100%.",
+    "weightPlaceholder": "0.0",
+    "weightsTotal": "Total",
+    "weightsExceed100": "Total exceeds 100%. Please adjust the weights.",
+    "weightsLessThan100": "Total is less than 100%. Please adjust the weights.",
+    "weightsUpdated": "Member weights updated successfully",
+    "weightsUpdateFailed": "Failed to update member weights",
+    "settings": {
+      "title": "Workspace Settings"
+    }
   },
   "join": {
     "title": "Join Workspace",
@@ -153,6 +182,11 @@
       "walletsDescription": "Create and manage multiple wallets to track your money across different accounts and currencies.",
       "transactionsDescription": "Record and track all your income and expense transactions with detailed categorization.",
       "subscriptionsDescription": "Manage recurring subscriptions and automatic payments with due date tracking."
+    },
+    "workspace": {
+      "title": "Workspace Settings",
+      "description": "Manage your current workspace settings, members, and invites",
+      "manage": "Manage Workspace"
     },
     "categories": {
       "title": "Categories",

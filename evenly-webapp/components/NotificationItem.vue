@@ -29,7 +29,12 @@
       
       <!-- Workspace and Time -->
       <div class="flex items-center justify-between mt-2">
-        <span class="text-xs text-slate-500">
+        <span 
+          class="text-xs font-medium px-2 py-0.5 rounded-md"
+          :class="isActiveWorkspace(notification.workspaceId) 
+            ? 'text-emerald-400 bg-emerald-500/10' 
+            : 'text-blue-400 bg-blue-500/10'"
+        >
           {{ getWorkspaceName(notification.workspaceId) }}
         </span>
         <span class="text-xs text-slate-500">
@@ -44,6 +49,7 @@
 import type { Notification } from '~/types/api'
 import { useFormatting } from '~/composables/useFormatting'
 import { useWorkspacesStore } from '~/stores/workspaces'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
   notification: Notification
@@ -56,6 +62,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { formatRelativeTime } = useFormatting()
 const workspacesStore = useWorkspacesStore()
+const { activeWorkspaceId } = storeToRefs(workspacesStore)
 
 const formatTime = (dateString: string): string => {
   return formatRelativeTime(new Date(dateString))
@@ -73,6 +80,10 @@ const getNotificationTitle = (type: string): string => {
 const getWorkspaceName = (workspaceId: string): string => {
   const workspace = workspacesStore.workspaces.find(w => w.id === workspaceId)
   return workspace?.name || workspaceId || t('notifications.unknownWorkspace')
+}
+
+const isActiveWorkspace = (workspaceId: string): boolean => {
+  return activeWorkspaceId.value === workspaceId
 }
 
 const handleClick = () => {

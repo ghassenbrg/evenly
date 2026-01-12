@@ -115,12 +115,41 @@
     "monthlyBudget": "月間共有予算",
     "monthlyBudgetPlaceholder": "100000",
     "creating": "作成中...",
+    "edit": "ワークスペースを編集",
+    "updated": "ワークスペースを正常に更新しました",
+    "updateFailed": "ワークスペースの更新に失敗しました",
+    "delete": "ワークスペースを削除",
+    "deleteConfirm": "ワークスペースを削除",
+    "deleteWarning": "このワークスペースを削除してもよろしいですか？この操作は元に戻せません。",
+    "deleting": "削除中...",
+    "deleted": "ワークスペースを正常に削除しました",
+    "deleteFailed": "ワークスペースの削除に失敗しました",
+    "personalWorkspaceNote": "個人ワークスペースは変更または削除できません。",
+    "members": "メンバー",
+    "noMembers": "メンバーなし",
+    "owner": "オーナー",
+    "member": "メンバー",
+    "invite": "メンバーを招待",
     "inviteTitle": "メンバーを招待",
     "inviteDescription": "このコードまたはリンクを他の人と共有して、ワークスペースに招待します。",
+    "createInvite": "招待を作成",
+    "inviteCreated": "招待を正常に作成しました",
+    "inviteFailed": "招待の作成に失敗しました",
     "inviteCode": "招待コード",
     "inviteLink": "招待リンク",
     "inviteCodeCopied": "招待コードをコピーしました！",
-    "inviteLinkCopied": "招待リンクをコピーしました！"
+    "inviteLinkCopied": "招待リンクをコピーしました！",
+    "editWeights": "重みを編集",
+    "editWeightsDescription": "各メンバーの重みパーセンテージを調整します。合計は100%である必要があります。",
+    "weightPlaceholder": "0.0",
+    "weightsTotal": "合計",
+    "weightsExceed100": "合計が100%を超えています。重みを調整してください。",
+    "weightsLessThan100": "合計が100%未満です。重みを調整してください。",
+    "weightsUpdated": "メンバーの重みを正常に更新しました",
+    "weightsUpdateFailed": "メンバーの重みの更新に失敗しました",
+    "settings": {
+      "title": "ワークスペース設定"
+    }
   },
   "join": {
     "title": "ワークスペースに参加",
@@ -153,6 +182,11 @@
       "walletsDescription": "複数のウォレットを作成して管理し、異なるアカウントと通貨でお金を追跡します。",
       "transactionsDescription": "詳細なカテゴリ分類で、すべての収入と支出の取引を記録して追跡します。",
       "subscriptionsDescription": "支払い日追跡機能付きで、定期購入と自動支払いを管理します。"
+    },
+    "workspace": {
+      "title": "ワークスペース設定",
+      "description": "現在のワークスペースの設定、メンバー、招待を管理します",
+      "manage": "ワークスペースを管理"
     },
     "categories": {
       "title": "カテゴリ",

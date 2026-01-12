@@ -31,7 +31,7 @@ import jakarta.ws.rs.core.Response;
 /**
  * Expense management endpoints.
  */
-@Path("/api/workspaces/{workspaceId}/expenses")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 @Authenticated
@@ -44,6 +44,7 @@ public class ExpenseResource {
     private SecurityContextProvider securityContext;
 
     @GET
+    @Path("/workspaces/{workspaceId}/expenses")
     public Response listExpenses(@PathParam("workspaceId") String workspaceId,
             @QueryParam("startDate") LocalDate startDate,
             @QueryParam("endDate") LocalDate endDate,
@@ -58,6 +59,7 @@ public class ExpenseResource {
     }
 
     @POST
+    @Path("/workspaces/{workspaceId}/expenses")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createExpense(@PathParam("workspaceId") String workspaceId,
             @Valid CreateExpenseRequest request) {
@@ -71,7 +73,7 @@ public class ExpenseResource {
     }
 
     @GET
-    @Path("/{expenseId}")
+    @Path("/workspaces/{workspaceId}/expenses/{expenseId}")
     public Response getExpense(@PathParam("workspaceId") String workspaceId,
             @PathParam("expenseId") String expenseId) {
         Optional<Expense> expense = expenseService.findById(expenseId);
@@ -84,7 +86,7 @@ public class ExpenseResource {
     }
 
     @PUT
-    @Path("/{expenseId}")
+    @Path("/workspaces/{workspaceId}/expenses/{expenseId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateExpense(@PathParam("workspaceId") String workspaceId,
             @PathParam("expenseId") String expenseId,
@@ -100,7 +102,7 @@ public class ExpenseResource {
     }
 
     @DELETE
-    @Path("/{expenseId}")
+    @Path("/workspaces/{workspaceId}/expenses/{expenseId}")
     public Response deleteExpense(@PathParam("workspaceId") String workspaceId,
             @PathParam("expenseId") String expenseId) {
         Optional<Expense> existing = expenseService.findById(expenseId);

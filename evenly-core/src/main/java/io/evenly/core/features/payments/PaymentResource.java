@@ -22,7 +22,7 @@ import io.evenly.core.features.payments.dto.UpdatePaymentRequest;
 /**
  * Payment management endpoints.
  */
-@Path("/api/workspaces/{workspaceId}")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 @Authenticated
@@ -35,7 +35,7 @@ public class PaymentResource {
     private SecurityContextProvider securityContext;
 
     @GET
-    @Path("/payments")
+    @Path("/workspaces/{workspaceId}/payments")
     public Response listPayments(@PathParam("workspaceId") String workspaceId,
                                   @QueryParam("startDate") LocalDate startDate,
                                   @QueryParam("endDate") LocalDate endDate,
@@ -49,7 +49,7 @@ public class PaymentResource {
     }
 
     @POST
-    @Path("/pay")
+    @Path("/workspaces/{workspaceId}/pay")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createPayment(@PathParam("workspaceId") String workspaceId,
                                   @Valid CreatePaymentRequest request) {
@@ -63,7 +63,7 @@ public class PaymentResource {
     }
 
     @GET
-    @Path("/payments/{paymentId}")
+    @Path("/workspaces/{workspaceId}/payments/{paymentId}")
     public Response getPayment(@PathParam("workspaceId") String workspaceId,
                                @PathParam("paymentId") String paymentId) {
         Optional<Payment> payment = paymentService.findById(paymentId);
@@ -76,7 +76,7 @@ public class PaymentResource {
     }
 
     @PUT
-    @Path("/payments/{paymentId}")
+    @Path("/workspaces/{workspaceId}/payments/{paymentId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updatePayment(@PathParam("workspaceId") String workspaceId,
                                   @PathParam("paymentId") String paymentId,
@@ -92,7 +92,7 @@ public class PaymentResource {
     }
 
     @DELETE
-    @Path("/payments/{paymentId}")
+    @Path("/workspaces/{workspaceId}/payments/{paymentId}")
     public Response deletePayment(@PathParam("workspaceId") String workspaceId,
                                   @PathParam("paymentId") String paymentId) {
         Optional<Payment> existing = paymentService.findById(paymentId);

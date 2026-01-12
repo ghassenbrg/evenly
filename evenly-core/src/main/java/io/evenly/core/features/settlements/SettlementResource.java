@@ -18,7 +18,7 @@ import io.evenly.core.features.settlements.dto.CreateSettlementRequest;
 /**
  * Settlement management endpoints.
  */
-@Path("/api/workspaces/{workspaceId}/settlements")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 @Authenticated
@@ -31,6 +31,7 @@ public class SettlementResource {
     private SecurityContextProvider securityContext;
 
     @GET
+    @Path("/workspaces/{workspaceId}/settlements")
     public Response listSettlements(@PathParam("workspaceId") String workspaceId) {
         List<Settlement> settlements = settlementService.findForWorkspace(workspaceId);
         Map<String, Object> response = new HashMap<>();
@@ -39,6 +40,7 @@ public class SettlementResource {
     }
 
     @POST
+    @Path("/workspaces/{workspaceId}/settlements")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createSettlement(@PathParam("workspaceId") String workspaceId,
                                      @Valid CreateSettlementRequest request) {

@@ -64,6 +64,24 @@
       </NuxtLink>
     </div>
 
+    <!-- Workspace Management -->
+    <div
+      v-if="shouldShowSection('workspace')"
+      class="bg-slate-800 rounded-2xl p-4 space-y-3"
+    >
+      <h2 class="text-white font-semibold text-lg">{{ t('settings.workspace.title') }}</h2>
+      <p class="text-slate-400 text-sm">{{ t('settings.workspace.description') }}</p>
+      <NuxtLink
+        to="/settings/workspace"
+        class="w-full bg-white/5 border border-slate-700 hover:border-emerald-500 text-white font-medium py-3 rounded-xl text-center transition-colors flex items-center justify-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+        {{ t('settings.workspace.manage') }}
+      </NuxtLink>
+    </div>
+
     <!-- Categories Management -->
     <div
       v-if="shouldShowSection('categories')"
@@ -151,6 +169,11 @@ const sections = computed(() => ({
     description: t('settings.pockito.description'),
     keywords: ['pockito', 'wallet', 'transaction', 'subscription', 'money', 'finance', 'ウォレット', '取引', 'サブスクリプション']
   },
+  workspace: {
+    title: t('settings.workspace.title') || 'Workspace Settings',
+    description: t('settings.workspace.description') || 'Manage your current workspace settings, members, and invites',
+    keywords: ['workspace', 'team', 'members', 'invite', 'workspace settings', 'ワークスペース', 'メンバー', '招待']
+  },
   categories: {
     title: t('settings.categories.title'),
     description: t('settings.categories.description'),
@@ -163,7 +186,7 @@ const sections = computed(() => ({
   }
 }))
 
-const shouldShowSection = (sectionKey: 'language' | 'pockito' | 'categories' | 'account') => {
+const shouldShowSection = (sectionKey: 'language' | 'pockito' | 'workspace' | 'categories' | 'account') => {
   if (!searchQuery.value.trim()) {
     return true
   }
@@ -192,6 +215,7 @@ const shouldShowSection = (sectionKey: 'language' | 'pockito' | 'categories' | '
 const hasVisibleSections = computed(() => {
   return shouldShowSection('language') ||
          shouldShowSection('pockito') ||
+         shouldShowSection('workspace') ||
          shouldShowSection('categories') ||
          shouldShowSection('account')
 })

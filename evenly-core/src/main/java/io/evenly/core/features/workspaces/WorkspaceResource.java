@@ -25,7 +25,7 @@ import io.evenly.core.features.workspaces.dto.WorkspaceMember;
 /**
  * Workspace management endpoints.
  */
-@Path("/api/workspaces")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 @Authenticated
@@ -38,6 +38,7 @@ public class WorkspaceResource {
     private SecurityContextProvider securityContext;
 
     @GET
+    @Path("/workspaces")
     public Response listWorkspaces() {
         String userId = securityContext.getUserId()
             .orElseThrow(() -> new SecurityException("User not authenticated"));
@@ -49,6 +50,7 @@ public class WorkspaceResource {
     }
 
     @POST
+    @Path("/workspaces")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createWorkspace(@Valid CreateWorkspaceRequest request) {
         String userId = securityContext.getUserId()
@@ -61,7 +63,7 @@ public class WorkspaceResource {
     }
 
     @GET
-    @Path("/{workspaceId}")
+    @Path("/workspaces/{workspaceId}")
     public Response getWorkspace(@PathParam("workspaceId") String workspaceId) {
         Optional<Workspace> workspace = workspaceService.findById(workspaceId);
         if (workspace.isEmpty()) {
@@ -74,7 +76,7 @@ public class WorkspaceResource {
     }
 
     @PUT
-    @Path("/{workspaceId}")
+    @Path("/workspaces/{workspaceId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateWorkspace(@PathParam("workspaceId") String workspaceId,
                                     @Valid UpdateWorkspaceRequest request) {
@@ -90,7 +92,7 @@ public class WorkspaceResource {
     }
 
     @DELETE
-    @Path("/{workspaceId}")
+    @Path("/workspaces/{workspaceId}")
     public Response deleteWorkspace(@PathParam("workspaceId") String workspaceId) {
         Optional<Workspace> existing = workspaceService.findById(workspaceId);
         if (existing.isEmpty()) {
@@ -109,7 +111,7 @@ public class WorkspaceResource {
     }
 
     @PUT
-    @Path("/{workspaceId}/settings")
+    @Path("/workspaces/{workspaceId}/settings")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateSettings(@PathParam("workspaceId") String workspaceId,
                                    @Valid UpdateWorkspaceSettingsRequest request) {
@@ -125,7 +127,7 @@ public class WorkspaceResource {
     }
 
     @GET
-    @Path("/{workspaceId}/members")
+    @Path("/workspaces/{workspaceId}/members")
     public Response listMembers(@PathParam("workspaceId") String workspaceId) {
         Optional<Workspace> existing = workspaceService.findById(workspaceId);
         if (existing.isEmpty()) {
@@ -139,7 +141,7 @@ public class WorkspaceResource {
     }
 
     @PUT
-    @Path("/{workspaceId}/members/weights")
+    @Path("/workspaces/{workspaceId}/members/weights")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateMemberWeights(@PathParam("workspaceId") String workspaceId,
                                         @Valid UpdateMemberWeightsRequest request) {
