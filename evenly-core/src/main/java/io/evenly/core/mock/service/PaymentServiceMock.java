@@ -1,4 +1,4 @@
-package io.evenly.core.features.payments;
+package io.evenly.core.mock.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -12,17 +12,22 @@ import io.evenly.core.features.auth.dto.User;
 import io.evenly.core.features.payments.dto.CreatePaymentRequest;
 import io.evenly.core.features.payments.dto.Payment;
 import io.evenly.core.features.payments.dto.UpdatePaymentRequest;
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.mock.data.MockDataProvider;
 import io.evenly.core.shared.common.PageInfo;
 import io.evenly.core.shared.common.PaginatedPayments;
 import io.evenly.core.shared.common.SortInfo;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
+import io.evenly.core.features.payments.PaymentService;
 
 /**
- * Mock implementation of PaymentService.
+ \1
+ * Only active when running with the "mock" profile.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class PaymentServiceMock implements PaymentService {
 
     @Inject

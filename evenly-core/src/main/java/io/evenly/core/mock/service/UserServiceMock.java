@@ -1,19 +1,24 @@
-package io.evenly.core.features.auth;
+package io.evenly.core.mock.service;
 
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.features.auth.UserService;
+import io.evenly.core.features.auth.dto.User;
+import io.evenly.core.mock.data.MockDataProvider;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Optional;
-import io.evenly.core.features.auth.dto.User;
 
 /**
  * Mock implementation of UserService.
  * Provides realistic mock data that can be easily swapped with real persistence.
+ * Only active when running with the "mock" profile.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class UserServiceMock implements UserService {
     
     @Inject

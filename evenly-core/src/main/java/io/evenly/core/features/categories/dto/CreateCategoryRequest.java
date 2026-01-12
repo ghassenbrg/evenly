@@ -1,15 +1,11 @@
 package io.evenly.core.features.categories.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
 /**
  * CreateCategoryRequest DTO matching OpenAPI schema.
  */
 public class CreateCategoryRequest {
-    @NotBlank(message = "Name is required")
     private String name;
     
-    @NotBlank(message = "Icon is required")
     private String icon;
     
     private String color;

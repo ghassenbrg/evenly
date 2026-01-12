@@ -433,3 +433,101 @@ Reference data table for supported currencies. This is typically read-only and p
 4. **Partitioning**: For high-volume tables (expenses, payments), consider date-based partitioning
 5. **Full-Text Search**: Consider adding full-text search indexes on note and content fields
 6. **Currency Conversion**: Consider adding exchange rate tracking if multi-currency support is needed
+
+---
+
+## Mock Mode Configuration
+
+The Evenly Core application supports a **mock mode** that uses in-memory mock implementations instead of database-backed services. This is useful for local development, testing, and demos.
+
+### Package Structure
+
+All mock-related code is isolated in dedicated packages:
+
+- `io.evenly.core.mock.data` - Mock data provider (`MockDataProvider`)
+- `io.evenly.core.mock.service` - Mock service implementations
+- `io.evenly.core.mock.config` - Mock profile activation and configuration
+
+### Enabling Mock Mode
+
+Mock mode is controlled by the MicroProfile Config property `mp.config.profile`. Set it to `mock` to enable mock implementations.
+
+#### Via Environment Variable
+
+```bash
+export MP_CONFIG_PROFILE=mock
+```
+
+#### Via System Property
+
+```bash
+java -Dmp.config.profile=mock -jar evenly-core.jar
+```
+
+#### Via Configuration File
+
+Add to `src/main/resources/META-INF/microprofile-config.properties`:
+
+```properties
+mp.config.profile=mock
+```
+
+#### Via Docker Compose
+
+```yaml
+services:
+  evenly-core:
+    environment:
+      MP_CONFIG_PROFILE: mock
+```
+
+### Running in Mock Mode
+
+**Local Development:**
+```bash
+# Set profile and run
+export MP_CONFIG_PROFILE=mock
+mvn exec:java
+```
+
+**With Maven:**
+```bash
+mvn exec:java -Dmp.config.profile=mock
+```
+
+**Production/Default Mode:**
+Simply omit the profile or set it to any value other than `mock`:
+```bash
+# Default mode (uses real database implementations)
+mvn exec:java
+```
+
+### How It Works
+
+1. **Profile Detection**: `MockProfileActivator` checks if `mp.config.profile=mock` is set
+2. **CDI Extension**: `MockProfileExtension` conditionally enables/disables mock beans based on profile
+3. **Service Selection**: Mock services are marked with `@Alternative` and `@Priority`, making them take precedence when enabled
+4. **Data Provider**: `MockDataProvider` is only instantiated when mock profile is active
+
+### Mock Data
+
+The mock implementation provides realistic test data including:
+- Pre-configured users (gbargougui, alice, bob, diana)
+- Multiple workspaces with different configurations
+- Historical expenses, payments, and settlements
+- Categories and currencies
+- Notifications
+
+### Switching Between Modes
+
+- **Mock → Real**: Remove or change `mp.config.profile` from `mock` to any other value
+- **Real → Mock**: Set `mp.config.profile=mock`
+
+The application will automatically use the appropriate implementations based on the active profile.
+
+### Important Notes
+
+- Mock implementations are **never** loaded in production when profile is not `mock`
+- No production code should depend on mock classes (compile-time dependency avoided)
+- Mock data is in-memory and does not persist between restarts
+- All mock services implement the same interfaces as real services, ensuring compatibility

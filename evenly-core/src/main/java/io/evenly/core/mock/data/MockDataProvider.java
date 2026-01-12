@@ -1,4 +1,4 @@
-package io.evenly.core.shared.common;
+package io.evenly.core.mock.data;
 
 import io.evenly.core.features.auth.dto.User;
 import io.evenly.core.features.workspaces.dto.Workspace;
@@ -10,9 +10,6 @@ import io.evenly.core.features.settlements.dto.Settlement;
 import io.evenly.core.features.invites.dto.Invite;
 import io.evenly.core.features.notifications.dto.Notification;
 import io.evenly.core.features.currencies.dto.Currency;
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -22,9 +19,9 @@ import java.util.*;
  * Mock data provider that generates realistic test data.
  * This can be easily swapped with real database-backed implementations.
  * 
- * CDI bean that provides mock data for development and testing.
+ * Only active when running with the "mock" profile.
+ * Instantiated via MockDataProviderProducer when mock profile is active.
  */
-@ApplicationScoped
 public class MockDataProvider {
     
     private final Random random = new Random(42); // Fixed seed for consistency
@@ -46,7 +43,9 @@ public class MockDataProvider {
     
     private final List<Currency> currencies = new ArrayList<>();
     
-    @PostConstruct
+    /**
+     * Initialize mock data. Called by producer after instantiation.
+     */
     public void init() {
         initializeUsers();
         initializeCurrencies();
@@ -699,7 +698,7 @@ public class MockDataProvider {
                     // Sometimes gbargougui receives payment
                     payee = gbargouguiMember;
                     payer = members.stream()
-                        .filter(m -> !"gbargougui".equals(m.getUserId()))
+                        .filter(m -> "gbargougui".equals(m.getUserId()))
                         .findFirst()
                         .orElse(members.get(i % members.size()));
                 }

@@ -1,20 +1,25 @@
-package io.evenly.core.features.categories;
+package io.evenly.core.mock.service;
 
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.features.categories.CategoryService;
+import io.evenly.core.features.categories.dto.Category;
+import io.evenly.core.features.categories.dto.CreateCategoryRequest;
+import io.evenly.core.features.categories.dto.UpdateCategoryRequest;
+import io.evenly.core.mock.data.MockDataProvider;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import io.evenly.core.features.categories.dto.Category;
-import io.evenly.core.features.categories.dto.CreateCategoryRequest;
-import io.evenly.core.features.categories.dto.UpdateCategoryRequest;
 
 /**
  * Mock implementation of CategoryService.
+ * Only active when running with the "mock" profile.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class CategoryServiceMock implements CategoryService {
     
     @Inject

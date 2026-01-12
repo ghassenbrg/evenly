@@ -1,4 +1,4 @@
-package io.evenly.core.features.balance;
+package io.evenly.core.mock.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,24 +9,32 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import io.evenly.core.features.analytics.dto.BalanceSummary;
+import io.evenly.core.features.balance.BalanceService;
 import io.evenly.core.features.balance.dto.Balance;
 import io.evenly.core.features.balance.dto.SettleUpMember;
 import io.evenly.core.features.balance.dto.SettleUpResponse;
 import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.workspaces.dto.Workspace;
 import io.evenly.core.features.workspaces.dto.WorkspaceMember;
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.mock.config.MockProfileActivator;
+import io.evenly.core.mock.data.MockDataProvider;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 /**
- * Mock implementation of BalanceService.s
+ * Mock implementation of BalanceService.
+ * Only active when running with the "mock" profile.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class BalanceServiceMock implements BalanceService {
 
     @Inject
     private MockDataProvider mockDataProvider;
+
 
     @Override
     public List<Balance> getBalanceForWorkspace(String workspaceId) {

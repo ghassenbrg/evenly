@@ -63,19 +63,19 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
             }
         }
 
-        // Log the exception at appropriate level
+        // Log the exception at appropriate level with full stack trace
         if (statusCode >= 500) {
             // Server errors - log with full stack trace
             logger.error("Internal server error ({}): {}", statusCode, errorMessage, exception);
         } else if (statusCode == 404) {
-            // Not found - log at debug level to avoid spam
-            logger.debug("Resource not found: {}", errorMessage);
+            // Not found - log at debug level with stack trace to avoid spam but keep details
+            logger.debug("Resource not found: {}", errorMessage, exception);
         } else if (statusCode == 401 || statusCode == 403) {
-            // Authentication/authorization errors - log at info level
-            logger.info("Authentication/authorization error ({}): {}", statusCode, errorMessage);
+            // Authentication/authorization errors - log at info level with stack trace
+            logger.info("Authentication/authorization error ({}): {}", statusCode, errorMessage, exception);
         } else {
-            // Other client errors - log at warn level
-            logger.warn("Client error ({}): {}", statusCode, errorMessage);
+            // Other client errors - log at warn level with stack trace
+            logger.warn("Client error ({}): {}", statusCode, errorMessage, exception);
         }
 
         // Generate trace ID for error tracking

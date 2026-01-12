@@ -1,4 +1,4 @@
-package io.evenly.core.features.expenses;
+package io.evenly.core.mock.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -13,17 +13,22 @@ import io.evenly.core.features.categories.dto.Category;
 import io.evenly.core.features.expenses.dto.CreateExpenseRequest;
 import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.expenses.dto.UpdateExpenseRequest;
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.mock.data.MockDataProvider;
 import io.evenly.core.shared.common.PageInfo;
 import io.evenly.core.shared.common.PaginatedExpenses;
 import io.evenly.core.shared.common.SortInfo;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
+import io.evenly.core.features.expenses.ExpenseService;
 
 /**
- * Mock implementation of ExpenseService.
+ \1
+ * Only active when running with the "mock" profile.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class ExpenseServiceMock implements ExpenseService {
 
     @Inject

@@ -65,21 +65,9 @@ public class UserResource {
         String mockToken = "mock-jwt-token-" + userId;
         
         // Create user using service
-        User user;
-        if (userService instanceof io.evenly.core.features.auth.UserServiceMock) {
-            user = ((io.evenly.core.features.auth.UserServiceMock) userService).create(
-                userId,
-                request.getEmail(),
-                request.getUsername(),
-                request.getDisplayName(),
-                request.getPreferredCurrency()
-            );
-        } else {
-            // Fallback to getOrCreate if not using mock service
-            user = userService.getOrCreate(userId, request.getEmail(), request.getUsername());
-            user.setDisplayName(request.getDisplayName());
-            user.setPreferredCurrency(request.getPreferredCurrency() != null ? request.getPreferredCurrency() : "USD");
-        }
+        User user = userService.getOrCreate(userId, request.getEmail(), request.getUsername());
+        user.setDisplayName(request.getDisplayName());
+        user.setPreferredCurrency(request.getPreferredCurrency() != null ? request.getPreferredCurrency() : "USD");
         
         AuthResponse authResponse = new AuthResponse(mockToken, user);
         return Response.ok(authResponse).build();

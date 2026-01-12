@@ -1,5 +1,6 @@
 package io.evenly.core.domain;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,11 +13,19 @@ import java.util.UUID;
  * Maps to the 'expense_participants' table in the database.
  * This is a junction entity for the many-to-many relationship between expenses and users.
  */
+@Entity
+@Table(name = "expense_participants")
+@IdClass(ExpenseParticipantId.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExpenseParticipant {
+    @Id
+    @Column(name = "expense_id", columnDefinition = "UUID")
     private UUID expenseId;
-    private UUID userId;
+    
+    @Id
+    @Column(name = "user_id", nullable = false, length = 100)
+    private String userId; // Changed to String (username)
 }

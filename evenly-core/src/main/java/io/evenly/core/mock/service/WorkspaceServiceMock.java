@@ -1,4 +1,4 @@
-package io.evenly.core.features.workspaces;
+package io.evenly.core.mock.service;
 
 import io.evenly.core.features.auth.dto.User;
 import io.evenly.core.features.workspaces.dto.Workspace;
@@ -7,19 +7,24 @@ import io.evenly.core.features.workspaces.dto.CreateWorkspaceRequest;
 import io.evenly.core.features.workspaces.dto.UpdateWorkspaceRequest;
 import io.evenly.core.features.workspaces.dto.UpdateWorkspaceSettingsRequest;
 import io.evenly.core.features.workspaces.dto.UpdateMemberWeightsRequest;
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.mock.data.MockDataProvider;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import io.evenly.core.features.workspaces.WorkspaceService;
 
 /**
- * Mock implementation of WorkspaceService.
+ \1
+ * Only active when running with the "mock" profile.
  * Provides realistic mock data and business logic that can be easily swapped with real persistence.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class WorkspaceServiceMock implements WorkspaceService {
     
     @Inject

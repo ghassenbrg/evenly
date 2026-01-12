@@ -179,12 +179,12 @@ public class JwtAuthFilter implements ContainerRequestFilter {
             }
 
             // Set security context with user information
-            // Use preferred_username as user ID (subject may be null in some Keycloak tokens)
+            // Use preferred_username as user ID (since username is now the primary key)
             String username = claimsSet.getStringClaim("preferred_username");
-            String userId = claimsSet.getSubject();
-            // If subject is null, use preferred_username as the user ID
+            String userId = username; // Use username directly as userId (username is now the primary key)
+            // Fallback to subject if preferred_username is not available
             if (userId == null || userId.trim().isEmpty()) {
-                userId = username;
+                userId = claimsSet.getSubject();
             }
             String email = claimsSet.getStringClaim("email");
             

@@ -1,7 +1,8 @@
-package io.evenly.core.features.invites;
+package io.evenly.core.mock.service;
 
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.mock.data.MockDataProvider;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 import java.time.OffsetDateTime;
@@ -10,11 +11,15 @@ import java.util.List;
 import java.util.UUID;
 import io.evenly.core.features.invites.dto.Invite;
 import io.evenly.core.features.invites.dto.CreateInviteRequest;
+import io.evenly.core.features.invites.InviteService;
 
 /**
- * Mock implementation of InviteService.
+ \1
+ * Only active when running with the "mock" profile.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class InviteServiceMock implements InviteService {
     
     @Inject

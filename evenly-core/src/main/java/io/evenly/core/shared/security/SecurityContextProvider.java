@@ -39,11 +39,12 @@ public class SecurityContextProvider {
             if (claimsObj instanceof JWTClaimsSet) {
                 try {
                     JWTClaimsSet claims = (JWTClaimsSet) claimsObj;
-                    String sub = claims.getSubject();
-                    if (sub == null || sub.trim().isEmpty()) {
-                        sub = claims.getStringClaim("preferred_username");
+                    // Use preferred_username as userId (username is now the primary key)
+                    String username = claims.getStringClaim("preferred_username");
+                    if (username == null || username.trim().isEmpty()) {
+                        username = claims.getSubject(); // Fallback to subject
                     }
-                    userId = sub;
+                    userId = username;
                 } catch (ParseException e) {
                     logger.debug("Error reading user ID from JWT claims", e);
                 } catch (Exception e) {

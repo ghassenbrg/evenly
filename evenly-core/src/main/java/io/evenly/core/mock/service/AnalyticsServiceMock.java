@@ -1,9 +1,10 @@
-package io.evenly.core.features.analytics;
+package io.evenly.core.mock.service;
 
 import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.workspaces.dto.Workspace;
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.mock.data.MockDataProvider;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 import java.math.BigDecimal;
@@ -15,11 +16,15 @@ import io.evenly.core.features.analytics.dto.ExpenseSnapshotResponse;
 import io.evenly.core.features.analytics.dto.ExpenseSnapshotItem;
 import io.evenly.core.features.analytics.dto.ExpenseSummary;
 import io.evenly.core.features.analytics.dto.LinearChartDataPoint;
+import io.evenly.core.features.analytics.AnalyticsService;
 
 /**
- * Mock implementation of AnalyticsService.
+ \1
+ * Only active when running with the "mock" profile.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class AnalyticsServiceMock implements AnalyticsService {
     
     @Inject

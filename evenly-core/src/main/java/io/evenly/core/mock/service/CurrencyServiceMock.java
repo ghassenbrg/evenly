@@ -1,16 +1,21 @@
-package io.evenly.core.features.currencies;
+package io.evenly.core.mock.service;
 
-import io.evenly.core.shared.common.MockDataProvider;
+import io.evenly.core.features.currencies.CurrencyService;
+import io.evenly.core.features.currencies.dto.Currency;
+import io.evenly.core.mock.data.MockDataProvider;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 import java.util.List;
-import io.evenly.core.features.currencies.dto.Currency;
 
 /**
  * Mock implementation of CurrencyService.
+ * Only active when running with the "mock" profile.
  */
+@Alternative
 @ApplicationScoped
+@jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class CurrencyServiceMock implements CurrencyService {
     
     @Inject
