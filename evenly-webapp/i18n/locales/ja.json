@@ -125,6 +125,7 @@
     "deleted": "ワークスペースを正常に削除しました",
     "deleteFailed": "ワークスペースの削除に失敗しました",
     "personalWorkspaceNote": "個人ワークスペースは変更または削除できません。",
+    "mySpace": "マイスペース",
     "members": "メンバー",
     "noMembers": "メンバーなし",
     "owner": "オーナー",

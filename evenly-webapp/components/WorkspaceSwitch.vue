@@ -4,7 +4,7 @@
       @click="showMenu = !showMenu"
       class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
     >
-      <span class="text-sm font-medium max-w-[120px] truncate">{{ activeWorkspace?.name || t('workspace.noWorkspace') }}</span>
+      <span class="text-sm font-medium max-w-[120px] truncate">{{ activeWorkspace?.isPersonal ? t('workspace.mySpace') : (activeWorkspace?.name || t('workspace.noWorkspace')) }}</span>
       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
@@ -32,7 +32,7 @@
             >
               <div class="flex-1 min-w-0">
                 <div class="flex items-center space-x-2">
-                  <p class="text-white font-medium truncate">{{ workspace.name }}</p>
+                  <p class="text-white font-medium truncate">{{ workspace.isPersonal ? t('workspace.mySpace') : workspace.name }}</p>
                   <span
                     v-if="workspace.isPersonal"
                     class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full"

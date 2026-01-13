@@ -72,8 +72,17 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
   }
 
   const updateWorkspaceSettings = async (id: string, data: UpdateWorkspaceSettingsRequest) => {
+    // For personal workspaces, only allow updating monthlySharedLimit
     if (isPersonalWorkspace(id)) {
-      throw new Error('Cannot modify personal workspace settings')
+      const personalData: UpdateWorkspaceSettingsRequest = {
+        monthlySharedLimit: data.monthlySharedLimit
+      }
+      const workspace = await api.put<Workspace>(`/api/workspaces/${id}/settings`, personalData)
+      const index = workspaces.value.findIndex(w => w.id === id)
+      if (index !== -1) {
+        workspaces.value[index] = workspace
+      }
+      return workspace
     }
     const workspace = await api.put<Workspace>(`/api/workspaces/${id}/settings`, data)
     const index = workspaces.value.findIndex(w => w.id === id)

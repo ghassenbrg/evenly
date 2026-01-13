@@ -125,6 +125,7 @@
     "deleted": "Workspace deleted successfully",
     "deleteFailed": "Failed to delete workspace",
     "personalWorkspaceNote": "Personal workspaces cannot be modified or deleted.",
+    "mySpace": "My space",
     "members": "Members",
     "noMembers": "No members",
     "owner": "Owner",

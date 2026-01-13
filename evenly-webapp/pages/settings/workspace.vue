@@ -6,9 +6,9 @@
       <div class="space-y-2">
         <div>
           <p class="text-slate-400 text-sm">{{ t('workspace.name') }}</p>
-          <p class="text-white font-medium">{{ workspace.name }}</p>
+          <p class="text-white font-medium">{{ workspace.isPersonal ? t('workspace.mySpace') : workspace.name }}</p>
         </div>
-        <div>
+        <div v-if="!workspace.isPersonal">
           <p class="text-slate-400 text-sm">{{ t('workspace.splitMode') }}</p>
           <p class="text-white font-medium">
             {{ workspace.defaultSplitMode === 'EQUAL' ? t('workspace.splitModeEqual') : t('workspace.splitModeWeighted') }}
@@ -28,7 +28,8 @@
     <!-- Edit Workspace Sheet -->
     <BottomSheet :model-value="showEditSheet" @update:model-value="showEditSheet = $event" :title="t('workspace.edit')">
       <form @submit.prevent="handleUpdate" class="space-y-4">
-        <div>
+        <!-- Name field - only for non-personal workspaces -->
+        <div v-if="!workspace?.isPersonal">
           <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.name') }}</label>
           <input
             v-model="editForm.name"
@@ -39,7 +40,8 @@
           />
         </div>
 
-        <div>
+        <!-- Split Mode field - only for non-personal workspaces -->
+        <div v-if="!workspace?.isPersonal">
           <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('workspace.splitMode') }}</label>
           <div class="grid grid-cols-2 gap-3">
             <button
@@ -61,6 +63,7 @@
           </div>
         </div>
 
+        <!-- Budget Limit - shown for all workspaces -->
         <div>
           <AmountInput
             v-model="editForm.monthlySharedLimit"
@@ -92,8 +95,8 @@
     </BottomSheet>
 
     <!-- Actions -->
-    <div v-if="workspace && !workspace.isPersonal" class="space-y-3">
-      <!-- Edit Button -->
+    <div v-if="workspace" class="space-y-3">
+      <!-- Edit Button - shown for all workspaces -->
       <button
         @click="openEditSheet"
         class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-xl transition-colors"
@@ -101,8 +104,8 @@
         {{ t('workspace.edit') }}
       </button>
 
-      <!-- Members Section -->
-      <div class="bg-slate-800 rounded-2xl p-4 space-y-3">
+      <!-- Members Section - only for non-personal workspaces -->
+      <div v-if="!workspace.isPersonal" class="bg-slate-800 rounded-2xl p-4 space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-white font-semibold">{{ t('workspace.members') }}</h3>
           <button
@@ -134,8 +137,8 @@
         </div>
       </div>
 
-      <!-- Invite Section -->
-      <div class="bg-slate-800 rounded-2xl p-4 space-y-3">
+      <!-- Invite Section - only for non-personal workspaces -->
+      <div v-if="!workspace.isPersonal" class="bg-slate-800 rounded-2xl p-4 space-y-3">
         <h3 class="text-white font-semibold">{{ t('workspace.invite') }}</h3>
         <p class="text-slate-400 text-sm">{{ t('workspace.inviteDescription') }}</p>
         <button
@@ -202,8 +205,9 @@
         </template>
       </BottomSheet>
 
-      <!-- Delete Button -->
+      <!-- Delete Button - only for non-personal workspaces -->
       <button
+        v-if="!workspace.isPersonal"
         @click="showDeleteConfirm = true"
         class="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-xl transition-colors"
       >
@@ -303,10 +307,6 @@
       </template>
     </BottomSheet>
 
-    <!-- Personal Workspace Message -->
-    <div v-if="workspace?.isPersonal" class="bg-slate-800 rounded-2xl p-4">
-      <p class="text-slate-400 text-sm">{{ t('workspace.personalWorkspaceNote') }}</p>
-    </div>
   </div>
 </template>
 
@@ -375,7 +375,7 @@ watch(workspace, async (newWorkspace) => {
 const openEditSheet = () => {
   if (!workspace.value) return
   editForm.value = {
-    name: workspace.value.name,
+    name: workspace.value.isPersonal ? t('workspace.mySpace') : workspace.value.name,
     defaultSplitMode: workspace.value.defaultSplitMode as 'EQUAL' | 'WEIGHTED',
     monthlySharedLimit: workspace.value.monthlySharedLimit
   }
@@ -387,10 +387,15 @@ const handleUpdate = async () => {
 
   try {
     updateLoading.value = true
-    const payload = {
-      ...editForm.value,
-      monthlySharedLimit: editForm.value.monthlySharedLimit === 0 ? null : editForm.value.monthlySharedLimit
-    }
+    // For personal workspaces, only send monthlySharedLimit
+    const payload: UpdateWorkspaceSettingsRequest = workspace.value.isPersonal
+      ? {
+          monthlySharedLimit: editForm.value.monthlySharedLimit === 0 ? null : editForm.value.monthlySharedLimit
+        }
+      : {
+          ...editForm.value,
+          monthlySharedLimit: editForm.value.monthlySharedLimit === 0 ? null : editForm.value.monthlySharedLimit
+        }
     await workspacesStore.updateWorkspaceSettings(workspace.value.id, payload)
     success(t('workspace.updated'))
     showEditSheet.value = false
