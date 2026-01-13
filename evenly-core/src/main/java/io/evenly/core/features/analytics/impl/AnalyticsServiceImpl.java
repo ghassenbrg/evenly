@@ -12,6 +12,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -96,7 +97,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             ? java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1
             : 1;
         
-        BigDecimal averagePerDay = totalAmount.divide(BigDecimal.valueOf(days), 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal averagePerDay = totalAmount.divide(BigDecimal.valueOf(days), 2, RoundingMode.HALF_UP);
         
         BigDecimal largestExpenseAmount = BigDecimal.ZERO;
         for (io.evenly.core.domain.Expense expense : expenses) {

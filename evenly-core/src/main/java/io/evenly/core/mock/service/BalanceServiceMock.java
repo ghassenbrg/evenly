@@ -16,9 +16,7 @@ import io.evenly.core.features.balance.dto.SettleUpResponse;
 import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.workspaces.dto.Workspace;
 import io.evenly.core.features.workspaces.dto.WorkspaceMember;
-import io.evenly.core.mock.config.MockProfileActivator;
 import io.evenly.core.mock.data.MockDataProvider;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
@@ -34,7 +32,6 @@ public class BalanceServiceMock implements BalanceService {
 
     @Inject
     private MockDataProvider mockDataProvider;
-
 
     @Override
     public List<Balance> getBalanceForWorkspace(String workspaceId) {

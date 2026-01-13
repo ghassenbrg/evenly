@@ -1,5 +1,11 @@
 package io.evenly.core.mock.service;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import io.evenly.core.features.categories.CategoryService;
 import io.evenly.core.features.categories.dto.Category;
 import io.evenly.core.features.categories.dto.CreateCategoryRequest;
@@ -9,10 +15,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
 /**
  * Mock implementation of CategoryService.
  * Only active when running with the "mock" profile.
@@ -21,20 +23,20 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 @jakarta.annotation.Priority(jakarta.interceptor.Interceptor.Priority.APPLICATION)
 public class CategoryServiceMock implements CategoryService {
-    
+
     @Inject
     private MockDataProvider mockDataProvider;
-    
+
     @Override
     public List<Category> findAllGlobal() {
         return mockDataProvider.getGlobalCategories();
     }
-    
+
     @Override
     public List<Category> findAllForWorkspace(String workspaceId) {
         return mockDataProvider.getWorkspaceCategories().getOrDefault(workspaceId, new ArrayList<>());
     }
-    
+
     @Override
     public Optional<Category> findById(String categoryId) {
         // Check global categories
@@ -53,7 +55,7 @@ public class CategoryServiceMock implements CategoryService {
         }
         return Optional.empty();
     }
-    
+
     @Override
     public Category createGlobal(CreateCategoryRequest request) {
         Category category = new Category();
@@ -69,7 +71,7 @@ public class CategoryServiceMock implements CategoryService {
         mockDataProvider.getGlobalCategories().add(category);
         return category;
     }
-    
+
     @Override
     public Category createForWorkspace(String workspaceId, CreateCategoryRequest request) {
         Category category = new Category();
@@ -80,14 +82,15 @@ public class CategoryServiceMock implements CategoryService {
         category.setIcon(request.getIcon());
         category.setColor(request.getColor() != null ? request.getColor() : "#85C1E2");
         category.setIsActive(true);
-        List<Category> categories = mockDataProvider.getWorkspaceCategories().computeIfAbsent(workspaceId, k -> new ArrayList<>());
+        List<Category> categories = mockDataProvider.getWorkspaceCategories().computeIfAbsent(workspaceId,
+                k -> new ArrayList<>());
         category.setSortOrder(categories.size() + 1);
         category.setCreatedAt(OffsetDateTime.now());
         category.setUpdatedAt(OffsetDateTime.now());
         categories.add(category);
         return category;
     }
-    
+
     @Override
     public Category update(String categoryId, UpdateCategoryRequest request) {
         Optional<Category> optCategory = findById(categoryId);
@@ -95,7 +98,7 @@ public class CategoryServiceMock implements CategoryService {
             throw new RuntimeException("Category not found");
         }
         Category category = optCategory.get();
-        
+
         if (request.getName() != null) {
             category.setName(request.getName());
             category.setSlug(request.getName().toLowerCase().replace(" ", "-"));
@@ -113,22 +116,22 @@ public class CategoryServiceMock implements CategoryService {
             category.setSortOrder(request.getSortOrder());
         }
         category.setUpdatedAt(OffsetDateTime.now());
-        
+
         return category;
     }
-    
+
     @Override
     public void delete(String categoryId) {
         Optional<Category> optCategory = findById(categoryId);
         if (optCategory.isEmpty()) {
             throw new RuntimeException("Category not found");
         }
-        
+
         // Remove from global
         mockDataProvider.getGlobalCategories().removeIf(c -> c.getId().equals(categoryId));
-        
+
         // Remove from workspace categories
-        mockDataProvider.getWorkspaceCategories().values().forEach(categories -> 
-            categories.removeIf(c -> c.getId().equals(categoryId)));
+        mockDataProvider.getWorkspaceCategories().values()
+                .forEach(categories -> categories.removeIf(c -> c.getId().equals(categoryId)));
     }
 }
