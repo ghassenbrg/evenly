@@ -7,8 +7,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @ApplicationScoped
 public class UserServiceImpl implements UserService {
@@ -36,6 +36,9 @@ public class UserServiceImpl implements UserService {
                     .username(username)
                     .displayName(username) // Default to username
                     .preferredCurrency(SupportedCurrency.USD) // Default currency
+                    .locale("en-US") // Default locale
+                    .timezone("UTC") // Default timezone
+                    .createdAt(OffsetDateTime.now()) // Set creation timestamp
                     .build();
                 
                 newUser = userRepository.save(newUser);
@@ -51,8 +54,9 @@ public class UserServiceImpl implements UserService {
         dto.setDisplayName(domain.getDisplayName());
         dto.setAvatarUrl(domain.getAvatarUrl());
         dto.setPreferredCurrency(domain.getPreferredCurrency() != null ? domain.getPreferredCurrency().getCode() : null);
-        dto.setLocale(domain.getLocale());
-        dto.setTimezone(domain.getTimezone());
+        dto.setLocale(domain.getLocale() != null ? domain.getLocale() : "en-US");
+        dto.setTimezone(domain.getTimezone() != null ? domain.getTimezone() : "UTC");
+        dto.setCreatedAt(domain.getCreatedAt() != null ? domain.getCreatedAt() : OffsetDateTime.now());
         return dto;
     }
 }

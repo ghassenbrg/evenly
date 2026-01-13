@@ -1,5 +1,6 @@
 package io.evenly.core.features.invites;
 
+import io.evenly.core.shared.security.Authenticated;
 import io.evenly.core.shared.security.SecurityContextProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -13,11 +14,12 @@ import java.util.Map;
 import io.evenly.core.features.invites.dto.JoinInviteRequest;
 
 /**
- * Join workspace via invite endpoint (no authentication required).
+ * Join workspace via invite endpoint (authentication required).
  */
 @Path("/api/invites")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
+@Authenticated
 public class JoinInviteResource {
 
     @Inject

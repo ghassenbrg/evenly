@@ -12,6 +12,8 @@ public class Workspace {
     private Double monthlySharedLimit;
     private Boolean isPersonal;
     private String currency;
+    private String inviteCode;
+    private String inviteLink;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
@@ -88,5 +90,21 @@ public class Workspace {
 
     public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getInviteCode() {
+        return inviteCode;
+    }
+
+    public void setInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+    }
+
+    public String getInviteLink() {
+        return inviteLink;
+    }
+
+    public void setInviteLink(String inviteLink) {
+        this.inviteLink = inviteLink;
     }
 }

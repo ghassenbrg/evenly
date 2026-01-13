@@ -38,6 +38,9 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     @Inject
     private io.evenly.core.domain.repository.WorkspaceRepository workspaceRepository;
 
+    @Inject
+    private io.evenly.core.domain.repository.WorkspaceMemberRepository workspaceMemberRepository;
+
     @Override
     @Transactional(Transactional.TxType.SUPPORTS)
     public PaginatedExpenses findForWorkspace(String workspaceId, LocalDate startDate, LocalDate endDate,
@@ -117,9 +120,15 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         expense = expenseRepository.save(expense);
 
         // Handle participants - if none specified, add all workspace members
-        List<String> participantIds = request.getParticipantIds() != null && !request.getParticipantIds().isEmpty()
-                ? request.getParticipantIds() // participantIds are now usernames (String)
-                : List.of(); // TODO: Get all workspace members if empty
+        List<String> participantIds;
+        if (request.getParticipantIds() != null && !request.getParticipantIds().isEmpty()) {
+            participantIds = request.getParticipantIds(); // participantIds are now usernames (String)
+        } else {
+            // Get all workspace members if empty
+            participantIds = workspaceMemberRepository.findByWorkspaceId(workspaceUuid).stream()
+                    .map(io.evenly.core.domain.WorkspaceMember::getUserId)
+                    .collect(Collectors.toList());
+        }
 
         for (String participantId : participantIds) {
             ExpenseParticipant participant = ExpenseParticipant.builder()
@@ -173,7 +182,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         dto.setEffectiveDate(domain.getEffectiveDate());
         dto.setNote(domain.getNote());
         dto.setPaidByUserId(domain.getPaidByUserId()); // userId is now String, no need to convert
-        dto.setStatus("ACTIVE"); // TODO: Remove status field from schema
+        // Status field removed from schema
 
         if (domain.getCategoryId() != null) {
             dto.setCategoryId(domain.getCategoryId().toString());

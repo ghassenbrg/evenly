@@ -70,8 +70,29 @@ public class WorkspaceResource {
             throw new NotFoundException("Workspace not found");
         }
         
+        // Get members for this workspace
+        List<WorkspaceMember> members = workspaceService.findMembers(workspaceId);
+        
+        // Create response with workspace data and members
+        Map<String, Object> workspaceData = new HashMap<>();
+        workspaceData.put("id", workspace.get().getId());
+        workspaceData.put("name", workspace.get().getName());
+        workspaceData.put("defaultSplitMode", workspace.get().getDefaultSplitMode());
+        workspaceData.put("monthlySharedLimit", workspace.get().getMonthlySharedLimit());
+        workspaceData.put("isPersonal", workspace.get().getIsPersonal());
+        workspaceData.put("currency", workspace.get().getCurrency());
+        workspaceData.put("inviteCode", workspace.get().getInviteCode());
+        workspaceData.put("inviteLink", workspace.get().getInviteLink());
+        if (workspace.get().getCreatedAt() != null) {
+            workspaceData.put("createdAt", workspace.get().getCreatedAt());
+        }
+        if (workspace.get().getUpdatedAt() != null) {
+            workspaceData.put("updatedAt", workspace.get().getUpdatedAt());
+        }
+        workspaceData.put("members", members);
+        
         Map<String, Object> response = new HashMap<>();
-        response.put("workspace", workspace.get());
+        response.put("data", workspaceData);
         return Response.ok(response).build();
     }
 

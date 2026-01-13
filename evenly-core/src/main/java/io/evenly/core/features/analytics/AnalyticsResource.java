@@ -50,7 +50,9 @@ public class AnalyticsResource {
             .orElseThrow(() -> new SecurityException("User not authenticated"));
         
         BalanceSummary summary = analyticsService.getBalanceSummary(workspaceId, userId, startDate, endDate);
-        return Response.ok(summary).build();
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", summary);
+        return Response.ok(response).build();
     }
 
     @GET
@@ -97,7 +99,7 @@ public class AnalyticsResource {
                                         @QueryParam("startDate") LocalDate startDate,
                                         @QueryParam("endDate") LocalDate endDate) {
         String userId = securityContext.getUserId()
-                .orElseThrow(() -> new SecurityException("User not authenticated"));
+            .orElseThrow(() -> new SecurityException("User not authenticated"));
         
         // Check workspace membership
         UUID workspaceUuid = UUID.fromString(workspaceId);
@@ -106,6 +108,8 @@ public class AnalyticsResource {
         }
         
         ExpenseSummary summary = analyticsService.getExpensesSummary(workspaceId, startDate, endDate);
-        return Response.ok(summary).build();
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", summary);
+        return Response.ok(response).build();
     }
 }

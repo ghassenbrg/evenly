@@ -2,8 +2,10 @@ package io.evenly.core.features.workspaces.impl;
 
 import io.evenly.core.domain.Workspace;
 import io.evenly.core.domain.WorkspaceMember;
+import io.evenly.core.domain.Invite;
 import io.evenly.core.domain.repository.WorkspaceMemberRepository;
 import io.evenly.core.domain.repository.WorkspaceRepository;
+import io.evenly.core.domain.repository.InviteRepository;
 import io.evenly.core.features.workspaces.dto.CreateWorkspaceRequest;
 import io.evenly.core.features.workspaces.dto.UpdateWorkspaceRequest;
 import io.evenly.core.features.workspaces.dto.UpdateWorkspaceSettingsRequest;
@@ -12,6 +14,7 @@ import io.evenly.core.shared.exception.ConflictException;
 import io.evenly.core.shared.exception.NotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 /**
  * Service implementation for workspace operations.
@@ -33,6 +37,9 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
 
     @Inject
     private WorkspaceMemberRepository workspaceMemberRepository;
+
+    @Inject
+    private InviteRepository inviteRepository;
 
     @Override
     public List<io.evenly.core.features.workspaces.dto.Workspace> findAllForUser(String userId) { // userId is now username (String)
@@ -50,6 +57,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
     }
 
     @Override
+    @Transactional
     public io.evenly.core.features.workspaces.dto.Workspace create(String userId, CreateWorkspaceRequest request) { // userId is now username (String)
         // Business rule: Validate split mode
         if (!"EQUAL".equals(request.getDefaultSplitMode()) && !"WEIGHTED".equals(request.getDefaultSplitMode())) {
@@ -98,6 +106,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
     }
 
     @Override
+    @Transactional
     public io.evenly.core.features.workspaces.dto.Workspace update(String workspaceId, UpdateWorkspaceRequest request) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         Workspace workspace = workspaceRepository.findById(workspaceUuid)
@@ -115,30 +124,30 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
             }
         }
 
-        workspace = Workspace.builder()
-            .id(workspace.getId())
-            .name(request.getName() != null ? request.getName() : workspace.getName())
-            .defaultSplitMode(request.getDefaultSplitMode() != null ? request.getDefaultSplitMode() : workspace.getDefaultSplitMode())
-            .monthlySharedLimit(monthlyLimit)
-            .isPersonal(workspace.getIsPersonal())
-            .currency(workspace.getCurrency())
-            .createdAt(workspace.getCreatedAt())
-            .updatedAt(OffsetDateTime.now())
-            .build();
-
         // Business rule: Validate monthly limit if provided
-        if (workspace.getMonthlySharedLimit() != null && workspace.getMonthlySharedLimit().compareTo(BigDecimal.ZERO) <= 0) {
+        if (monthlyLimit != null && monthlyLimit.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Monthly shared limit must be positive");
         }
+
+        // Update the existing entity directly (keeps it managed by EntityManager)
+        if (request.getName() != null) {
+            workspace.setName(request.getName());
+        }
+        if (request.getDefaultSplitMode() != null) {
+            workspace.setDefaultSplitMode(request.getDefaultSplitMode());
+        }
+        workspace.setMonthlySharedLimit(monthlyLimit);
+        workspace.setUpdatedAt(OffsetDateTime.now());
 
         workspace = workspaceRepository.save(workspace);
         return toDto(workspace);
     }
 
     @Override
+    @Transactional
     public void delete(String workspaceId) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
-        Workspace workspace = workspaceRepository.findById(workspaceUuid)
+        workspaceRepository.findById(workspaceUuid)
             .orElseThrow(() -> new NotFoundException("Workspace not found"));
 
         // Business rule: Cannot delete workspace with expenses or payments
@@ -153,6 +162,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
     }
 
     @Override
+    @Transactional
     public io.evenly.core.features.workspaces.dto.Workspace updateSettings(String workspaceId, UpdateWorkspaceSettingsRequest request) {
         UpdateWorkspaceRequest updateRequest = new UpdateWorkspaceRequest();
         updateRequest.setName(request.getName());
@@ -174,6 +184,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
     }
 
     @Override
+    @Transactional
     public io.evenly.core.features.workspaces.dto.Workspace createPersonalWorkspace(String userId, String currency) { // userId is now username (String)
         UUID workspaceUuid = UUID.randomUUID();
         
@@ -209,12 +220,11 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
     }
 
     @Override
+    @Transactional
     public void updateMemberWeights(String workspaceId, UpdateMemberWeightsRequest request) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         workspaceRepository.findById(workspaceUuid)
             .orElseThrow(() -> new NotFoundException("Workspace not found"));
-
-        List<WorkspaceMember> members = workspaceMemberRepository.findByWorkspaceId(workspaceUuid);
         
         // Business rule: Validate weight percentages sum to 100
         BigDecimal totalWeight = request.getWeights().stream()
@@ -236,16 +246,11 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
                 ? BigDecimal.valueOf(weight.getPersonalMonthlyLimit()) 
                 : null;
             
-            WorkspaceMember updated = WorkspaceMember.builder()
-                .workspaceId(member.getWorkspaceId())
-                .userId(member.getUserId())
-                .role(member.getRole())
-                .weightPercent(weightPercent)
-                .personalMonthlyLimit(personalLimit)
-                .joinedAt(member.getJoinedAt())
-                .build();
+            // Update the existing entity directly (keeps it managed by EntityManager)
+            member.setWeightPercent(weightPercent);
+            member.setPersonalMonthlyLimit(personalLimit);
 
-            workspaceMemberRepository.save(updated);
+            workspaceMemberRepository.save(member);
         }
     }
 
@@ -259,6 +264,33 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
         dto.setCurrency(workspace.getCurrency() != null ? workspace.getCurrency().getCode() : null);
         dto.setCreatedAt(workspace.getCreatedAt());
         dto.setUpdatedAt(workspace.getUpdatedAt());
+        
+        // Get the most recent active invite for this workspace
+        List<Invite> invites = inviteRepository.findByWorkspaceId(workspace.getId());
+        Optional<Invite> activeInvite = invites.stream()
+            .filter(invite -> {
+                // Check if invite is not expired
+                if (invite.getExpiresAt() != null && invite.getExpiresAt().isBefore(OffsetDateTime.now())) {
+                    return false;
+                }
+                // Check if invite hasn't reached max uses
+                if (invite.getMaxUses() != null && invite.getUsesCount() >= invite.getMaxUses()) {
+                    return false;
+                }
+                return true;
+            })
+            .max(Comparator.comparing(Invite::getCreatedAt));
+        
+        if (activeInvite.isPresent()) {
+            String code = activeInvite.get().getCode();
+            dto.setInviteCode(code);
+            // Generate invite link - using localhost:3000 as base URL (can be made configurable)
+            dto.setInviteLink("https://localhost:3000/workspace/join/" + code);
+        } else {
+            dto.setInviteCode(null);
+            dto.setInviteLink(null);
+        }
+        
         return dto;
     }
 

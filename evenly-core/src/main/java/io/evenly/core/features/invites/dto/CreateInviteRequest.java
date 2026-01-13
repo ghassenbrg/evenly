@@ -1,13 +1,11 @@
 package io.evenly.core.features.invites.dto;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 
 /**
  * CreateInviteRequest DTO matching OpenAPI schema.
  */
 public class CreateInviteRequest {
-    @NotNull(message = "Max uses is required")
     @Min(value = 1, message = "Max uses must be at least 1")
     private Integer maxUses;
     

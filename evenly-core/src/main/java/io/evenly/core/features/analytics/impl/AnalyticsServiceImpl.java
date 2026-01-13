@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class AnalyticsServiceImpl implements AnalyticsService {
@@ -30,6 +29,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     @Inject
     private CategoryRepository categoryRepository;
+
+    @Inject
+    private io.evenly.core.domain.repository.WorkspaceRepository workspaceRepository;
 
     @Override
     public BalanceSummary getBalanceSummary(String workspaceId, String userId, LocalDate startDate, LocalDate endDate) {
@@ -122,60 +124,109 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public ExpenseSummary getExpensesSummary(String workspaceId, LocalDate startDate, LocalDate endDate) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         
+        // Get workspace for currency
+        io.evenly.core.domain.Workspace workspace = workspaceRepository.findById(workspaceUuid)
+                .orElseThrow(() -> new RuntimeException("Workspace not found: " + workspaceId));
+        
+        String currency = workspace.getCurrency() != null ? workspace.getCurrency().getCode() : "USD";
+        
         // Get expenses in date range
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid, startDate, endDate, null, 0, Integer.MAX_VALUE, null);
         
-        if (expenses.isEmpty()) {
-            ExpenseSummary summary = new ExpenseSummary();
-            summary.setTotalAmount(BigDecimal.ZERO);
-            summary.setExpensesCount(0);
-            summary.setAveragePerDay(BigDecimal.ZERO);
-            summary.setLargestExpenseAmount(BigDecimal.ZERO);
-            summary.setLinearChartData(List.of());
-            // Get currency from workspace
-            return summary;
-        }
-        
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        for (io.evenly.core.domain.Expense expense : expenses) {
-            totalAmount = totalAmount.add(expense.getAmount());
-        }
+        // Calculate totals
+        BigDecimal totalAmount = expenses.stream()
+                .map(io.evenly.core.domain.Expense::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         int expensesCount = expenses.size();
         
-        // Calculate days in range
-        long days = startDate != null && endDate != null 
-            ? java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1
-            : 1;
-        
-        BigDecimal averagePerDay = totalAmount.divide(BigDecimal.valueOf(days), 2, RoundingMode.HALF_UP);
-        
-        BigDecimal largestExpenseAmount = BigDecimal.ZERO;
-        for (io.evenly.core.domain.Expense expense : expenses) {
-            if (expense.getAmount().compareTo(largestExpenseAmount) > 0) {
-                largestExpenseAmount = expense.getAmount();
+        // Calculate average per day - handle null dates like the mock
+        long daysBetween = 1;
+        if (startDate != null && endDate != null) {
+            daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        } else if (startDate != null) {
+            daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, LocalDate.now()) + 1;
+        } else if (endDate != null) {
+            // If only endDate is provided, use expenses date range
+            if (!expenses.isEmpty()) {
+                LocalDate minDate = expenses.stream()
+                        .map(io.evenly.core.domain.Expense::getEffectiveDate)
+                        .min(LocalDate::compareTo)
+                        .orElse(endDate);
+                daysBetween = java.time.temporal.ChronoUnit.DAYS.between(minDate, endDate) + 1;
+            }
+        } else {
+            // If no dates provided, use expenses date range
+            if (!expenses.isEmpty()) {
+                LocalDate minDate = expenses.stream()
+                        .map(io.evenly.core.domain.Expense::getEffectiveDate)
+                        .min(LocalDate::compareTo)
+                        .orElse(LocalDate.now());
+                LocalDate maxDate = expenses.stream()
+                        .map(io.evenly.core.domain.Expense::getEffectiveDate)
+                        .max(LocalDate::compareTo)
+                        .orElse(LocalDate.now());
+                daysBetween = java.time.temporal.ChronoUnit.DAYS.between(minDate, maxDate) + 1;
             }
         }
         
-        // Get currency from first expense
-        String currency = expenses.get(0).getCurrency() != null ? expenses.get(0).getCurrency().getCode() : null;
+        BigDecimal averagePerDay = daysBetween > 0
+                ? totalAmount.divide(BigDecimal.valueOf(daysBetween), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
         
-        // Generate linear chart data (group by date)
+        // Find largest expense
+        BigDecimal largestExpenseAmount = expenses.stream()
+                .map(io.evenly.core.domain.Expense::getAmount)
+                .max(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
+        
+        // Generate linear chart data - aggregate expenses by date
         Map<LocalDate, BigDecimal> dailyTotals = new HashMap<>();
         for (io.evenly.core.domain.Expense expense : expenses) {
             dailyTotals.merge(expense.getEffectiveDate(), expense.getAmount(), BigDecimal::add);
         }
         
-        List<LinearChartDataPoint> linearChartData = dailyTotals.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
-            .map(entry -> {
-                LinearChartDataPoint point = new LinearChartDataPoint();
-                point.setDate(entry.getKey().toString());
-                point.setAmount(entry.getValue());
-                return point;
-            })
-            .collect(Collectors.toList());
+        // Determine date range for chart
+        LocalDate chartStartDate = startDate;
+        LocalDate chartEndDate = endDate;
+        if (chartStartDate == null || chartEndDate == null) {
+            if (!expenses.isEmpty()) {
+                if (chartStartDate == null) {
+                    chartStartDate = expenses.stream()
+                            .map(io.evenly.core.domain.Expense::getEffectiveDate)
+                            .min(LocalDate::compareTo)
+                            .orElse(LocalDate.now().minusDays(30));
+                }
+                if (chartEndDate == null) {
+                    chartEndDate = expenses.stream()
+                            .map(io.evenly.core.domain.Expense::getEffectiveDate)
+                            .max(LocalDate::compareTo)
+                            .orElse(LocalDate.now());
+                }
+            } else {
+                // No expenses, use default range
+                chartStartDate = LocalDate.now().minusDays(30);
+                chartEndDate = LocalDate.now();
+            }
+        }
         
+        // Generate data points for all days in range (including days with no expenses)
+        // Use daily amounts (not cumulative) for trend visualization
+        List<LinearChartDataPoint> linearChartData = new ArrayList<>();
+        LocalDate currentDate = chartStartDate;
+        
+        while (!currentDate.isAfter(chartEndDate)) {
+            BigDecimal dayAmount = dailyTotals.getOrDefault(currentDate, BigDecimal.ZERO);
+            
+            LinearChartDataPoint point = new LinearChartDataPoint();
+            point.setDate(currentDate.toString());
+            point.setAmount(dayAmount);
+            linearChartData.add(point);
+            
+            currentDate = currentDate.plusDays(1);
+        }
+        
+        // Build response
         ExpenseSummary summary = new ExpenseSummary();
         summary.setTotalAmount(totalAmount);
         summary.setExpensesCount(expensesCount);

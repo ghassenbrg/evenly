@@ -38,17 +38,29 @@ public class InviteServiceImpl implements io.evenly.core.features.invites.Invite
         // Generate unique code
         String code = generateUniqueCode();
 
-        // Calculate expiration date from expiresInDays
-        OffsetDateTime expiresAt = null;
-        if (request.getExpiresInDays() != null) {
-            expiresAt = OffsetDateTime.now().plusDays(request.getExpiresInDays());
+        // Set default values: maxUses = 5, expiresInDays = 2
+        // If maxUses is null or <= 0, use default of 5
+        Integer maxUses = (request.getMaxUses() != null && request.getMaxUses() > 0) 
+            ? request.getMaxUses() 
+            : 5;
+        // If expiresInDays is null or <= 0, use default of 2
+        Integer expiresInDays = (request.getExpiresInDays() != null && request.getExpiresInDays() > 0) 
+            ? request.getExpiresInDays() 
+            : 2;
+
+        // Ensure maxUses is never null, 0, or negative (safety check)
+        if (maxUses == null || maxUses <= 0) {
+            maxUses = 5;
         }
+
+        // Calculate expiration date from expiresInDays
+        OffsetDateTime expiresAt = OffsetDateTime.now().plusDays(expiresInDays);
 
         io.evenly.core.domain.Invite domainInvite = io.evenly.core.domain.Invite.builder()
             .workspaceId(workspaceUuid)
             .code(code)
             .expiresAt(expiresAt)
-            .maxUses(request.getMaxUses())
+            .maxUses(maxUses)
             .usesCount(0)
             .createdAt(OffsetDateTime.now())
             .build();

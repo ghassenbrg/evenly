@@ -33,9 +33,7 @@ public class BalanceResource {
     @Path("/workspaces/{workspaceId}/balance")
     public Response getBalance(@PathParam("workspaceId") String workspaceId) {
         List<Balance> balances = balanceService.getBalanceForWorkspace(workspaceId);
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", balances);
-        return Response.ok(response).build();
+        return Response.ok(balances).build();
     }
 
     @GET
@@ -45,7 +43,8 @@ public class BalanceResource {
             .orElseThrow(() -> new SecurityException("User not authenticated"));
         
         SettleUpResponse settleUp = balanceService.getSettleUpForWorkspace(workspaceId, userId);
-        // Webapp expects the settle-up data directly, not wrapped
-        return Response.ok(settleUp).build();
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", settleUp);
+        return Response.ok(response).build();
     }
 }
