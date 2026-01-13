@@ -4,7 +4,6 @@ import io.evenly.core.domain.Invite;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +11,7 @@ import java.util.UUID;
 
 /**
  * JPA-based implementation of InviteRepository.
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class InviteRepositoryImpl implements io.evenly.core.domain.repository.InviteRepository {
@@ -44,7 +44,6 @@ public class InviteRepositoryImpl implements io.evenly.core.domain.repository.In
     }
 
     @Override
-    @Transactional
     public Invite save(Invite invite) {
         if (invite.getId() == null) {
             invite.setId(UUID.randomUUID());
@@ -62,7 +61,6 @@ public class InviteRepositoryImpl implements io.evenly.core.domain.repository.In
     }
 
     @Override
-    @Transactional
     public void delete(UUID id) {
         Invite invite = entityManager.find(Invite.class, id);
         if (invite != null) {

@@ -21,6 +21,7 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryRepository categoryRepository;
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<io.evenly.core.features.categories.dto.Category> findAllGlobal() {
         return categoryRepository.findGlobalCategories().stream()
             .map(this::toDto)
@@ -28,6 +29,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<io.evenly.core.features.categories.dto.Category> findAllForWorkspace(String workspaceId) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         return categoryRepository.findByWorkspaceId(workspaceUuid).stream()
@@ -36,6 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Optional<io.evenly.core.features.categories.dto.Category> findById(String categoryId) {
         UUID categoryUuid = UUID.fromString(categoryId);
         return categoryRepository.findById(categoryUuid)

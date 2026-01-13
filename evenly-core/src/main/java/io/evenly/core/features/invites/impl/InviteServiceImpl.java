@@ -91,6 +91,7 @@ public class InviteServiceImpl implements io.evenly.core.features.invites.Invite
         inviteRepository.save(domainInvite);
     }
 
+    @Transactional(Transactional.TxType.SUPPORTS)
     private String generateUniqueCode() {
         // Simple implementation - generate a random code
         // In production, you might want a more sophisticated approach

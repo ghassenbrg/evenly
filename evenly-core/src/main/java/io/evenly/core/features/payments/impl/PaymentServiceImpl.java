@@ -33,6 +33,7 @@ public class PaymentServiceImpl implements PaymentService {
     private WorkspaceRepository workspaceRepository;
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public PaginatedPayments findForWorkspace(String workspaceId, LocalDate startDate, LocalDate endDate,
                                              String status, int page, int size, String sort) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
@@ -65,6 +66,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Optional<io.evenly.core.features.payments.dto.Payment> findById(String paymentId) {
         UUID paymentUuid = UUID.fromString(paymentId);
         return paymentRepository.findById(paymentUuid)

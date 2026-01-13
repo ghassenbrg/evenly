@@ -40,6 +40,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     private io.evenly.core.domain.repository.WorkspaceRepository workspaceRepository;
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public PaginatedExpenses findForWorkspace(String workspaceId, LocalDate startDate, LocalDate endDate,
                                              String categoryId, String status, int page, int size, String sort) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
@@ -73,6 +74,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     }
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<io.evenly.core.features.expenses.dto.Expense> findRecentForWorkspace(String workspaceId, int size) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         List<io.evenly.core.domain.Expense> domainExpenses = expenseRepository.findByWorkspaceId(workspaceUuid);
@@ -84,6 +86,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     }
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Optional<io.evenly.core.features.expenses.dto.Expense> findById(String expenseId) {
         UUID expenseUuid = UUID.fromString(expenseId);
         return expenseRepository.findById(expenseUuid)

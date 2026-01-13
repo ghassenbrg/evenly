@@ -17,6 +17,7 @@ public class NotificationServiceImpl implements io.evenly.core.features.notifica
     private NotificationRepository notificationRepository;
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<Notification> findAllForUser(String userId) { // userId is now username (String)
         List<io.evenly.core.domain.Notification> domainNotifications = notificationRepository.findByUserId(userId);
         return domainNotifications.stream()
@@ -25,6 +26,7 @@ public class NotificationServiceImpl implements io.evenly.core.features.notifica
     }
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Integer getUnreadCount(String userId) { // userId is now username (String)
         return (int) notificationRepository.countUnreadByUserId(userId);
     }

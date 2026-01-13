@@ -4,7 +4,6 @@ import io.evenly.core.domain.Notification;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +11,7 @@ import java.util.UUID;
 
 /**
  * JPA-based implementation of NotificationRepository.
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class NotificationRepositoryImpl implements io.evenly.core.domain.repository.NotificationRepository {
@@ -54,7 +54,6 @@ public class NotificationRepositoryImpl implements io.evenly.core.domain.reposit
     }
 
     @Override
-    @Transactional
     public Notification save(Notification notification) {
         if (notification.getId() == null) {
             notification.setId(UUID.randomUUID());
@@ -72,7 +71,6 @@ public class NotificationRepositoryImpl implements io.evenly.core.domain.reposit
     }
 
     @Override
-    @Transactional
     public void delete(UUID id) {
         Notification notification = entityManager.find(Notification.class, id);
         if (notification != null) {
@@ -81,7 +79,6 @@ public class NotificationRepositoryImpl implements io.evenly.core.domain.reposit
     }
 
     @Override
-    @Transactional
     public void markAsRead(UUID id) {
         entityManager.createQuery("UPDATE Notification n SET n.read = true WHERE n.id = :id")
             .setParameter("id", id)
@@ -89,7 +86,6 @@ public class NotificationRepositoryImpl implements io.evenly.core.domain.reposit
     }
 
     @Override
-    @Transactional
     public void markAllAsRead(String userId) { // userId is now String (username)
         entityManager.createQuery("UPDATE Notification n SET n.read = true WHERE n.userId = :userId")
             .setParameter("userId", userId)

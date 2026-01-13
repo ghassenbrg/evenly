@@ -4,7 +4,6 @@ import io.evenly.core.domain.Workspace;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +11,7 @@ import java.util.UUID;
 
 /**
  * JPA-based implementation of WorkspaceRepository.
- * Clean and simple - no manual JDBC code!
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class WorkspaceRepositoryImpl implements io.evenly.core.domain.repository.WorkspaceRepository {
@@ -38,7 +37,6 @@ public class WorkspaceRepositoryImpl implements io.evenly.core.domain.repository
     }
 
     @Override
-    @Transactional
     public Workspace save(Workspace workspace) {
         if (workspace.getId() == null) {
             workspace.setId(UUID.randomUUID());
@@ -57,7 +55,6 @@ public class WorkspaceRepositoryImpl implements io.evenly.core.domain.repository
     }
 
     @Override
-    @Transactional
     public void delete(UUID id) {
         Workspace workspace = entityManager.find(Workspace.class, id);
         if (workspace != null) {

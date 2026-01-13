@@ -5,14 +5,13 @@ import io.evenly.core.domain.ExpenseParticipantId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 /**
  * JPA-based implementation of ExpenseParticipantRepository.
- * Super clean with JPA!
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class ExpenseParticipantRepositoryImpl implements io.evenly.core.domain.repository.ExpenseParticipantRepository {
@@ -39,13 +38,11 @@ public class ExpenseParticipantRepositoryImpl implements io.evenly.core.domain.r
     }
 
     @Override
-    @Transactional
     public void save(ExpenseParticipant participant) {
         entityManager.merge(participant);
     }
 
     @Override
-    @Transactional
     public void saveAll(List<ExpenseParticipant> participants) {
         for (ExpenseParticipant participant : participants) {
             entityManager.merge(participant);
@@ -54,7 +51,6 @@ public class ExpenseParticipantRepositoryImpl implements io.evenly.core.domain.r
     }
 
     @Override
-    @Transactional
     public void deleteByExpenseId(UUID expenseId) {
         entityManager.createQuery("DELETE FROM ExpenseParticipant ep WHERE ep.expenseId = :expenseId")
             .setParameter("expenseId", expenseId)
@@ -62,7 +58,6 @@ public class ExpenseParticipantRepositoryImpl implements io.evenly.core.domain.r
     }
 
     @Override
-    @Transactional
     public void delete(UUID expenseId, String userId) { // userId is now String (username)
         ExpenseParticipantId id = new ExpenseParticipantId(expenseId, userId);
         ExpenseParticipant participant = entityManager.find(ExpenseParticipant.class, id);

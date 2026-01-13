@@ -16,6 +16,7 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Optional<io.evenly.core.features.auth.dto.User> findById(String userId) { // userId is now username (String)
         return userRepository.findById(userId)
             .map(this::toDto);

@@ -5,7 +5,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
 import jakarta.persistence.TypedQuery;
-import jakarta.transaction.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.UUID;
 
 /**
  * JPA-based implementation of ExpenseRepository.
- * Much cleaner with JPQL queries instead of raw SQL!
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.ExpenseRepository {
@@ -101,7 +100,6 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
     }
 
     @Override
-    @Transactional
     public Expense save(Expense expense) {
         if (expense.getId() == null) {
             expense.setId(UUID.randomUUID());
@@ -120,7 +118,6 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
     }
 
     @Override
-    @Transactional
     public void delete(UUID id) {
         Expense expense = entityManager.find(Expense.class, id);
         if (expense != null) {

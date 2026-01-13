@@ -1,4 +1,4 @@
-package io.evenly.core.infrastructure.persistence.postgres;
+package io.evenly.core.infrastructure.persistence;
 
 import java.util.UUID;
 

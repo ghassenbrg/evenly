@@ -4,7 +4,6 @@ import io.evenly.core.domain.Category;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +11,7 @@ import java.util.UUID;
 
 /**
  * JPA-based implementation of CategoryRepository.
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class CategoryRepositoryImpl implements io.evenly.core.domain.repository.CategoryRepository {
@@ -64,7 +64,6 @@ public class CategoryRepositoryImpl implements io.evenly.core.domain.repository.
     }
 
     @Override
-    @Transactional
     public Category save(Category category) {
         if (category.getId() == null) {
             category.setId(UUID.randomUUID());
@@ -89,7 +88,6 @@ public class CategoryRepositoryImpl implements io.evenly.core.domain.repository.
     }
 
     @Override
-    @Transactional
     public void delete(UUID id) {
         Category category = entityManager.find(Category.class, id);
         if (category != null) {

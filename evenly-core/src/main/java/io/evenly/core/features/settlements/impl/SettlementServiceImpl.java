@@ -28,6 +28,7 @@ public class SettlementServiceImpl implements io.evenly.core.features.settlement
     private io.evenly.core.domain.repository.WorkspaceRepository workspaceRepository;
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<Settlement> findForWorkspace(String workspaceId) {
         // Since settlements table was removed, we return empty list
         // or could return payments as settlements

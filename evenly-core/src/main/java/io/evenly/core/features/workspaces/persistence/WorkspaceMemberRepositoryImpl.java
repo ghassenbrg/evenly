@@ -5,7 +5,6 @@ import io.evenly.core.domain.WorkspaceMemberId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +12,7 @@ import java.util.UUID;
 
 /**
  * JPA-based implementation of WorkspaceMemberRepository.
- * Clean and simple with JPA!
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class WorkspaceMemberRepositoryImpl implements io.evenly.core.domain.repository.WorkspaceMemberRepository {
@@ -47,7 +46,6 @@ public class WorkspaceMemberRepositoryImpl implements io.evenly.core.domain.repo
     }
 
     @Override
-    @Transactional
     public WorkspaceMember save(WorkspaceMember member) {
         if (member.getJoinedAt() == null) {
             member.setJoinedAt(java.time.OffsetDateTime.now());
@@ -59,7 +57,6 @@ public class WorkspaceMemberRepositoryImpl implements io.evenly.core.domain.repo
     }
 
     @Override
-    @Transactional
     public void delete(UUID workspaceId, String userId) { // userId is now String (username)
         WorkspaceMemberId id = new WorkspaceMemberId(workspaceId, userId);
         WorkspaceMember member = entityManager.find(WorkspaceMember.class, id);
@@ -69,7 +66,6 @@ public class WorkspaceMemberRepositoryImpl implements io.evenly.core.domain.repo
     }
 
     @Override
-    @Transactional
     public void deleteByWorkspaceId(UUID workspaceId) {
         entityManager.createQuery("DELETE FROM WorkspaceMember wm WHERE wm.workspaceId = :workspaceId")
             .setParameter("workspaceId", workspaceId)

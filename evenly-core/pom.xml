@@ -76,6 +76,17 @@
             <artifactId>hibernate-community-dialects</artifactId>
             <version>6.4.4.Final</version>
         </dependency>
+        <!-- JTA Transaction Management (Narayana) -->
+        <dependency>
+            <groupId>org.jboss.narayana.jta</groupId>
+            <artifactId>narayana-jta</artifactId>
+            <version>7.0.2.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.narayana.jts</groupId>
+            <artifactId>narayana-jts-integration</artifactId>
+            <version>7.0.2.Final</version>
+        </dependency>
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>

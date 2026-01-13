@@ -4,13 +4,12 @@ import io.evenly.core.domain.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 
 import java.util.Optional;
 
 /**
  * JPA-based implementation of UserRepository.
- * Much cleaner than JDBC - uses EntityManager like Spring Data JPA.
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class UserRepositoryImpl implements io.evenly.core.domain.repository.UserRepository {
@@ -43,7 +42,6 @@ public class UserRepositoryImpl implements io.evenly.core.domain.repository.User
     }
 
     @Override
-    @Transactional
     public User save(User user) {
         if (user.getId() == null) {
             // Use username as id if id is not set

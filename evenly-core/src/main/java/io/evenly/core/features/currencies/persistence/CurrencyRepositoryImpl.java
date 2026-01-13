@@ -10,6 +10,7 @@ import java.util.Optional;
 
 /**
  * JPA-based implementation of CurrencyRepository.
+ * Repositories do not manage transactions - services own transaction boundaries.
  */
 @ApplicationScoped
 public class CurrencyRepositoryImpl implements io.evenly.core.domain.repository.CurrencyRepository {

@@ -436,6 +436,220 @@ Reference data table for supported currencies. This is typically read-only and p
 
 ---
 
+## Persistence & Transactions
+
+This application uses **JPA (Jakarta Persistence)** with **Hibernate** as the JPA provider, configured for **RESOURCE_LOCAL** transactions. The persistence layer is designed to be clean, minimal, and performant.
+
+### Architecture Overview
+
+#### EntityManagerFactoryProducer
+- **Location**: `io.evenly.core.infrastructure.persistence.postgres.EntityManagerFactoryProducer`
+- **Scope**: `@ApplicationScoped` (singleton)
+- **Purpose**: Produces a singleton `EntityManagerFactory` that is shared across the application
+- **Configuration**: Reads Hibernate settings from MicroProfile Config (`application.yaml`)
+
+#### EntityManagerProducer
+- **Location**: `io.evenly.core.infrastructure.persistence.postgres.EntityManagerProducer`
+- **Scope**: Produces `@RequestScoped` `EntityManager`
+- **Purpose**: Provides a request-scoped `EntityManager` that is properly closed at the end of each HTTP request
+- **Lifecycle**: Automatically closed via CDI `@Disposes` method
+
+#### JpaTx Transaction Helper
+- **Location**: `io.evenly.core.infrastructure.persistence.postgres.JpaTx`
+- **Purpose**: Provides transaction management for RESOURCE_LOCAL mode (since `@Transactional` requires JTA)
+- **Usage**:
+  ```java
+  @Inject
+  private JpaTx jpaTx;
+  
+  // Read-only transaction
+  User user = jpaTx.read(() -> userRepository.findById(id));
+  
+  // Write transaction
+  jpaTx.write(() -> {
+      user.setEmail(newEmail);
+      userRepository.save(user);
+  });
+  
+  // Transaction with return value
+  User saved = jpaTx.required(() -> userRepository.save(user));
+  ```
+
+### Transaction Boundaries
+
+**Important**: Repositories **never** manage transactions. Services own transaction boundaries using `JpaTx`:
+
+- **Repositories**: Thin data access layer, no `@Transactional`, no transaction logic
+- **Services**: Use `JpaTx.read()`, `JpaTx.write()`, or `JpaTx.required()` to wrap operations
+- **REST Resources**: Never access JPA directly; they call services
+
+### Configuration
+
+#### Database Configuration (`application.yaml`)
+```yaml
+db:
+  url: ${DB_URL:jdbc:postgresql://localhost:5432/evenly}
+  user: ${DB_USER:evenly}
+  password: ${DB_PASSWORD:evenly}
+
+hibernate:
+  show_sql: ${HIBERNATE_SHOW_SQL:false}
+  format_sql: ${HIBERNATE_FORMAT_SQL:false}
+  jdbc:
+    batch_size: ${HIBERNATE_BATCH_SIZE:20}
+    time_zone: ${HIBERNATE_TIME_ZONE:UTC}
+  order_inserts: ${HIBERNATE_ORDER_INSERTS:true}
+  order_updates: ${HIBERNATE_ORDER_UPDATES:true}
+```
+
+#### Environment Variables
+- `DB_URL`: Database connection URL (default: `jdbc:postgresql://localhost:5432/evenly`)
+- `DB_USER`: Database username (default: `evenly`)
+- `DB_PASSWORD`: Database password (default: `evenly`)
+- `HIBERNATE_SHOW_SQL`: Enable SQL logging (default: `false`)
+- `HIBERNATE_FORMAT_SQL`: Format SQL output (default: `false`)
+- `HIBERNATE_BATCH_SIZE`: JDBC batch size (default: `20`)
+- `HIBERNATE_TIME_ZONE`: Timezone for timestamps (default: `UTC`)
+
+### Dev vs Prod Configuration
+
+#### Development
+Enable SQL logging for debugging:
+```yaml
+hibernate:
+  show_sql: true
+  format_sql: true
+```
+
+Or via environment variables:
+```bash
+export HIBERNATE_SHOW_SQL=true
+export HIBERNATE_FORMAT_SQL=true
+```
+
+#### Production
+- SQL logging disabled by default
+- Batch processing enabled for performance
+- Connection pooling via HikariCP (configured in `DataSourceProvider`)
+- Schema validation (no auto-update)
+
+### Performance Optimizations
+
+1. **JDBC Batching**: Enabled with `hibernate.jdbc.batch_size=20`
+2. **Ordered Inserts/Updates**: Enabled for better batch performance
+3. **Connection Pooling**: HikariCP with sensible defaults (min: 1, max: 10)
+4. **Query Optimization**: Use fetch joins and entity graphs to prevent N+1 queries
+5. **Timezone Handling**: All timestamps use UTC
+
+### Database Migrations
+
+**Flyway** is integrated and runs automatically on application startup:
+- **Location**: `src/main/resources/db/migration`
+- **Execution**: Automatic via `DataSourceProvider` observer
+- **Baseline**: `baselineOnMigrate=true` for existing databases
+
+### Health Checks
+
+A MicroProfile Health Check is available at `/health/ready`:
+- **Location**: `io.evenly.core.infrastructure.health.DatabaseHealthCheck`
+- **Checks**: DataSource connectivity and EntityManagerFactory status
+- **Endpoint**: `/health/ready` (readiness probe)
+
+### How to Add a New Entity/Repository
+
+1. **Create Entity**:
+   ```java
+   @Entity
+   @Table(name = "my_table")
+   @Data
+   @Builder
+   @NoArgsConstructor
+   @AllArgsConstructor
+   public class MyEntity {
+       @Id
+       @Column(name = "id", columnDefinition = "UUID")
+       private UUID id;
+       
+       @Column(name = "name", nullable = false, length = 255)
+       private String name;
+   }
+   ```
+
+2. **Create Repository Interface** (in `domain.repository` package):
+   ```java
+   public interface MyEntityRepository {
+       Optional<MyEntity> findById(UUID id);
+       MyEntity save(MyEntity entity);
+   }
+   ```
+
+3. **Implement Repository** (in `features.*.persistence` package):
+   ```java
+   @ApplicationScoped
+   public class MyEntityRepositoryImpl implements MyEntityRepository {
+       @Inject
+       private EntityManager entityManager;
+       
+       @Override
+       public Optional<MyEntity> findById(UUID id) {
+           MyEntity entity = entityManager.find(MyEntity.class, id);
+           return Optional.ofNullable(entity);
+       }
+       
+       @Override
+       public MyEntity save(MyEntity entity) {
+           if (entity.getId() == null) {
+               entity.setId(UUID.randomUUID());
+               entityManager.persist(entity);
+               return entity;
+           } else {
+               return entityManager.merge(entity);
+           }
+       }
+   }
+   ```
+
+4. **Create Service** (in `features.*.impl` package):
+   ```java
+   @ApplicationScoped
+   public class MyEntityServiceImpl implements MyEntityService {
+       @Inject
+       private MyEntityRepository repository;
+       
+       @Inject
+       private JpaTx jpaTx;
+       
+       @Override
+       public Optional<MyEntityDto> findById(String id) {
+           UUID uuid = UUID.fromString(id);
+           return jpaTx.read(() -> repository.findById(uuid)
+               .map(this::toDto));
+       }
+       
+       @Override
+       public MyEntityDto create(CreateMyEntityRequest request) {
+           return jpaTx.required(() -> {
+               MyEntity entity = MyEntity.builder()
+                   .name(request.getName())
+                   .build();
+               entity = repository.save(entity);
+               return toDto(entity);
+           });
+       }
+   }
+   ```
+
+### Best Practices
+
+1. **Always use `JpaTx` in services** - Never use `@Transactional` (requires JTA)
+2. **Repositories are thin** - No business logic, no transactions
+3. **Services own transactions** - Use `JpaTx.read()` for reads, `JpaTx.write()` or `JpaTx.required()` for writes
+4. **Prevent N+1 queries** - Use fetch joins or entity graphs when loading related entities
+5. **Use JPQL over native SQL** - Better portability and type safety
+6. **Configure via `application.yaml`** - Keep configuration centralized
+
+---
+
 ## Mock Mode Configuration
 
 The Evenly Core application supports a **mock mode** that uses in-memory mock implementations instead of database-backed services. This is useful for local development, testing, and demos.
