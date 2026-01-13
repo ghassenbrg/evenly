@@ -94,7 +94,9 @@ public class MockUserRepository implements UserRepository {
             .displayName(dto.getDisplayName())
             .username(dto.getUsername())
             .avatarUrl(dto.getAvatarUrl())
-            .preferredCurrency(dto.getPreferredCurrency())
+                    .preferredCurrency(dto.getPreferredCurrency() != null 
+                        ? io.evenly.core.features.currencies.SupportedCurrency.findByCode(dto.getPreferredCurrency()) 
+                        : io.evenly.core.features.currencies.SupportedCurrency.USD)
             .locale(dto.getLocale())
             .timezone(dto.getTimezone())
             .createdAt(dto.getCreatedAt())

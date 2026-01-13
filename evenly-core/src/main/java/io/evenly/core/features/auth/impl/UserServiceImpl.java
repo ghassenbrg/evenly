@@ -2,6 +2,7 @@ package io.evenly.core.features.auth.impl;
 
 import io.evenly.core.domain.repository.UserRepository;
 import io.evenly.core.features.auth.UserService;
+import io.evenly.core.features.currencies.SupportedCurrency;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -34,7 +35,7 @@ public class UserServiceImpl implements UserService {
                     .email(email)
                     .username(username)
                     .displayName(username) // Default to username
-                    .preferredCurrency("USD") // Default currency
+                    .preferredCurrency(SupportedCurrency.USD) // Default currency
                     .build();
                 
                 newUser = userRepository.save(newUser);
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService {
         dto.setUsername(domain.getUsername());
         dto.setDisplayName(domain.getDisplayName());
         dto.setAvatarUrl(domain.getAvatarUrl());
-        dto.setPreferredCurrency(domain.getPreferredCurrency());
+        dto.setPreferredCurrency(domain.getPreferredCurrency() != null ? domain.getPreferredCurrency().getCode() : null);
         dto.setLocale(domain.getLocale());
         dto.setTimezone(domain.getTimezone());
         return dto;

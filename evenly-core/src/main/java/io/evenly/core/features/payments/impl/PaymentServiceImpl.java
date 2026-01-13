@@ -133,7 +133,7 @@ public class PaymentServiceImpl implements PaymentService {
         io.evenly.core.features.payments.dto.Payment dto = new io.evenly.core.features.payments.dto.Payment();
         dto.setId(domain.getId().toString());
         dto.setAmount(domain.getAmount());
-        dto.setCurrency(domain.getCurrency());
+        dto.setCurrency(domain.getCurrency() != null ? domain.getCurrency().getCode() : null);
         dto.setEffectiveDate(domain.getEffectiveDate());
         dto.setNote(domain.getNote());
         dto.setStatus(domain.getStatus());

@@ -73,7 +73,9 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
             .defaultSplitMode(request.getDefaultSplitMode())
             .monthlySharedLimit(monthlyLimit)
             .isPersonal(false)
-            .currency(request.getCurrency() != null ? request.getCurrency() : "USD")
+            .currency(request.getCurrency() != null 
+                ? io.evenly.core.features.currencies.SupportedCurrency.findByCode(request.getCurrency()) 
+                : io.evenly.core.features.currencies.SupportedCurrency.USD)
             .createdAt(OffsetDateTime.now())
             .updatedAt(OffsetDateTime.now())
             .build();
@@ -182,7 +184,9 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
             .defaultSplitMode("EQUAL")
             .monthlySharedLimit(null)
             .isPersonal(true)
-            .currency(currency != null ? currency : "USD")
+            .currency(currency != null 
+                ? io.evenly.core.features.currencies.SupportedCurrency.findByCode(currency) 
+                : io.evenly.core.features.currencies.SupportedCurrency.USD)
             .createdAt(OffsetDateTime.now())
             .updatedAt(OffsetDateTime.now())
             .build();
@@ -252,7 +256,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
         dto.setDefaultSplitMode(workspace.getDefaultSplitMode());
         dto.setMonthlySharedLimit(workspace.getMonthlySharedLimit() != null ? workspace.getMonthlySharedLimit().doubleValue() : null);
         dto.setIsPersonal(workspace.getIsPersonal());
-        dto.setCurrency(workspace.getCurrency());
+        dto.setCurrency(workspace.getCurrency() != null ? workspace.getCurrency().getCode() : null);
         dto.setCreatedAt(workspace.getCreatedAt());
         dto.setUpdatedAt(workspace.getUpdatedAt());
         return dto;

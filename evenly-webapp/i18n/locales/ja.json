@@ -584,6 +584,13 @@
     "confirmDelete": "この取引を削除しますか？",
     "deleteSuccess": "取引を削除しました",
     "deleteFailed": "取引の削除に失敗しました"
+  },
+  "currencies": {
+    "JPY": "日本円",
+    "USD": "米ドル",
+    "TND": "チュニジア・ディナール",
+    "EUR": "ユーロ",
+    "AUD": "オーストラリア・ドル"
   }
 }
 

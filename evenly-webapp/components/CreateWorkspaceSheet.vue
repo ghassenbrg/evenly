@@ -44,7 +44,7 @@
         >
           <option value="" disabled>{{ t('workspace.selectCurrency') }}</option>
           <option v-for="currency in currencies" :key="currency.code" :value="currency.code">
-            {{ currency.code }} - {{ currency.name }}
+            {{ currency.code }} - {{ getCurrencyName(currency.code) }}
           </option>
         </select>
       </div>
@@ -197,6 +197,10 @@ watch(() => props.modelValue, async (newVal) => {
 })
 
 const { t } = useI18n()
+
+const getCurrencyName = (code: string) => {
+  return t(`currencies.${code}`) || code
+}
 
 const handleSubmit = async () => {
   if (!form.value.currency) {

@@ -96,7 +96,7 @@
           >
             <option value="" disabled>{{ t('auth.register.selectCurrency') || 'Select currency' }}</option>
             <option v-for="currency in currencies" :key="currency.code" :value="currency.code">
-              {{ currency.code }} - {{ currency.name }} ({{ currency.symbol }})
+              {{ currency.code }} - {{ getCurrencyName(currency.code) }} ({{ currency.symbol }})
             </option>
           </select>
           <p v-if="loadingCurrencies" class="text-sm text-slate-400 mt-1">
@@ -150,6 +150,10 @@ const loadingCurrencies = computed(() => currenciesLoading.value)
 
 const { t } = useI18n()
 
+const getCurrencyName = (code: string) => {
+  return t(`currencies.${code}`) || code
+}
+
 const form = ref<RegisterRequest>({
   email: '',
   username: '',
@@ -180,10 +184,11 @@ const handleRegister = async () => {
     await register(form.value)
   } catch (err: any) {
     console.error('Registration error:', err)
-    error.value = err.message || err.error?.message || (err.errors && err.errors.length > 0 
+    const errorMessage = err.message || err.error?.message || (err.errors && err.errors.length > 0 
       ? err.errors.map((e: any) => e.message || `${e.field}: ${e.message}`).join(', ')
       : t('auth.register.error') || 'Registration failed. Please check your information.')
-    showError(error.value)
+    error.value = errorMessage
+    showError(errorMessage)
     loading.value = false
   }
 }

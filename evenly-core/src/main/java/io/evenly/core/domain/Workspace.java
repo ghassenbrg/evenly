@@ -1,5 +1,6 @@
 package io.evenly.core.domain;
 
+import io.evenly.core.features.currencies.SupportedCurrency;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +40,8 @@ public class Workspace {
     private Boolean isPersonal = false;
     
     @Column(name = "currency", nullable = false, length = 3)
-    private String currency;
+    @Enumerated(EnumType.STRING)
+    private SupportedCurrency currency;
     
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

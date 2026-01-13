@@ -107,7 +107,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
                 .workspaceId(workspaceUuid)
                 .categoryId(request.getCategoryId() != null ? UUID.fromString(request.getCategoryId()) : null)
                 .amount(request.getAmount())
-                .currency(workspace.getCurrency()) // Use workspace currency
+                .currency(workspace.getCurrency()) // Use workspace currency (enum)
                 .effectiveDate(request.getDate() != null ? request.getDate() : java.time.LocalDate.now())
                 .note(request.getNote())
                 .paidByUserId(userId) // userId is now username (String)
@@ -169,7 +169,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         io.evenly.core.features.expenses.dto.Expense dto = new io.evenly.core.features.expenses.dto.Expense();
         dto.setId(domain.getId().toString());
         dto.setAmount(domain.getAmount());
-        dto.setCurrency(domain.getCurrency());
+        dto.setCurrency(domain.getCurrency() != null ? domain.getCurrency().getCode() : null);
         dto.setEffectiveDate(domain.getEffectiveDate());
         dto.setNote(domain.getNote());
         dto.setPaidByUserId(domain.getPaidByUserId()); // userId is now String, no need to convert

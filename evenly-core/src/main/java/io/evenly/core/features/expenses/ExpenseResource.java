@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import io.evenly.core.domain.repository.ExpenseRepository;
+import io.evenly.core.domain.repository.WorkspaceMemberRepository;
 import io.evenly.core.features.expenses.dto.CreateExpenseRequest;
 import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.expenses.dto.UpdateExpenseRequest;
@@ -15,6 +17,7 @@ import io.evenly.core.shared.security.SecurityContextProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
@@ -43,6 +46,12 @@ public class ExpenseResource {
     @Inject
     private SecurityContextProvider securityContext;
 
+    @Inject
+    private WorkspaceMemberRepository workspaceMemberRepository;
+
+    @Inject
+    private ExpenseRepository expenseRepository;
+
     @GET
     @Path("/workspaces/{workspaceId}/expenses")
     public Response listExpenses(@PathParam("workspaceId") String workspaceId,
@@ -53,6 +62,15 @@ public class ExpenseResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size,
             @QueryParam("sort") String sort) {
+        String userId = securityContext.getUserId()
+                .orElseThrow(() -> new SecurityException("User not authenticated"));
+        
+        // Check workspace membership
+        UUID workspaceUuid = UUID.fromString(workspaceId);
+        if (!workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceUuid, userId)) {
+            throw new SecurityException("Access denied: User is not a member of this workspace");
+        }
+        
         PaginatedExpenses paginated = expenseService.findForWorkspace(workspaceId, startDate, endDate,
                 categoryId, status, page, size, sort);
         return Response.ok(paginated).build();
@@ -66,6 +84,12 @@ public class ExpenseResource {
         String userId = securityContext.getUserId()
                 .orElseThrow(() -> new SecurityException("User not authenticated"));
 
+        // Check workspace membership
+        UUID workspaceUuid = UUID.fromString(workspaceId);
+        if (!workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceUuid, userId)) {
+            throw new SecurityException("Access denied: User is not a member of this workspace");
+        }
+
         Expense expense = expenseService.create(workspaceId, userId, request);
         Map<String, Object> response = new HashMap<>();
         response.put("data", expense);
@@ -76,10 +100,25 @@ public class ExpenseResource {
     @Path("/workspaces/{workspaceId}/expenses/{expenseId}")
     public Response getExpense(@PathParam("workspaceId") String workspaceId,
             @PathParam("expenseId") String expenseId) {
-        Optional<Expense> expense = expenseService.findById(expenseId);
-        if (expense.isEmpty()) {
-            throw new NotFoundException("Expense not found");
+        String userId = securityContext.getUserId()
+                .orElseThrow(() -> new SecurityException("User not authenticated"));
+        
+        // Check workspace membership
+        UUID workspaceUuid = UUID.fromString(workspaceId);
+        if (!workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceUuid, userId)) {
+            throw new SecurityException("Access denied: User is not a member of this workspace");
         }
+        
+        // Verify expense exists and belongs to the workspace
+        UUID expenseUuid = UUID.fromString(expenseId);
+        io.evenly.core.domain.Expense domainExpense = expenseRepository.findById(expenseUuid)
+                .orElseThrow(() -> new NotFoundException("Expense not found"));
+        
+        if (!domainExpense.getWorkspaceId().equals(workspaceUuid)) {
+            throw new SecurityException("Access denied: Expense does not belong to this workspace");
+        }
+        
+        Optional<Expense> expense = expenseService.findById(expenseId);
         Map<String, Object> response = new HashMap<>();
         response.put("data", expense.get());
         return Response.ok(response).build();
@@ -91,10 +130,24 @@ public class ExpenseResource {
     public Response updateExpense(@PathParam("workspaceId") String workspaceId,
             @PathParam("expenseId") String expenseId,
             @Valid UpdateExpenseRequest request) {
-        Optional<Expense> existing = expenseService.findById(expenseId);
-        if (existing.isEmpty()) {
-            throw new NotFoundException("Expense not found");
+        String userId = securityContext.getUserId()
+                .orElseThrow(() -> new SecurityException("User not authenticated"));
+        
+        // Check workspace membership
+        UUID workspaceUuid = UUID.fromString(workspaceId);
+        if (!workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceUuid, userId)) {
+            throw new SecurityException("Access denied: User is not a member of this workspace");
         }
+        
+        // Verify expense exists and belongs to the workspace
+        UUID expenseUuid = UUID.fromString(expenseId);
+        io.evenly.core.domain.Expense domainExpense = expenseRepository.findById(expenseUuid)
+                .orElseThrow(() -> new NotFoundException("Expense not found"));
+        
+        if (!domainExpense.getWorkspaceId().equals(workspaceUuid)) {
+            throw new SecurityException("Access denied: Expense does not belong to this workspace");
+        }
+        
         Expense expense = expenseService.update(expenseId, request);
         Map<String, Object> response = new HashMap<>();
         response.put("data", expense);
@@ -105,10 +158,24 @@ public class ExpenseResource {
     @Path("/workspaces/{workspaceId}/expenses/{expenseId}")
     public Response deleteExpense(@PathParam("workspaceId") String workspaceId,
             @PathParam("expenseId") String expenseId) {
-        Optional<Expense> existing = expenseService.findById(expenseId);
-        if (existing.isEmpty()) {
-            throw new NotFoundException("Expense not found");
+        String userId = securityContext.getUserId()
+                .orElseThrow(() -> new SecurityException("User not authenticated"));
+        
+        // Check workspace membership
+        UUID workspaceUuid = UUID.fromString(workspaceId);
+        if (!workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceUuid, userId)) {
+            throw new SecurityException("Access denied: User is not a member of this workspace");
         }
+        
+        // Verify expense exists and belongs to the workspace
+        UUID expenseUuid = UUID.fromString(expenseId);
+        io.evenly.core.domain.Expense domainExpense = expenseRepository.findById(expenseUuid)
+                .orElseThrow(() -> new NotFoundException("Expense not found"));
+        
+        if (!domainExpense.getWorkspaceId().equals(workspaceUuid)) {
+            throw new SecurityException("Access denied: Expense does not belong to this workspace");
+        }
+        
         expenseService.delete(expenseId);
         return Response.noContent().build();
     }

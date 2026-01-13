@@ -4,14 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import io.evenly.core.domain.repository.UserRepository;
 import io.evenly.core.features.auth.dto.AuthResponse;
 import io.evenly.core.features.auth.dto.RegisterRequest;
 import io.evenly.core.features.auth.dto.User;
+import io.evenly.core.features.currencies.SupportedCurrency;
 import io.evenly.core.features.workspaces.WorkspaceService;
 import io.evenly.core.shared.security.Authenticated;
 import io.evenly.core.shared.security.SecurityContextProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -38,6 +41,9 @@ public class UserResource {
     @Inject
     private WorkspaceService workspaceService;
 
+    @Inject
+    private UserRepository userRepository;
+
     /**
      * Register a new user.
      * This endpoint does not require authentication.
@@ -45,6 +51,7 @@ public class UserResource {
     @POST
     @Path("/auth/register")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
     public Response register(@Valid RegisterRequest request) {
         // Generate a user ID (in real implementation, this would come from Keycloak)
         String userId = request.getUsername(); // Use username as ID for mock
@@ -73,11 +80,22 @@ public class UserResource {
         // Create user using service
         User user = userService.getOrCreate(userId, request.getEmail(), request.getUsername());
         user.setDisplayName(request.getDisplayName());
-        String preferredCurrency = request.getPreferredCurrency() != null ? request.getPreferredCurrency() : "USD";
-        user.setPreferredCurrency(preferredCurrency);
+        String preferredCurrencyStr = request.getPreferredCurrency() != null ? request.getPreferredCurrency() : "USD";
+        user.setPreferredCurrency(preferredCurrencyStr);
+
+        // Update domain entity with preferred currency (enum)
+        io.evenly.core.domain.User domainUser = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found after creation"));
+        domainUser.setDisplayName(request.getDisplayName());
+        SupportedCurrency preferredCurrency = SupportedCurrency.findByCode(preferredCurrencyStr);
+        if (preferredCurrency == null) {
+            preferredCurrency = SupportedCurrency.USD; // Default fallback
+        }
+        domainUser.setPreferredCurrency(preferredCurrency);
+        userRepository.save(domainUser);
 
         // Create personal workspace for the new user
-        workspaceService.createPersonalWorkspace(userId, preferredCurrency);
+        workspaceService.createPersonalWorkspace(userId, preferredCurrencyStr);
 
         AuthResponse authResponse = new AuthResponse(mockToken, user);
         return Response.ok(authResponse).build();

@@ -1,5 +1,6 @@
 package io.evenly.core.domain;
 
+import io.evenly.core.features.currencies.SupportedCurrency;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,7 +37,8 @@ public class User {
     private String avatarUrl;
     
     @Column(name = "preferred_currency", nullable = false, length = 3)
-    private String preferredCurrency;
+    @Enumerated(EnumType.STRING)
+    private SupportedCurrency preferredCurrency;
     
     @Column(name = "locale", nullable = false, length = 10)
     @Builder.Default

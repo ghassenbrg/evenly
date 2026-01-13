@@ -158,7 +158,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
         
         // Get currency from first expense
-        String currency = expenses.get(0).getCurrency();
+        String currency = expenses.get(0).getCurrency() != null ? expenses.get(0).getCurrency().getCode() : null;
         
         // Generate linear chart data (group by date)
         Map<LocalDate, BigDecimal> dailyTotals = new HashMap<>();
