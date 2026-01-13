@@ -230,7 +230,7 @@ const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'mont
   try {
     await Promise.all([
       fetchSummary(activeWorkspaceId.value, start, end).finally(() => { balanceLoading.value = false }),
-      fetchCategoryAnalytics(activeWorkspaceId.value, start, end).finally(() => { expenseSnapshotLoading.value = false }),
+      fetchCategoryAnalytics(activeWorkspaceId.value, start, end, 4).finally(() => { expenseSnapshotLoading.value = false }),
       fetchRecentExpenses(activeWorkspaceId.value, 5).finally(() => { recentExpensesLoading.value = false }),
       fetchCategories()
     ])

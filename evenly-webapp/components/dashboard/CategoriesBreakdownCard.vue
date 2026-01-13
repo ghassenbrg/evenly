@@ -92,8 +92,10 @@
 </template>
 
 <script setup lang="ts">
+import type { ExpenseSnapshotResponse } from '~/types/api'
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
+import { useApi } from '~/utils/api'
 import { useFontAwesome } from '~/composables/useFontAwesome'
 import { useCategoryColor } from '~/composables/useCategoryColor'
 
@@ -140,7 +142,13 @@ const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
 // Use shared analytics composable to access data (fetched by parent dashboard page)
 // Note: Parent dashboard page handles initial data fetching, this component only fetches on period change
-const { expenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
+const { expenseSnapshot: sharedExpenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
+
+// Local snapshot state - this component maintains its own snapshot independent of ExpenseSnapshotCard
+const localExpenseSnapshot = ref<ExpenseSnapshotResponse | null>(null)
+
+// Use local snapshot if available, otherwise fall back to shared snapshot (from parent initial load)
+const expenseSnapshot = computed(() => localExpenseSnapshot.value || sharedExpenseSnapshot.value)
 
 // Combine prop loading with analytics loading
 const isLoading = computed(() => props.loading || analyticsLoading.value)
@@ -217,10 +225,17 @@ const handlePeriodChange = async (period: PeriodType, range?: { start: string | 
   if (period === 'custom') {
     if (range && range.start && range.end) {
       customRange.value = range
-      // Fetch data for this card only
+      // Fetch data for this card only and store in local state
       if (activeWorkspaceId.value) {
         const { start, end } = getDateRange(period, range)
-        await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+        const api = useApi()
+        const queryParams = new URLSearchParams()
+        if (start) queryParams.append('startDate', start)
+        if (end) queryParams.append('endDate', end)
+        queryParams.append('size', '4')
+        const query = queryParams.toString()
+        const path = `/api/workspaces/${activeWorkspaceId.value}/analytics/expenses-snapshot${query ? `?${query}` : ''}`
+        localExpenseSnapshot.value = await api.get<ExpenseSnapshotResponse>(path)
       }
       emit('period-change', period, range)
     }
@@ -233,10 +248,17 @@ const handlePeriodChange = async (period: PeriodType, range?: { start: string | 
     customRange.value = range
   }
   
-  // Fetch data for this card only
+  // Fetch data for this card only and store in local state
   if (activeWorkspaceId.value) {
     const { start, end } = getDateRange(period, range)
-    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+    const api = useApi()
+    const queryParams = new URLSearchParams()
+    if (start) queryParams.append('startDate', start)
+    if (end) queryParams.append('endDate', end)
+    queryParams.append('size', '4')
+    const query = queryParams.toString()
+    const path = `/api/workspaces/${activeWorkspaceId.value}/analytics/expenses-snapshot${query ? `?${query}` : ''}`
+    localExpenseSnapshot.value = await api.get<ExpenseSnapshotResponse>(path)
   }
   
   emit('period-change', period, range)
@@ -283,6 +305,11 @@ const getCategoryGradient = (accent: string): string => {
 // Note: Data is fetched by parent dashboard page, no need to fetch on mount
 // Only fetch when user changes period (user-initiated action)
 // Parent dashboard will reload data when workspace changes
+
+// Watch for workspace changes - reset local state so it uses shared state from parent
+watch(activeWorkspaceId, () => {
+  localExpenseSnapshot.value = null
+})
 
 const handleOpenAllCategories = () => {
   const { start, end } = getDateRange(selectedPeriod.value, customRange.value)

@@ -139,8 +139,10 @@
 </template>
 
 <script setup lang="ts">
+import type { ExpenseSnapshotResponse } from '~/types/api'
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
+import { useApi } from '~/utils/api'
 import { useFontAwesome } from '~/composables/useFontAwesome'
 import { useCategoryColor } from '~/composables/useCategoryColor'
 
@@ -183,9 +185,15 @@ const emit = defineEmits<{
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
 // Use shared analytics composable to access data (fetched by parent dashboard page)
-const { categoryAnalytics, expenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
+const { categoryAnalytics, expenseSnapshot: sharedExpenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
 const { parseIconClass } = useFontAwesome()
 const { colorToGradient } = useCategoryColor()
+
+// Local snapshot state - this component maintains its own snapshot independent of CategoriesBreakdownCard
+const localExpenseSnapshot = ref<ExpenseSnapshotResponse | null>(null)
+
+// Use local snapshot if available, otherwise fall back to shared snapshot (from parent initial load)
+const expenseSnapshot = computed(() => localExpenseSnapshot.value || sharedExpenseSnapshot.value)
 
 // Combine prop loading with analytics loading
 // Note: Parent dashboard page handles initial data fetching, this component only fetches on period change
@@ -307,7 +315,7 @@ const handlePeriodChange = async (period: PeriodType, range?: { start: string | 
       // Fetch data for this card only
       if (activeWorkspaceId.value) {
         const { start, end } = getDateRange(period, range)
-        await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+        await fetchCategoryAnalytics(activeWorkspaceId.value, start, end, 4)
       }
       emit('period-change', period, range)
     }
@@ -320,10 +328,17 @@ const handlePeriodChange = async (period: PeriodType, range?: { start: string | 
     customRange.value = range
   }
   
-  // Fetch data for this card only
+  // Fetch data for this card only and store in local state
   if (activeWorkspaceId.value) {
     const { start, end } = getDateRange(period, range)
-    await fetchCategoryAnalytics(activeWorkspaceId.value, start, end)
+    const api = useApi()
+    const queryParams = new URLSearchParams()
+    if (start) queryParams.append('startDate', start)
+    if (end) queryParams.append('endDate', end)
+    queryParams.append('size', '4')
+    const query = queryParams.toString()
+    const path = `/api/workspaces/${activeWorkspaceId.value}/analytics/expenses-snapshot${query ? `?${query}` : ''}`
+    localExpenseSnapshot.value = await api.get<ExpenseSnapshotResponse>(path)
   }
   
   emit('period-change', period, range)
@@ -358,27 +373,37 @@ const othersItem = computed(() => {
 })
 
 const computedOthersCount = computed(() => {
-  if (othersItem.value) {
-    return othersItem.value.expensesCount || 0
-  }
-  // If no "Others" item in API, calculate from remaining items
-  if (!expenseSnapshot.value || expenseSnapshot.value.data.length <= 4) return 0
-  const mainItems = expenseSnapshot.value.data.filter(item => item.categoryId !== null)
-  if (mainItems.length <= 4) return 0
-  return mainItems.slice(4).reduce((sum, item) => sum + (item.expensesCount || 0), 0)
+  // Calculate "others" count from remaining categories after the displayed ones
+  if (!expenseSnapshot.value || !expenseSnapshot.value.data.length) return 0
+  
+  // Get all categories (excluding null categoryId which is "Uncategorized")
+  const allCategories = expenseSnapshot.value.data.filter(item => item.categoryId !== null)
+  
+  // Get displayed items count
+  const displayedCount = computedItems.value.length
+  
+  // If we're showing all categories, no "others"
+  if (allCategories.length <= displayedCount) return 0
+  
+  // Sum up expenses count from remaining categories
+  const remainingCategories = allCategories.slice(displayedCount)
+  return remainingCategories.reduce((sum, item) => sum + (item.expensesCount || 0), 0)
 })
 
 const computedOthersPercent = computed(() => {
-  if (othersItem.value) {
-    return othersItem.value.spentPercentage // Use spentPercentage from API
-  }
-  // If no "Others" item in API, calculate from remaining items
+  // Calculate "others" as 100% minus the sum of displayed categories' percentages
   if (!expenseSnapshot.value || !expenseSnapshot.value.data.length) return 0
-  const mainItems = expenseSnapshot.value.data.filter(item => item.categoryId !== null)
-  if (mainItems.length <= 4) return 0
-  const total = expenseSnapshot.value.data.reduce((sum, item) => sum + item.totalAmount, 0)
-  const topTotal = mainItems.slice(0, 4).reduce((sum, item) => sum + item.totalAmount, 0)
-  return total > 0 ? Math.round(((total - topTotal) / total) * 100) : 0
+  
+  // Get the displayed items (top 4 categories)
+  const displayedItems = computedItems.value
+  
+  // Sum up the percentages of displayed categories
+  const displayedPercentSum = displayedItems.reduce((sum, item) => sum + item.percent, 0)
+  
+  // "Others" is the remainder to reach 100%
+  const othersPercent = Math.max(0, 100 - displayedPercentSum)
+  
+  return Math.round(othersPercent * 100) / 100 // Round to 2 decimal places
 })
 
 const computedOthersColor = computed(() => {
@@ -446,6 +471,8 @@ onUnmounted(() => {
 // Watch for workspace changes - parent will handle data fetching
 // Only fetch when period changes (user interaction)
 watch(activeWorkspaceId, () => {
+  // Reset local state when workspace changes so it uses shared state from parent
+  localExpenseSnapshot.value = null
   // Parent dashboard will reload data when workspace changes
   // Only need to update dimensions if needed
   if (process.client) {

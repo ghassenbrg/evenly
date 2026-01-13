@@ -1,5 +1,7 @@
 package io.evenly.core.features.analytics.impl;
 
+import io.evenly.core.domain.Category;
+import io.evenly.core.domain.repository.CategoryRepository;
 import io.evenly.core.domain.repository.ExpenseRepository;
 import io.evenly.core.features.analytics.AnalyticsService;
 import io.evenly.core.features.analytics.dto.BalanceSummary;
@@ -26,6 +28,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Inject
     private ExpenseRepository expenseRepository;
 
+    @Inject
+    private CategoryRepository categoryRepository;
+
     @Override
     public BalanceSummary getBalanceSummary(String workspaceId, String userId, LocalDate startDate, LocalDate endDate) {
         // Delegate to BalanceService
@@ -39,30 +44,76 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         // Get expenses in date range
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid, startDate, endDate, null, 0, Integer.MAX_VALUE, null);
         
-        // Group by category and sum amounts
-        Map<UUID, BigDecimal> categoryTotals = new HashMap<>();
+        // Group by category - use String key to handle null categoryId
+        Map<String, ExpenseSnapshotItem> categoryMap = new HashMap<>();
+        
         for (io.evenly.core.domain.Expense expense : expenses) {
-            if (expense.getCategoryId() != null) {
-                categoryTotals.merge(expense.getCategoryId(), expense.getAmount(), BigDecimal::add);
-            }
+            UUID categoryId = expense.getCategoryId();
+            String categoryKey = categoryId != null ? categoryId.toString() : "uncategorized";
+            
+            ExpenseSnapshotItem item = categoryMap.computeIfAbsent(categoryKey, k -> {
+                ExpenseSnapshotItem newItem = new ExpenseSnapshotItem();
+                newItem.setCategoryId(categoryId != null ? categoryId.toString() : null);
+                
+                // Fetch category details if categoryId exists
+                if (categoryId != null) {
+                    Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
+                    if (categoryOpt.isPresent()) {
+                        Category category = categoryOpt.get();
+                        newItem.setCategoryName(category.getName());
+                        newItem.setCategoryIcon(category.getIcon());
+                        newItem.setCategoryColor(category.getColor());
+                    } else {
+                        // Category not found, use defaults
+                        newItem.setCategoryName("Unknown");
+                        newItem.setCategoryIcon("fa-solid fa-box");
+                        newItem.setCategoryColor("#85C1E2");
+                    }
+                } else {
+                    // Uncategorized expenses
+                    newItem.setCategoryName("Uncategorized");
+                    newItem.setCategoryIcon("fa-solid fa-box");
+                    newItem.setCategoryColor("#85C1E2");
+                }
+                
+                newItem.setTotalAmount(BigDecimal.ZERO);
+                newItem.setExpensesCount(0);
+                return newItem;
+            });
+            
+            item.setTotalAmount(item.getTotalAmount().add(expense.getAmount()));
+            item.setExpensesCount(item.getExpensesCount() + 1);
         }
         
-        // Convert to ExpenseSnapshotItem and sort by amount descending
-        List<ExpenseSnapshotItem> items = categoryTotals.entrySet().stream()
-            .sorted(Map.Entry.<UUID, BigDecimal>comparingByValue().reversed())
-            .limit(size)
-            .map(entry -> {
-                ExpenseSnapshotItem item = new ExpenseSnapshotItem();
-                item.setCategoryId(entry.getKey().toString());
-                item.setTotalAmount(entry.getValue());
-                return item;
-            })
-            .collect(Collectors.toList());
+        // Calculate total and percentages
+        BigDecimal totalAmount = expenses.stream()
+            .map(io.evenly.core.domain.Expense::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        List<ExpenseSnapshotItem> items = new ArrayList<>(categoryMap.values());
+        for (ExpenseSnapshotItem item : items) {
+            BigDecimal percentage = totalAmount.compareTo(BigDecimal.ZERO) > 0
+                ? item.getTotalAmount().divide(totalAmount, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                : BigDecimal.ZERO;
+            item.setSpentPercentage(percentage);
+        }
+        
+        // Sort by amount descending
+        items.sort(Comparator.comparing(ExpenseSnapshotItem::getTotalAmount).reversed());
+        
+        // Apply size limit if specified
+        int categoriesCount = items.size();
+        int remainingCategoriesCount = 0;
+        if (size > 0 && items.size() > size) {
+            remainingCategoriesCount = items.size() - size;
+            items = items.subList(0, size);
+        }
         
         ExpenseSnapshotResponse response = new ExpenseSnapshotResponse();
         response.setData(items);
-        response.setCategoriesCount(items.size());
-        response.setRemainingCategoriesCount(Math.max(0, categoryTotals.size() - size));
+        response.setCategoriesCount(categoriesCount);
+        response.setRemainingCategoriesCount(remainingCategoriesCount);
         
         return response;
     }

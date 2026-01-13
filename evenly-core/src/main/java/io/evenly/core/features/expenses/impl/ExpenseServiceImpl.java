@@ -1,12 +1,17 @@
 package io.evenly.core.features.expenses.impl;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import io.evenly.core.domain.ExpenseParticipant;
 import io.evenly.core.domain.repository.CategoryRepository;
 import io.evenly.core.domain.repository.ExpenseParticipantRepository;
 import io.evenly.core.domain.repository.ExpenseRepository;
 import io.evenly.core.domain.repository.UserRepository;
 import io.evenly.core.features.expenses.dto.CreateExpenseRequest;
-import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.expenses.dto.UpdateExpenseRequest;
 import io.evenly.core.shared.common.PageInfo;
 import io.evenly.core.shared.common.PaginatedExpenses;
@@ -14,12 +19,6 @@ import io.evenly.core.shared.exception.NotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class ExpenseServiceImpl implements io.evenly.core.features.expenses.ExpenseService {
@@ -42,18 +41,18 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     @Override
     @Transactional(Transactional.TxType.SUPPORTS)
     public PaginatedExpenses findForWorkspace(String workspaceId, LocalDate startDate, LocalDate endDate,
-                                             String categoryId, String status, int page, int size, String sort) {
+            String categoryId, String status, int page, int size, String sort) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         UUID categoryUuid = categoryId != null ? UUID.fromString(categoryId) : null;
 
         List<io.evenly.core.domain.Expense> domainExpenses = expenseRepository.findByWorkspaceId(
-            workspaceUuid, startDate, endDate, categoryUuid, page, size, sort);
+                workspaceUuid, startDate, endDate, categoryUuid, page, size, sort);
 
         long total = expenseRepository.countByWorkspaceIdAndDateRange(workspaceUuid, startDate, endDate);
 
         List<io.evenly.core.features.expenses.dto.Expense> expenseDtos = domainExpenses.stream()
-            .map(this::toDto)
-            .collect(Collectors.toList());
+                .map(this::toDto)
+                .collect(Collectors.toList());
 
         PaginatedExpenses result = new PaginatedExpenses();
         result.setData(expenseDtos);
@@ -78,11 +77,11 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     public List<io.evenly.core.features.expenses.dto.Expense> findRecentForWorkspace(String workspaceId, int size) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         List<io.evenly.core.domain.Expense> domainExpenses = expenseRepository.findByWorkspaceId(workspaceUuid);
-        
+
         return domainExpenses.stream()
-            .limit(size)
-            .map(this::toDto)
-            .collect(Collectors.toList());
+                .limit(size)
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -90,41 +89,43 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     public Optional<io.evenly.core.features.expenses.dto.Expense> findById(String expenseId) {
         UUID expenseUuid = UUID.fromString(expenseId);
         return expenseRepository.findById(expenseUuid)
-            .map(this::toDto);
+                .map(this::toDto);
     }
 
     @Override
     @Transactional
-    public io.evenly.core.features.expenses.dto.Expense create(String workspaceId, String userId, CreateExpenseRequest request) { // userId is now username (String)
+    public io.evenly.core.features.expenses.dto.Expense create(String workspaceId, String userId,
+            CreateExpenseRequest request) { // userId is now username (String)
         UUID workspaceUuid = UUID.fromString(workspaceId);
 
         // Get workspace to get currency
         io.evenly.core.domain.Workspace workspace = workspaceRepository.findById(workspaceUuid)
-            .orElseThrow(() -> new io.evenly.core.shared.exception.NotFoundException("Workspace not found: " + workspaceId));
+                .orElseThrow(() -> new io.evenly.core.shared.exception.NotFoundException(
+                        "Workspace not found: " + workspaceId));
 
         io.evenly.core.domain.Expense expense = io.evenly.core.domain.Expense.builder()
-            .workspaceId(workspaceUuid)
-            .categoryId(request.getCategoryId() != null ? UUID.fromString(request.getCategoryId()) : null)
-            .amount(request.getAmount())
-            .currency(workspace.getCurrency()) // Use workspace currency
-            .effectiveDate(request.getDate() != null ? request.getDate() : java.time.LocalDate.now())
-            .note(request.getNote())
-            .paidByUserId(userId) // userId is now username (String)
-            .createdByUserId(userId) // userId is now username (String)
-            .build();
+                .workspaceId(workspaceUuid)
+                .categoryId(request.getCategoryId() != null ? UUID.fromString(request.getCategoryId()) : null)
+                .amount(request.getAmount())
+                .currency(workspace.getCurrency()) // Use workspace currency
+                .effectiveDate(request.getDate() != null ? request.getDate() : java.time.LocalDate.now())
+                .note(request.getNote())
+                .paidByUserId(userId) // userId is now username (String)
+                .createdByUserId(userId) // userId is now username (String)
+                .build();
 
         expense = expenseRepository.save(expense);
 
         // Handle participants - if none specified, add all workspace members
         List<String> participantIds = request.getParticipantIds() != null && !request.getParticipantIds().isEmpty()
-            ? request.getParticipantIds() // participantIds are now usernames (String)
-            : List.of(); // TODO: Get all workspace members if empty
+                ? request.getParticipantIds() // participantIds are now usernames (String)
+                : List.of(); // TODO: Get all workspace members if empty
 
         for (String participantId : participantIds) {
             ExpenseParticipant participant = ExpenseParticipant.builder()
-                .expenseId(expense.getId())
-                .userId(participantId) // userId is now username (String)
-                .build();
+                    .expenseId(expense.getId())
+                    .userId(participantId) // userId is now username (String)
+                    .build();
             expenseParticipantRepository.save(participant);
         }
 
@@ -136,7 +137,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     public io.evenly.core.features.expenses.dto.Expense update(String expenseId, UpdateExpenseRequest request) {
         UUID expenseUuid = UUID.fromString(expenseId);
         io.evenly.core.domain.Expense expense = expenseRepository.findById(expenseUuid)
-            .orElseThrow(() -> new NotFoundException("Expense not found: " + expenseId));
+                .orElseThrow(() -> new NotFoundException("Expense not found: " + expenseId));
 
         if (request.getCategoryId() != null) {
             expense.setCategoryId(UUID.fromString(request.getCategoryId()));
