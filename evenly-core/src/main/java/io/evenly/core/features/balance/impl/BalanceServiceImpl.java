@@ -266,71 +266,44 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
                 .map(io.evenly.core.domain.Expense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        // Add payments made by the user (where user is payer) to total paid
-        BigDecimal paymentsMade = payments.stream()
+        // Add payments made by the user (sent) and subtract payments received
+        BigDecimal paymentsSent = payments.stream()
                 .filter(p -> p.getPaidByUserId().equals(userId))
                 .map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        userTotalPaid = userTotalPaid.add(paymentsMade);
-
-        // Get workspace members with weights (needed for weighted splits)
-        boolean isWeighted = "WEIGHTED".equals(workspace.getDefaultSplitMode());
-        Map<String, BigDecimal> memberWeights = new HashMap<>();
-        if (isWeighted) {
-            List<WorkspaceMember> members = workspaceMemberRepository.findByWorkspaceId(workspaceUuid);
-            for (WorkspaceMember member : members) {
-                memberWeights.put(member.getUserId(), member.getWeightPercent());
-            }
-        }
-
-        BigDecimal userTotalOwed = BigDecimal.ZERO;
-        BigDecimal workspaceTotalPaid = BigDecimal.ZERO;
-
-        for (io.evenly.core.domain.Expense expense : expenses) {
-            workspaceTotalPaid = workspaceTotalPaid.add(expense.getAmount());
-
-            List<ExpenseParticipant> participants = expenseParticipantRepository.findByExpenseId(expense.getId());
-            
-            // Check if user is a participant
-            boolean isParticipant = participants.stream().anyMatch(p -> p.getUserId().equals(userId));
-            
-            if (isParticipant) {
-                BigDecimal userShare;
-                if (isWeighted && !participants.isEmpty()) {
-                    // Weighted split: calculate based on participant weights
-                    BigDecimal totalWeight = BigDecimal.ZERO;
-                    for (ExpenseParticipant participant : participants) {
-                        BigDecimal weight = memberWeights.getOrDefault(participant.getUserId(), BigDecimal.ZERO);
-                        totalWeight = totalWeight.add(weight);
-                    }
-                    
-                    if (totalWeight.compareTo(BigDecimal.ZERO) > 0) {
-                        BigDecimal userWeight = memberWeights.getOrDefault(userId, BigDecimal.ZERO);
-                        userShare = expense.getAmount()
-                                .multiply(userWeight)
-                                .divide(totalWeight, 2, RoundingMode.HALF_UP);
-                    } else {
-                        // Fallback to equal split if weights are zero
-                        int participantCount = participants.size();
-                        userShare = expense.getAmount().divide(BigDecimal.valueOf(participantCount), 2,
-                                RoundingMode.HALF_UP);
-                    }
-                } else {
-                    // Equal split
-                    int participantCount = Math.max(participants.size(), 1);
-                    userShare = expense.getAmount().divide(BigDecimal.valueOf(participantCount), 2,
-                            RoundingMode.HALF_UP);
-                }
-                userTotalOwed = userTotalOwed.add(userShare);
-            }
-        }
-
-        // Subtract payments received by the user (where user is payee) from what they owe
         BigDecimal paymentsReceived = payments.stream()
                 .filter(p -> p.getPayeeUserId().equals(userId))
                 .map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        userTotalOwed = userTotalOwed.subtract(paymentsReceived);
+        userTotalPaid = userTotalPaid.add(paymentsSent).subtract(paymentsReceived);
+
+        // Get workspace members to calculate expected amount based on weights
+        List<WorkspaceMember> members = workspaceMemberRepository.findByWorkspaceId(workspaceUuid);
+        BigDecimal totalWeight = BigDecimal.ZERO;
+        BigDecimal userWeight = BigDecimal.ZERO;
+        for (WorkspaceMember member : members) {
+            BigDecimal weight = member.getWeightPercent() != null ? member.getWeightPercent() : BigDecimal.ZERO;
+            totalWeight = totalWeight.add(weight);
+            if (member.getUserId().equals(userId)) {
+                userWeight = weight;
+            }
+        }
+
+        BigDecimal userTotalExpected = BigDecimal.ZERO;
+        BigDecimal workspaceTotalPaid = BigDecimal.ZERO;
+
+        for (io.evenly.core.domain.Expense expense : expenses) {
+            workspaceTotalPaid = workspaceTotalPaid.add(expense.getAmount());
+        }
+
+        if (totalWeight.compareTo(BigDecimal.ZERO) > 0) {
+            userTotalExpected = workspaceTotalPaid
+                    .multiply(userWeight)
+                    .divide(totalWeight, 2, RoundingMode.HALF_UP);
+        } else if (!members.isEmpty()) {
+            userTotalExpected = workspaceTotalPaid.divide(BigDecimal.valueOf(members.size()), 2,
+                    RoundingMode.HALF_UP);
+        }
 
         // Calculate spent percentage
         BigDecimal spentPercentage = BigDecimal.ZERO;
@@ -341,7 +314,7 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
 
         BalanceSummary summary = new BalanceSummary();
         summary.setUserTotalPaidAmount(userTotalPaid);
-        summary.setUserTotalExpectedAmount(userTotalOwed);
+        summary.setUserTotalExpectedAmount(userTotalExpected);
         summary.setWorkspaceTotalPaidAmount(workspaceTotalPaid);
         summary.setBudgetLimit(budgetLimit);
         summary.setSpentPercentage(spentPercentage);

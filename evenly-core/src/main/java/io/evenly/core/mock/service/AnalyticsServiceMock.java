@@ -50,19 +50,69 @@ public class AnalyticsServiceMock implements AnalyticsService {
             })
             .collect(Collectors.toList());
         
-        BigDecimal userTotalPaid = expenses.stream()
+        BigDecimal userExpensePaid = expenses.stream()
             .filter(e -> userId.equals(e.getPaidByUserId()))
             .map(Expense::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        List<io.evenly.core.features.payments.dto.Payment> payments = mockDataProvider
+            .getWorkspacePayments()
+            .getOrDefault(workspaceId, new ArrayList<>())
+            .stream()
+            .filter(p -> {
+                if (!"COMPLETED".equals(p.getStatus())) {
+                    return false;
+                }
+                if (startDate != null && p.getEffectiveDate().isBefore(startDate)) {
+                    return false;
+                }
+                if (endDate != null && p.getEffectiveDate().isAfter(endDate)) {
+                    return false;
+                }
+                return true;
+            })
+            .collect(Collectors.toList());
+
+        BigDecimal paymentsSent = payments.stream()
+            .filter(p -> userId.equals(p.getPaidByUserId()))
+            .map(io.evenly.core.features.payments.dto.Payment::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal paymentsReceived = payments.stream()
+            .filter(p -> userId.equals(p.getPayeeUserId()))
+            .map(io.evenly.core.features.payments.dto.Payment::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal userTotalPaid = userExpensePaid.add(paymentsSent).subtract(paymentsReceived);
         
         BigDecimal workspaceTotalPaid = expenses.stream()
             .map(Expense::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        int memberCount = mockDataProvider.getWorkspaceMembers().getOrDefault(workspaceId, new ArrayList<>()).size();
-        BigDecimal userTotalExpected = memberCount > 0 
-            ? workspaceTotalPaid.divide(BigDecimal.valueOf(memberCount), 2, java.math.RoundingMode.HALF_UP)
-            : BigDecimal.ZERO;
+        List<io.evenly.core.features.workspaces.dto.WorkspaceMember> members = mockDataProvider
+            .getWorkspaceMembers()
+            .getOrDefault(workspaceId, new ArrayList<>());
+        BigDecimal totalWeight = BigDecimal.ZERO;
+        BigDecimal userWeight = BigDecimal.ZERO;
+        for (io.evenly.core.features.workspaces.dto.WorkspaceMember member : members) {
+            BigDecimal weight = member.getWeightPercent() != null
+                ? BigDecimal.valueOf(member.getWeightPercent())
+                : BigDecimal.ZERO;
+            totalWeight = totalWeight.add(weight);
+            if (userId.equals(member.getUserId())) {
+                userWeight = weight;
+            }
+        }
+
+        BigDecimal userTotalExpected = BigDecimal.ZERO;
+        if (totalWeight.compareTo(BigDecimal.ZERO) > 0) {
+            userTotalExpected = workspaceTotalPaid
+                .multiply(userWeight)
+                .divide(totalWeight, 2, java.math.RoundingMode.HALF_UP);
+        } else if (!members.isEmpty()) {
+            userTotalExpected = workspaceTotalPaid.divide(BigDecimal.valueOf(members.size()), 2,
+                java.math.RoundingMode.HALF_UP);
+        }
         
         BigDecimal budgetLimit = workspace.getMonthlySharedLimit() != null 
             ? BigDecimal.valueOf(workspace.getMonthlySharedLimit())
