@@ -115,7 +115,7 @@ const expenseNote = ref('')
 const submitted = ref(false)
 
 const workspaceCurrency = computed(() => {
-  return workspacesStore.activeWorkspace?.currency || 'JPY'
+  return workspacesStore.activeWorkspace?.currency || ''
 })
 
 // Reset form when sheet opens

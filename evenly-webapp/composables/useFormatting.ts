@@ -1,5 +1,18 @@
+import { useWorkspacesStore } from '~/stores/workspaces'
+
 export const useFormatting = () => {
-  const formatCurrency = (amount: number, currency: string = 'JPY') => {
+  const formatCurrency = (amount: number, currency: string) => {
+    if (!currency) {
+      // Fallback: try to get from workspace or use a safe default
+      const workspacesStore = useWorkspacesStore()
+      const workspaceCurrency = workspacesStore.activeWorkspace?.currency
+      if (workspaceCurrency) {
+        currency = workspaceCurrency
+      } else {
+        // Last resort: use USD as a safe fallback
+        currency = 'USD'
+      }
+    }
     if (currency === 'JPY') {
       return `¥${amount.toLocaleString('ja-JP')}`
     }

@@ -151,7 +151,7 @@ const loading = ref(false)
 
 // Get workspace currency
 const workspaceCurrency = computed(() => {
-  return workspacesStore.activeWorkspace?.currency || 'JPY'
+  return workspacesStore.activeWorkspace?.currency || ''
 })
 
 // Load settle-up data when sheet opens to get current user balance

@@ -324,7 +324,7 @@
           />
           <div class="flex items-center justify-between">
             <p v-if="errors.note" class="text-xs text-red-400">{{ errors.note }}</p>
-            <p v-else class="text-xs text-white/50">{{ form.note.length }}/500</p>
+            <p v-else class="text-xs text-white/50">{{ (form.note || '').length }}/500</p>
           </div>
         </div>
 
@@ -390,6 +390,7 @@ import { usePockitoSubscriptions } from '~/composables/usePockitoSubscriptions'
 import { usePockitoWallets } from '~/composables/usePockitoWallets'
 import { usePockitoCategories } from '~/composables/usePockitoCategories'
 import { usePockitoUsers } from '~/composables/usePockitoUsers'
+import { useCurrencies } from '~/composables/useCurrencies'
 import AmountInput from '~/components/AmountInput.vue'
 
 const props = defineProps<{
@@ -423,7 +424,7 @@ const form = reactive<SubscriptionRequest>({
   frequency: SubscriptionFrequency.MONTHLY,
   interval: 1,
   amount: 0,
-  currency: Currency.USD,
+  currency: Currency.USD as Currency, // Will be set from user defaultCurrency
   startDate: new Date().toISOString().split('T')[0],
   endDate: undefined,
   enabled: true,
@@ -449,8 +450,18 @@ const loadCategories = async () => {
 }
 
 const setDefaultsFromUser = () => {
-  if (!props.subscription && currentUser.value?.defaultCurrency) {
-    form.currency = currentUser.value.defaultCurrency
+  if (!props.subscription) {
+    if (currentUser.value?.defaultCurrency) {
+      form.currency = currentUser.value.defaultCurrency
+    } else {
+      // If no user currency, fetch currencies from API and use first available
+      const { currencies, fetchCurrencies } = useCurrencies()
+      fetchCurrencies().then(() => {
+        if (currencies.value.length > 0) {
+          form.currency = currencies.value[0].code as Currency
+        }
+      })
+    }
   }
 }
 
@@ -478,7 +489,8 @@ const resetForm = () => {
   form.frequency = SubscriptionFrequency.MONTHLY
   form.interval = 1
   form.amount = 0
-  form.currency = Currency.USD
+  // Currency will be set from user's defaultCurrency in setDefaultsFromUser
+  form.currency = Currency.USD as Currency
   form.startDate = new Date().toISOString().split('T')[0]
   form.endDate = undefined
   form.enabled = true

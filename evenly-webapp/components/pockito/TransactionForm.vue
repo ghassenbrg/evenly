@@ -198,7 +198,7 @@
       />
       <div class="flex items-center justify-between">
         <p v-if="errors.note" class="text-xs text-red-400">{{ errors.note }}</p>
-        <p v-else class="text-xs text-white/50">{{ form.note.length }}/500</p>
+            <p v-else class="text-xs text-white/50">{{ (form.note || '').length }}/500</p>
       </div>
     </div>
 
@@ -251,7 +251,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   saved: [transaction: TransactionDto]
   cancelled: []
-  walletChange?: [{ walletFromId: string | null; walletToId: string | null }]
+  walletChange: [payload: { walletFromId: string | null; walletToId: string | null }]
 }>()
 
 const { t } = useI18n()
@@ -298,22 +298,22 @@ const filteredCategories = computed(() => {
 const amountCurrency = computed(() => {
   if (form.transactionType === TransactionType.EXPENSE && form.walletFromId) {
     const wallet = wallets.value.find(w => w.id === form.walletFromId)
-    return wallet?.currency || 'USD'
+    return wallet?.currency || ''
   }
   if (form.transactionType === TransactionType.INCOME && form.walletToId) {
     const wallet = wallets.value.find(w => w.id === form.walletToId)
-    return wallet?.currency || 'USD'
+    return wallet?.currency || ''
   }
   if (form.transactionType === TransactionType.TRANSFER && form.walletFromId) {
     const wallet = wallets.value.find(w => w.id === form.walletFromId)
-    return wallet?.currency || 'USD'
+    return wallet?.currency || ''
   }
-  // Default to first wallet currency or USD
-  return wallets.value[0]?.currency || 'USD'
+  // Default to first wallet currency or empty (will be handled by AmountInput)
+  return wallets.value[0]?.currency || ''
 })
 
 const walletOptions = computed(() => {
-  const options = [
+  const options: Array<{ value: string | null; label: string }> = [
     { value: null, label: t('transactions.outside') || 'Out of app' }
   ]
   wallets.value.forEach(wallet => {

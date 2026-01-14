@@ -187,6 +187,7 @@ import type { Wallet, WalletRequest } from '~/types/pockito'
 import { Currency, WalletType } from '~/types/pockito'
 import { usePockitoWallets } from '~/composables/usePockitoWallets'
 import { usePockitoUsers } from '~/composables/usePockitoUsers'
+import { useCurrencies } from '~/composables/useCurrencies'
 import AmountInput from '~/components/AmountInput.vue'
 
 const props = defineProps<{
@@ -211,7 +212,7 @@ const form = reactive<WalletRequest>({
   description: '',
   color: '#0ea5e9',
   initialBalance: 0,
-  currency: Currency.USD,
+  currency: Currency.USD as Currency, // Will be set from user defaultCurrency
   iconUrl: '',
   goalAmount: 0,
   type: WalletType.CASH,
@@ -222,8 +223,18 @@ const errors = reactive<Record<string, string>>({})
 const submitting = ref(false)
 
 const setDefaultsFromUser = () => {
-  if (!props.wallet && currentUser.value?.defaultCurrency) {
-    form.currency = currentUser.value.defaultCurrency
+  if (!props.wallet) {
+    if (currentUser.value?.defaultCurrency) {
+      form.currency = currentUser.value.defaultCurrency
+    } else {
+      // If no user currency, fetch currencies from API and use first available
+      const { currencies, fetchCurrencies } = useCurrencies()
+      fetchCurrencies().then(() => {
+        if (currencies.value.length > 0) {
+          form.currency = currencies.value[0].code as Currency
+        }
+      })
+    }
   }
 }
 
@@ -270,7 +281,8 @@ const resetForm = () => {
   form.description = ''
   form.color = '#0ea5e9'
   form.initialBalance = 0
-  form.currency = Currency.USD
+  // Currency will be set from user's defaultCurrency in setDefaultsFromUser
+  form.currency = Currency.USD as Currency
   form.iconUrl = ''
   form.goalAmount = 0
   form.type = WalletType.CASH

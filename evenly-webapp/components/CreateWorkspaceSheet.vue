@@ -52,7 +52,7 @@
       <div>
         <AmountInput
           v-model="form.monthlySharedLimit"
-          :currency="form.currency || 'USD'"
+          :currency="form.currency || ''"
           :label="`${t('workspace.monthlyBudget')} (${t('common.optional')})`"
           :placeholder="t('workspace.monthlyBudgetPlaceholder')"
         />
@@ -182,9 +182,9 @@ watch(() => props.modelValue, async (newVal) => {
       currency: user.value?.preferredCurrency || ''
     }
     await fetchCurrencies()
-    // Set default currency if user has preference
+    // Set default currency from user preference or first available currency
     if (!form.value.currency && currencies.value.length > 0) {
-      form.value.currency = currencies.value.find(c => c.code === 'USD')?.code || currencies.value[0].code
+      form.value.currency = user.value?.preferredCurrency || currencies.value[0].code
     }
   } else {
     // Only reset if invite sheet is not showing

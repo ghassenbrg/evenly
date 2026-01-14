@@ -28,6 +28,7 @@
 
 <script setup lang="ts">
 import { useFormatting } from '~/composables/useFormatting'
+import { useWorkspacesStore } from '~/stores/workspaces'
 
 interface Props {
   modelValue: number | null | undefined
@@ -40,7 +41,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: 0,
-  currency: 'USD',
+  currency: '', // Currency should be provided from workspace or API, not hardcoded
   label: undefined,
   hint: undefined,
   placeholder: undefined,
@@ -56,12 +57,18 @@ const isFocused = ref(false)
 
 // Get currency symbol
 const currencySymbol = computed(() => {
-  if (!props.currency) return '$'
+  // Try to get currency from workspace if not provided
+  let currency = props.currency
+  if (!currency) {
+    const workspacesStore = useWorkspacesStore()
+    currency = workspacesStore.activeWorkspace?.currency || ''
+  }
+  if (!currency) return '$' // Last resort fallback
   try {
     // Use Intl.NumberFormat to get the currency symbol
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: props.currency,
+      currency: currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     })
@@ -83,7 +90,7 @@ const currencySymbol = computed(() => {
       'SGD': 'S$',
       'CHF': 'CHF'
     }
-    return symbols[props.currency] || props.currency
+    return symbols[currency] || currency
   }
 })
 

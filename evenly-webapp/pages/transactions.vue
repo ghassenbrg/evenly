@@ -195,7 +195,7 @@
             >
               <span v-if="tx.transactionType === 'EXPENSE'">-</span>
               <span v-else-if="tx.transactionType === 'INCOME'">+</span>
-              {{ formatCurrency(tx.amount, tx.walletFromCurrency || tx.walletToCurrency || 'USD') }}
+              {{ formatCurrency(tx.amount, tx.walletFromCurrency || tx.walletToCurrency || '') }}
             </p>
           </div>
         </button>
@@ -262,9 +262,9 @@ const { transactions, pageable, loadFirstPage, loadNextPage, deleteTransaction, 
 const { wallets, loadWallets } = usePockitoWallets()
 const transactionTypes = Object.values(TransactionType)
 
-// Calculate quick stats (using first wallet's currency or USD as default)
+// Calculate quick stats (using first wallet's currency or empty as default)
 const stats = computed(() => {
-  const defaultCurrency = wallets.value[0]?.currency || 'USD'
+  const defaultCurrency = wallets.value[0]?.currency || ''
   
   // Group by currency and calculate totals
   const incomeByCurrency = new Map<string, number>()

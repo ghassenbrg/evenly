@@ -258,10 +258,20 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid, startDate,
                 endDate, null, 0, Integer.MAX_VALUE, null);
 
+        // Get payments in date range (only COMPLETED payments)
+        List<Payment> payments = paymentRepository.findByWorkspaceId(workspaceUuid, startDate, endDate, "COMPLETED", 0, Integer.MAX_VALUE, null);
+
         BigDecimal userTotalPaid = expenses.stream()
                 .filter(e -> e.getPaidByUserId().equals(userId)) // userId is now String
                 .map(io.evenly.core.domain.Expense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Add payments made by the user (where user is payer) to total paid
+        BigDecimal paymentsMade = payments.stream()
+                .filter(p -> p.getPaidByUserId().equals(userId))
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        userTotalPaid = userTotalPaid.add(paymentsMade);
 
         // Get workspace members with weights (needed for weighted splits)
         boolean isWeighted = "WEIGHTED".equals(workspace.getDefaultSplitMode());
@@ -287,7 +297,7 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
             if (isParticipant) {
                 BigDecimal userShare;
                 if (isWeighted && !participants.isEmpty()) {
-                    // Weighted split: calculate based on member weights
+                    // Weighted split: calculate based on participant weights
                     BigDecimal totalWeight = BigDecimal.ZERO;
                     for (ExpenseParticipant participant : participants) {
                         BigDecimal weight = memberWeights.getOrDefault(participant.getUserId(), BigDecimal.ZERO);
@@ -300,7 +310,7 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
                                 .multiply(userWeight)
                                 .divide(totalWeight, 2, RoundingMode.HALF_UP);
                     } else {
-                        // Fallback to equal split
+                        // Fallback to equal split if weights are zero
                         int participantCount = participants.size();
                         userShare = expense.getAmount().divide(BigDecimal.valueOf(participantCount), 2,
                                 RoundingMode.HALF_UP);
@@ -314,6 +324,13 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
                 userTotalOwed = userTotalOwed.add(userShare);
             }
         }
+
+        // Subtract payments received by the user (where user is payee) from what they owe
+        BigDecimal paymentsReceived = payments.stream()
+                .filter(p -> p.getPayeeUserId().equals(userId))
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        userTotalOwed = userTotalOwed.subtract(paymentsReceived);
 
         // Calculate spent percentage
         BigDecimal spentPercentage = BigDecimal.ZERO;

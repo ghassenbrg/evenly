@@ -20,7 +20,7 @@
         </div>
         <div v-if="workspace.monthlySharedLimit">
           <p class="text-slate-400 text-sm">{{ t('workspace.monthlyBudget') }}</p>
-          <p class="text-white font-medium">{{ formatCurrency(workspace.monthlySharedLimit, workspace.currency || 'USD') }}</p>
+          <p class="text-white font-medium">{{ formatCurrency(workspace.monthlySharedLimit, workspace.currency || '') }}</p>
         </div>
       </div>
     </div>
@@ -67,7 +67,7 @@
         <div>
           <AmountInput
             v-model="editForm.monthlySharedLimit"
-            :currency="workspace?.currency || 'USD'"
+            :currency="workspace?.currency || ''"
             :label="`${t('workspace.monthlyBudget')} (${t('common.optional')})`"
             :placeholder="t('workspace.monthlyBudgetPlaceholder')"
           />
