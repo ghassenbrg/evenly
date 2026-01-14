@@ -8,7 +8,7 @@ services:
     ports:
       - "${DATABASE_PORT:-5432}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - evenlydata:/var/lib/postgresql/data
 
   evenly-core:
     build: ./evenly-core
@@ -45,4 +45,4 @@ services:
       - "${WEBAPP_PORT:-3000}:3000"
 
 volumes:
-  pgdata: {}
+  evenlydata: {}
