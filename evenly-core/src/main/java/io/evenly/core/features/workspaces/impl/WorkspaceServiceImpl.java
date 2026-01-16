@@ -144,7 +144,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
         workspace.setUpdatedAt(OffsetDateTime.now());
 
         workspace = workspaceRepository.save(workspace);
-        notificationService.notifyWorkspaceUpdated(workspaceId, userId, "Workspace settings updated");
+        notificationService.notifyWorkspaceUpdated(workspaceId, userId, buildWorkspaceUpdateDetail(request));
         return toDto(workspace);
     }
 
@@ -258,7 +258,24 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
             workspaceMemberRepository.save(member);
         }
 
-        notificationService.notifyWorkspaceUpdated(workspaceId, userId, "Member weights updated");
+        notificationService.notifyWorkspaceUpdated(workspaceId, userId, "Member weights were updated.");
+    }
+
+    private String buildWorkspaceUpdateDetail(UpdateWorkspaceRequest request) {
+        List<String> parts = new java.util.ArrayList<>();
+        if (request.getName() != null) {
+            parts.add("Name changed");
+        }
+        if (request.getDefaultSplitMode() != null) {
+            parts.add("Split mode updated");
+        }
+        if (request.getMonthlySharedLimit() != null) {
+            parts.add("Monthly budget updated");
+        }
+        if (parts.isEmpty()) {
+            return "Workspace settings updated";
+        }
+        return String.join(", ", parts) + ".";
     }
 
     private io.evenly.core.features.workspaces.dto.Workspace toDto(Workspace workspace) {

@@ -392,6 +392,57 @@
     "markAllAsRead": "Mark all as read",
     "markingAllAsRead": "Marking all as read...",
     "unknownWorkspace": "Unknown workspace",
+    "you": "You",
+    "someone": "Someone",
+    "events": {
+      "EXPENSE_CREATED": {
+        "title": "Expense created",
+        "message": "{actor} created an expense.",
+        "messageWithDetail": "{actor} created an expense: {detail}"
+      },
+      "EXPENSE_UPDATED": {
+        "title": "Expense updated",
+        "message": "{actor} updated an expense.",
+        "messageWithDetail": "{actor} updated an expense: {detail}"
+      },
+      "EXPENSE_DELETED": {
+        "title": "Expense deleted",
+        "message": "{actor} deleted an expense.",
+        "messageWithDetail": "{actor} deleted an expense: {detail}"
+      },
+      "PAYMENT_CREATED": {
+        "title": "Payment created",
+        "message": "{actor} recorded a payment.",
+        "messageWithDetail": "{actor} recorded a payment: {detail}"
+      },
+      "PAYMENT_UPDATED": {
+        "title": "Payment updated",
+        "message": "{actor} updated a payment.",
+        "messageWithDetail": "{actor} updated a payment: {detail}"
+      },
+      "PAYMENT_DELETED": {
+        "title": "Payment deleted",
+        "message": "{actor} deleted a payment.",
+        "messageWithDetail": "{actor} deleted a payment: {detail}"
+      },
+      "WORKSPACE_UPDATED": {
+        "title": "Workspace updated",
+        "message": "{actor} updated workspace settings.",
+        "messageWithDetail": "{actor} updated workspace settings: {detail}"
+      },
+      "WORKSPACE_MEMBER_JOINED": {
+        "title": "New member joined",
+        "message": "{actor} joined the workspace."
+      },
+      "BUDGET_THRESHOLD_80": {
+        "title": "Budget at 80%",
+        "message": "Budget usage has reached 80% for this month."
+      },
+      "BUDGET_LIMIT_REACHED": {
+        "title": "Budget limit reached",
+        "message": "Budget limit reached for this month."
+      }
+    },
     "types": {
       "message": "Message",
       "alert": "Alert",

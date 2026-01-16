@@ -307,6 +307,11 @@ export interface Notification {
   id: string
   type: string
   content: string
+  title?: string
+  message?: string
+  actorUserId?: string
+  entityType?: string
+  entityId?: string
   timestamp: string
   workspaceId: string
   read: boolean
@@ -346,4 +351,3 @@ export interface ApiErrorResponse {
     message: string
   }>
 }
-

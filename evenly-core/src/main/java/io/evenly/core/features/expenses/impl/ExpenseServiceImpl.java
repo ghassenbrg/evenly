@@ -144,7 +144,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         }
 
         notificationService.notifyExpenseEvent(workspaceId, userId, expense.getId().toString(),
-            participantIds, NotificationType.EXPENSE_CREATED);
+            participantIds, NotificationType.EXPENSE_CREATED, buildExpenseDetail(expense));
         checkBudgetThresholds(workspaceId, userId, expense.getEffectiveDate());
 
         return toDto(expense);
@@ -178,7 +178,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
             .collect(Collectors.toList());
 
         notificationService.notifyExpenseEvent(expense.getWorkspaceId().toString(), userId, expenseId,
-            participantIds, NotificationType.EXPENSE_UPDATED);
+            participantIds, NotificationType.EXPENSE_UPDATED, buildExpenseDetail(expense));
         checkBudgetThresholds(expense.getWorkspaceId().toString(), userId, expense.getEffectiveDate());
 
         return toDto(expense);
@@ -198,7 +198,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         expenseRepository.delete(expenseUuid);
 
         notificationService.notifyExpenseEvent(expense.getWorkspaceId().toString(), userId, expenseId,
-            participantIds, NotificationType.EXPENSE_DELETED);
+            participantIds, NotificationType.EXPENSE_DELETED, buildExpenseDetail(expense));
         checkBudgetThresholds(expense.getWorkspaceId().toString(), userId, expense.getEffectiveDate());
     }
 
@@ -220,6 +220,30 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
 
         notificationService.checkBudgetThresholds(workspaceId, userId, date, workspaceTotalPaid,
             workspace.getMonthlySharedLimit());
+    }
+
+    private String buildExpenseDetail(io.evenly.core.domain.Expense expense) {
+        if (expense == null) {
+            return "Expense updated";
+        }
+        String amount = expense.getAmount() != null ? expense.getAmount().stripTrailingZeros().toPlainString() : null;
+        String currency = expense.getCurrency() != null ? expense.getCurrency().getCode() : null;
+        StringBuilder detail = new StringBuilder();
+        if (amount != null) {
+            detail.append("Expense of ").append(amount);
+            if (currency != null) {
+                detail.append(" ").append(currency);
+            }
+        } else {
+            detail.append("Expense updated");
+        }
+
+        if (expense.getCategoryId() != null) {
+            categoryRepository.findById(expense.getCategoryId()).ifPresent(category -> {
+                detail.append(" for ").append(category.getName());
+            });
+        }
+        return detail.toString();
     }
 
     private io.evenly.core.features.expenses.dto.Expense toDto(io.evenly.core.domain.Expense domain) {

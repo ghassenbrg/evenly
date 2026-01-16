@@ -393,6 +393,57 @@
     "markAllAsRead": "すべて既読にする",
     "markingAllAsRead": "すべて既読にしています...",
     "unknownWorkspace": "不明なワークスペース",
+    "you": "あなた",
+    "someone": "誰か",
+    "events": {
+      "EXPENSE_CREATED": {
+        "title": "支出を追加",
+        "message": "{actor}が支出を追加しました。",
+        "messageWithDetail": "{actor}が支出を追加しました。詳細: {detail}"
+      },
+      "EXPENSE_UPDATED": {
+        "title": "支出を更新",
+        "message": "{actor}が支出を更新しました。",
+        "messageWithDetail": "{actor}が支出を更新しました。詳細: {detail}"
+      },
+      "EXPENSE_DELETED": {
+        "title": "支出を削除",
+        "message": "{actor}が支出を削除しました。",
+        "messageWithDetail": "{actor}が支出を削除しました。詳細: {detail}"
+      },
+      "PAYMENT_CREATED": {
+        "title": "支払いを作成",
+        "message": "{actor}が支払いを記録しました。",
+        "messageWithDetail": "{actor}が支払いを記録しました。詳細: {detail}"
+      },
+      "PAYMENT_UPDATED": {
+        "title": "支払いを更新",
+        "message": "{actor}が支払いを更新しました。",
+        "messageWithDetail": "{actor}が支払いを更新しました。詳細: {detail}"
+      },
+      "PAYMENT_DELETED": {
+        "title": "支払いを削除",
+        "message": "{actor}が支払いを削除しました。",
+        "messageWithDetail": "{actor}が支払いを削除しました。詳細: {detail}"
+      },
+      "WORKSPACE_UPDATED": {
+        "title": "ワークスペースを更新",
+        "message": "{actor}がワークスペース設定を更新しました。",
+        "messageWithDetail": "{actor}がワークスペース設定を更新しました。詳細: {detail}"
+      },
+      "WORKSPACE_MEMBER_JOINED": {
+        "title": "メンバーが参加",
+        "message": "{actor}がワークスペースに参加しました。"
+      },
+      "BUDGET_THRESHOLD_80": {
+        "title": "予算の80%に到達",
+        "message": "今月の予算使用率が80%に達しました。"
+      },
+      "BUDGET_LIMIT_REACHED": {
+        "title": "予算上限に到達",
+        "message": "今月の予算上限に到達しました。"
+      }
+    },
     "types": {
       "message": "メッセージ",
       "alert": "アラート",

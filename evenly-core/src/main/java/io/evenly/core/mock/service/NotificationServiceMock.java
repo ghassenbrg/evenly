@@ -63,12 +63,12 @@ public class NotificationServiceMock implements NotificationService {
 
     @Override
     public void notifyExpenseEvent(String workspaceId, String actorUserId, String expenseId,
-                                   List<String> participantUserIds, NotificationType type) {
+                                   List<String> participantUserIds, NotificationType type, String detail) {
     }
 
     @Override
     public void notifyPaymentEvent(String workspaceId, String actorUserId, String paymentId, String otherPartyUserId,
-                                   NotificationType type) {
+                                   NotificationType type, String detail) {
     }
 
     @Override

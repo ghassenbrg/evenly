@@ -102,7 +102,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment = paymentRepository.save(payment);
 
         notificationService.notifyPaymentEvent(workspaceId, userId, payment.getId().toString(), payeeUserId,
-            NotificationType.PAYMENT_CREATED);
+            NotificationType.PAYMENT_CREATED, buildPaymentDetail(payment, userId));
         return toDto(payment);
     }
 
@@ -130,7 +130,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         String otherParty = resolveOtherParty(payment, userId);
         notificationService.notifyPaymentEvent(payment.getWorkspaceId().toString(), userId, paymentId, otherParty,
-            NotificationType.PAYMENT_UPDATED);
+            NotificationType.PAYMENT_UPDATED, buildPaymentDetail(payment, userId));
         return toDto(payment);
     }
 
@@ -144,7 +144,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         String otherParty = resolveOtherParty(payment, userId);
         notificationService.notifyPaymentEvent(payment.getWorkspaceId().toString(), userId, paymentId, otherParty,
-            NotificationType.PAYMENT_DELETED);
+            NotificationType.PAYMENT_DELETED, buildPaymentDetail(payment, userId));
     }
 
     private String resolveOtherParty(io.evenly.core.domain.Payment payment, String actorUserId) {
@@ -158,6 +158,38 @@ public class PaymentServiceImpl implements PaymentService {
             return payment.getPaidByUserId();
         }
         return null;
+    }
+
+    private String buildPaymentDetail(io.evenly.core.domain.Payment payment, String actorUserId) {
+        if (payment == null) {
+            return "Payment updated";
+        }
+        String amount = payment.getAmount() != null ? payment.getAmount().stripTrailingZeros().toPlainString() : null;
+        String currency = payment.getCurrency() != null ? payment.getCurrency().getCode() : null;
+        String otherPartyId = resolveOtherParty(payment, actorUserId);
+        String otherPartyName = otherPartyId != null
+            ? userRepository.findById(otherPartyId).map(io.evenly.core.domain.User::getDisplayName).orElse(otherPartyId)
+            : "member";
+
+        StringBuilder detail = new StringBuilder();
+        if (amount != null) {
+            detail.append("Payment of ").append(amount);
+            if (currency != null) {
+                detail.append(" ").append(currency);
+            }
+        } else {
+            detail.append("Payment updated");
+        }
+        if (otherPartyName != null) {
+            if (actorUserId != null && actorUserId.equals(payment.getPaidByUserId())) {
+                detail.append(" to ").append(otherPartyName);
+            } else if (actorUserId != null && actorUserId.equals(payment.getPayeeUserId())) {
+                detail.append(" from ").append(otherPartyName);
+            } else {
+                detail.append(" with ").append(otherPartyName);
+            }
+        }
+        return detail.toString();
     }
 
     private io.evenly.core.features.payments.dto.Payment toDto(io.evenly.core.domain.Payment domain) {

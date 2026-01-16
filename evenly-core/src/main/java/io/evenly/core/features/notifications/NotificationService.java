@@ -16,9 +16,9 @@ public interface NotificationService {
     void markAsRead(String notificationId);
     void markAllAsRead(String userId);
     void notifyExpenseEvent(String workspaceId, String actorUserId, String expenseId, List<String> participantUserIds,
-                            NotificationType type);
+                            NotificationType type, String detail);
     void notifyPaymentEvent(String workspaceId, String actorUserId, String paymentId, String otherPartyUserId,
-                            NotificationType type);
+                            NotificationType type, String detail);
     void notifyWorkspaceUpdated(String workspaceId, String actorUserId, String message);
     void notifyMemberJoined(String workspaceId, String actorUserId);
     void checkBudgetThresholds(String workspaceId, String actorUserId, LocalDate effectiveDate,

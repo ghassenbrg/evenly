@@ -22,8 +22,8 @@
     <div class="flex-1 min-w-0">
       <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
-          <h4 class="text-sm font-medium text-white truncate">{{ getNotificationTitle(notification.type) }}</h4>
-          <p class="text-xs text-slate-400 mt-1 line-clamp-2">{{ notification.content }}</p>
+          <h4 class="text-sm font-medium text-white truncate">{{ getNotificationTitle(notification) }}</h4>
+          <p class="text-xs text-slate-400 mt-1 line-clamp-2">{{ getNotificationMessage(notification) }}</p>
         </div>
       </div>
       
@@ -60,6 +60,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { getCurrentUserId } = useAuth()
 const { formatRelativeTime } = useFormatting()
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
@@ -68,13 +69,39 @@ const formatTime = (dateString: string): string => {
   return formatRelativeTime(new Date(dateString))
 }
 
-const getNotificationTitle = (type: string): string => {
-  const titles: Record<string, string> = {
+const getActorLabel = (notification: Notification): string => {
+  const currentUserId = getCurrentUserId()
+  if (currentUserId && notification.actorUserId === currentUserId) {
+    return t('notifications.you')
+  }
+  return notification.actorUserId || t('notifications.someone')
+}
+
+const getNotificationTitle = (notification: Notification): string => {
+  const key = `notifications.events.${notification.type}.title`
+  const translated = t(key)
+  if (translated !== key) {
+    return translated
+  }
+  const legacyTitles: Record<string, string> = {
     message: t('notifications.types.message'),
     alert: t('notifications.types.alert'),
     reminder: t('notifications.types.reminder')
   }
-  return titles[type] || type
+  return notification.title || legacyTitles[notification.type] || notification.type
+}
+
+const getNotificationMessage = (notification: Notification): string => {
+  const detail = notification.message || notification.content || ''
+  const actor = getActorLabel(notification)
+  const key = detail
+    ? `notifications.events.${notification.type}.messageWithDetail`
+    : `notifications.events.${notification.type}.message`
+  const translated = t(key, { actor, detail })
+  if (translated !== key) {
+    return translated
+  }
+  return detail || notification.message || notification.content
 }
 
 const getWorkspaceName = (workspaceId: string): string => {
@@ -92,4 +119,3 @@ const handleClick = () => {
   }
 }
 </script>
-

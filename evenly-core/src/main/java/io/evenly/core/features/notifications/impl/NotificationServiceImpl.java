@@ -60,21 +60,20 @@ public class NotificationServiceImpl implements io.evenly.core.features.notifica
     @Override
     @Transactional
     public void notifyExpenseEvent(String workspaceId, String actorUserId, String expenseId, List<String> participantUserIds,
-                                   NotificationType type) {
+                                   NotificationType type, String detail) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         List<String> recipients = participantUserIds.stream()
             .filter(userId -> userId != null && !userId.equals(actorUserId))
             .distinct()
             .collect(Collectors.toList());
 
-        String actorName = resolveDisplayName(actorUserId);
         String title = switch (type) {
             case EXPENSE_CREATED -> "Expense created";
             case EXPENSE_UPDATED -> "Expense updated";
             case EXPENSE_DELETED -> "Expense deleted";
             default -> "Expense update";
         };
-        String message = actorName + " " + actionText(type) + " an expense.";
+        String message = detail != null && !detail.isBlank() ? detail : "Expense updated";
 
         for (String recipientId : recipients) {
             notificationRepository.save(buildNotification(workspaceUuid, recipientId, actorUserId, type,
@@ -85,19 +84,18 @@ public class NotificationServiceImpl implements io.evenly.core.features.notifica
     @Override
     @Transactional
     public void notifyPaymentEvent(String workspaceId, String actorUserId, String paymentId, String otherPartyUserId,
-                                   NotificationType type) {
+                                   NotificationType type, String detail) {
         if (otherPartyUserId == null || otherPartyUserId.equals(actorUserId)) {
             return;
         }
         UUID workspaceUuid = UUID.fromString(workspaceId);
-        String actorName = resolveDisplayName(actorUserId);
         String title = switch (type) {
             case PAYMENT_CREATED -> "Payment created";
             case PAYMENT_UPDATED -> "Payment updated";
             case PAYMENT_DELETED -> "Payment deleted";
             default -> "Payment update";
         };
-        String message = actorName + " " + actionText(type) + " a payment.";
+        String message = detail != null && !detail.isBlank() ? detail : "Payment updated";
         notificationRepository.save(buildNotification(workspaceUuid, otherPartyUserId, actorUserId, type,
             title, message, NotificationEntityType.PAYMENT, paymentId));
     }
@@ -112,12 +110,8 @@ public class NotificationServiceImpl implements io.evenly.core.features.notifica
             .distinct()
             .collect(Collectors.toList());
 
-        String actorName = resolveDisplayName(actorUserId);
         String title = "Workspace updated";
-        String finalMessage = actorName + " updated workspace settings.";
-        if (message != null && !message.isBlank()) {
-            finalMessage = actorName + " updated workspace settings: " + message;
-        }
+        String finalMessage = message != null && !message.isBlank() ? message : "Workspace settings updated";
 
         for (String recipientId : memberIds) {
             notificationRepository.save(buildNotification(workspaceUuid, recipientId, actorUserId,
@@ -136,9 +130,8 @@ public class NotificationServiceImpl implements io.evenly.core.features.notifica
             .distinct()
             .collect(Collectors.toList());
 
-        String actorName = resolveDisplayName(actorUserId);
         String title = "New member joined";
-        String message = actorName + " joined the workspace.";
+        String message = "Joined the workspace.";
 
         for (String recipientId : memberIds) {
             notificationRepository.save(buildNotification(workspaceUuid, recipientId, actorUserId,
