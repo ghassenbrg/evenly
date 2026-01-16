@@ -7,19 +7,27 @@ import java.time.OffsetDateTime;
  */
 public class Notification {
     private String id;
-    private String type;
-    private String content;
-    private OffsetDateTime timestamp;
     private String workspaceId;
+    private String recipientUserId;
+    private String actorUserId;
+    private String type;
+    private String title;
+    private String message;
+    private String content;
+    private String entityType;
+    private String entityId;
     private Boolean read;
+    private OffsetDateTime timestamp;
+    private OffsetDateTime createdAt;
 
     public Notification() {
     }
 
-    public Notification(String id, String type, String content) {
+    public Notification(String id, String type, String title, String message) {
         this.id = id;
         this.type = type;
-        this.content = content;
+        this.title = title;
+        this.message = message;
     }
 
     // Getters and setters
@@ -39,20 +47,28 @@ public class Notification {
         this.type = type;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     public String getContent() {
         return content;
     }
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public OffsetDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(OffsetDateTime timestamp) {
-        this.timestamp = timestamp;
     }
 
     public String getWorkspaceId() {
@@ -63,6 +79,38 @@ public class Notification {
         this.workspaceId = workspaceId;
     }
 
+    public String getRecipientUserId() {
+        return recipientUserId;
+    }
+
+    public void setRecipientUserId(String recipientUserId) {
+        this.recipientUserId = recipientUserId;
+    }
+
+    public String getActorUserId() {
+        return actorUserId;
+    }
+
+    public void setActorUserId(String actorUserId) {
+        this.actorUserId = actorUserId;
+    }
+
+    public String getEntityType() {
+        return entityType;
+    }
+
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
+
+    public String getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
+    }
+
     public Boolean getRead() {
         return read;
     }
@@ -70,4 +118,21 @@ public class Notification {
     public void setRead(Boolean read) {
         this.read = read;
     }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public OffsetDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(OffsetDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
 }

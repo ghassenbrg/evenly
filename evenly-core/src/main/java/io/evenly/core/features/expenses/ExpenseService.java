@@ -19,6 +19,6 @@ public interface ExpenseService {
     List<Expense> findRecentForWorkspace(String workspaceId, int size);
     Optional<Expense> findById(String expenseId);
     Expense create(String workspaceId, String userId, CreateExpenseRequest request);
-    Expense update(String expenseId, UpdateExpenseRequest request);
-    void delete(String expenseId);
+    Expense update(String expenseId, String userId, UpdateExpenseRequest request);
+    void delete(String expenseId, String userId);
 }

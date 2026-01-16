@@ -17,6 +17,6 @@ public interface PaymentService {
                                        String status, int page, int size, String sort);
     Optional<Payment> findById(String paymentId);
     Payment create(String workspaceId, String userId, CreatePaymentRequest request);
-    Payment update(String paymentId, UpdatePaymentRequest request);
-    void delete(String paymentId);
+    Payment update(String paymentId, String userId, UpdatePaymentRequest request);
+    void delete(String paymentId, String userId);
 }

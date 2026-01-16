@@ -101,12 +101,15 @@ public class WorkspaceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateWorkspace(@PathParam("workspaceId") String workspaceId,
                                     @Valid UpdateWorkspaceRequest request) {
+        String userId = securityContext.getUserId()
+            .orElseThrow(() -> new SecurityException("User not authenticated"));
+
         Optional<Workspace> existing = workspaceService.findById(workspaceId);
         if (existing.isEmpty()) {
             throw new NotFoundException("Workspace not found");
         }
         
-        Workspace workspace = workspaceService.update(workspaceId, request);
+        Workspace workspace = workspaceService.update(workspaceId, userId, request);
         Map<String, Object> response = new HashMap<>();
         response.put("workspace", workspace);
         return Response.ok(response).build();
@@ -136,12 +139,15 @@ public class WorkspaceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateSettings(@PathParam("workspaceId") String workspaceId,
                                    @Valid UpdateWorkspaceSettingsRequest request) {
+        String userId = securityContext.getUserId()
+            .orElseThrow(() -> new SecurityException("User not authenticated"));
+
         Optional<Workspace> existing = workspaceService.findById(workspaceId);
         if (existing.isEmpty()) {
             throw new NotFoundException("Workspace not found");
         }
         
-        Workspace workspace = workspaceService.updateSettings(workspaceId, request);
+        Workspace workspace = workspaceService.updateSettings(workspaceId, userId, request);
         Map<String, Object> response = new HashMap<>();
         response.put("workspace", workspace);
         return Response.ok(response).build();
@@ -166,12 +172,15 @@ public class WorkspaceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateMemberWeights(@PathParam("workspaceId") String workspaceId,
                                         @Valid UpdateMemberWeightsRequest request) {
+        String userId = securityContext.getUserId()
+            .orElseThrow(() -> new SecurityException("User not authenticated"));
+
         Optional<Workspace> existing = workspaceService.findById(workspaceId);
         if (existing.isEmpty()) {
             throw new NotFoundException("Workspace not found");
         }
         
-        workspaceService.updateMemberWeights(workspaceId, request);
+        workspaceService.updateMemberWeights(workspaceId, userId, request);
         return Response.ok().build();
     }
 }

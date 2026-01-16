@@ -82,7 +82,7 @@ public class WorkspaceServiceMock implements WorkspaceService {
     }
     
     @Override
-    public Workspace update(String workspaceId, UpdateWorkspaceRequest request) {
+    public Workspace update(String workspaceId, String userId, UpdateWorkspaceRequest request) {
         Workspace workspace = mockDataProvider.getWorkspaces().get(workspaceId);
         if (workspace == null) {
             throw new RuntimeException("Workspace not found");
@@ -127,7 +127,7 @@ public class WorkspaceServiceMock implements WorkspaceService {
     }
     
     @Override
-    public Workspace updateSettings(String workspaceId, UpdateWorkspaceSettingsRequest request) {
+    public Workspace updateSettings(String workspaceId, String userId, UpdateWorkspaceSettingsRequest request) {
         Workspace workspace = mockDataProvider.getWorkspaces().get(workspaceId);
         if (workspace == null) {
             throw new RuntimeException("Workspace not found");
@@ -185,7 +185,7 @@ public class WorkspaceServiceMock implements WorkspaceService {
     }
     
     @Override
-    public void updateMemberWeights(String workspaceId, UpdateMemberWeightsRequest request) {
+    public void updateMemberWeights(String workspaceId, String userId, UpdateMemberWeightsRequest request) {
         List<WorkspaceMember> members = mockDataProvider.getWorkspaceMembers().get(workspaceId);
         if (members == null) {
             throw new RuntimeException("Workspace not found");

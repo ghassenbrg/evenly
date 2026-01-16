@@ -1,6 +1,8 @@
 package io.evenly.core.features.notifications.persistence;
 
 import io.evenly.core.domain.Notification;
+import io.evenly.core.domain.NotificationEntityType;
+import io.evenly.core.domain.NotificationType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
@@ -26,18 +28,18 @@ public class NotificationRepositoryImpl implements io.evenly.core.domain.reposit
     }
 
     @Override
-    public List<Notification> findByUserId(String userId) { // userId is now String (username)
+    public List<Notification> findByRecipientUserId(String userId) {
         return entityManager.createQuery(
-            "SELECT n FROM Notification n WHERE n.userId = :userId ORDER BY n.timestamp DESC", 
+            "SELECT n FROM Notification n WHERE n.recipientUserId = :userId ORDER BY n.createdAt DESC",
             Notification.class)
             .setParameter("userId", userId)
             .getResultList();
     }
 
     @Override
-    public List<Notification> findByUserIdAndRead(String userId, boolean read) { // userId is now String (username)
+    public List<Notification> findByRecipientUserIdAndRead(String userId, boolean read) {
         return entityManager.createQuery(
-            "SELECT n FROM Notification n WHERE n.userId = :userId AND n.read = :read ORDER BY n.timestamp DESC", 
+            "SELECT n FROM Notification n WHERE n.recipientUserId = :userId AND n.isRead = :read ORDER BY n.createdAt DESC",
             Notification.class)
             .setParameter("userId", userId)
             .setParameter("read", read)
@@ -47,7 +49,7 @@ public class NotificationRepositoryImpl implements io.evenly.core.domain.reposit
     @Override
     public List<Notification> findByWorkspaceId(UUID workspaceId) {
         return entityManager.createQuery(
-            "SELECT n FROM Notification n WHERE n.workspaceId = :workspaceId ORDER BY n.timestamp DESC", 
+            "SELECT n FROM Notification n WHERE n.workspaceId = :workspaceId ORDER BY n.createdAt DESC",
             Notification.class)
             .setParameter("workspaceId", workspaceId)
             .getResultList();
@@ -57,11 +59,11 @@ public class NotificationRepositoryImpl implements io.evenly.core.domain.reposit
     public Notification save(Notification notification) {
         if (notification.getId() == null) {
             notification.setId(UUID.randomUUID());
-            if (notification.getTimestamp() == null) {
-                notification.setTimestamp(java.time.OffsetDateTime.now());
+            if (notification.getCreatedAt() == null) {
+                notification.setCreatedAt(java.time.OffsetDateTime.now());
             }
-            if (notification.getRead() == null) {
-                notification.setRead(false);
+            if (notification.getIsRead() == null) {
+                notification.setIsRead(false);
             }
             entityManager.persist(notification);
             return notification;
@@ -80,24 +82,37 @@ public class NotificationRepositoryImpl implements io.evenly.core.domain.reposit
 
     @Override
     public void markAsRead(UUID id) {
-        entityManager.createQuery("UPDATE Notification n SET n.read = true WHERE n.id = :id")
+        entityManager.createQuery("UPDATE Notification n SET n.isRead = true WHERE n.id = :id")
             .setParameter("id", id)
             .executeUpdate();
     }
 
     @Override
-    public void markAllAsRead(String userId) { // userId is now String (username)
-        entityManager.createQuery("UPDATE Notification n SET n.read = true WHERE n.userId = :userId")
+    public void markAllAsRead(String userId) {
+        entityManager.createQuery("UPDATE Notification n SET n.isRead = true WHERE n.recipientUserId = :userId")
             .setParameter("userId", userId)
             .executeUpdate();
     }
 
     @Override
-    public long countUnreadByUserId(String userId) { // userId is now String (username)
+    public long countUnreadByUserId(String userId) {
         return entityManager.createQuery(
-            "SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.read = false", Long.class)
+            "SELECT COUNT(n) FROM Notification n WHERE n.recipientUserId = :userId AND n.isRead = false", Long.class)
             .setParameter("userId", userId)
             .getSingleResult();
+    }
+
+    @Override
+    public boolean existsByRecipientAndTypeAndEntity(String recipientUserId, NotificationType type, NotificationEntityType entityType, String entityId) {
+        Long count = entityManager.createQuery(
+            "SELECT COUNT(n) FROM Notification n WHERE n.recipientUserId = :recipientUserId AND n.type = :type AND n.entityType = :entityType AND n.entityId = :entityId",
+            Long.class)
+            .setParameter("recipientUserId", recipientUserId)
+            .setParameter("type", type)
+            .setParameter("entityType", entityType)
+            .setParameter("entityId", entityId)
+            .getSingleResult();
+        return count > 0;
     }
 
     @Override

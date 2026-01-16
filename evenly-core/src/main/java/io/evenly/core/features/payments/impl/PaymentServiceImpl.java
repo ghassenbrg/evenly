@@ -3,6 +3,8 @@ package io.evenly.core.features.payments.impl;
 import io.evenly.core.domain.repository.PaymentRepository;
 import io.evenly.core.domain.repository.UserRepository;
 import io.evenly.core.domain.repository.WorkspaceRepository;
+import io.evenly.core.domain.NotificationType;
+import io.evenly.core.features.notifications.NotificationService;
 import io.evenly.core.features.payments.PaymentService;
 import io.evenly.core.features.payments.dto.CreatePaymentRequest;
 import io.evenly.core.features.payments.dto.Payment;
@@ -31,6 +33,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Inject
     private WorkspaceRepository workspaceRepository;
+
+    @Inject
+    private NotificationService notificationService;
 
     @Override
     @Transactional(Transactional.TxType.SUPPORTS)
@@ -95,12 +100,15 @@ public class PaymentServiceImpl implements PaymentService {
             .build();
 
         payment = paymentRepository.save(payment);
+
+        notificationService.notifyPaymentEvent(workspaceId, userId, payment.getId().toString(), payeeUserId,
+            NotificationType.PAYMENT_CREATED);
         return toDto(payment);
     }
 
     @Override
     @Transactional
-    public io.evenly.core.features.payments.dto.Payment update(String paymentId, UpdatePaymentRequest request) {
+    public io.evenly.core.features.payments.dto.Payment update(String paymentId, String userId, UpdatePaymentRequest request) {
         UUID paymentUuid = UUID.fromString(paymentId);
         io.evenly.core.domain.Payment payment = paymentRepository.findById(paymentUuid)
             .orElseThrow(() -> new NotFoundException("Payment not found: " + paymentId));
@@ -119,14 +127,37 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         payment = paymentRepository.save(payment);
+
+        String otherParty = resolveOtherParty(payment, userId);
+        notificationService.notifyPaymentEvent(payment.getWorkspaceId().toString(), userId, paymentId, otherParty,
+            NotificationType.PAYMENT_UPDATED);
         return toDto(payment);
     }
 
     @Override
     @Transactional
-    public void delete(String paymentId) {
+    public void delete(String paymentId, String userId) {
         UUID paymentUuid = UUID.fromString(paymentId);
+        io.evenly.core.domain.Payment payment = paymentRepository.findById(paymentUuid)
+            .orElseThrow(() -> new NotFoundException("Payment not found: " + paymentId));
         paymentRepository.delete(paymentUuid);
+
+        String otherParty = resolveOtherParty(payment, userId);
+        notificationService.notifyPaymentEvent(payment.getWorkspaceId().toString(), userId, paymentId, otherParty,
+            NotificationType.PAYMENT_DELETED);
+    }
+
+    private String resolveOtherParty(io.evenly.core.domain.Payment payment, String actorUserId) {
+        if (actorUserId == null || payment == null) {
+            return null;
+        }
+        if (actorUserId.equals(payment.getPaidByUserId())) {
+            return payment.getPayeeUserId();
+        }
+        if (actorUserId.equals(payment.getPayeeUserId())) {
+            return payment.getPaidByUserId();
+        }
+        return null;
     }
 
     private io.evenly.core.features.payments.dto.Payment toDto(io.evenly.core.domain.Payment domain) {

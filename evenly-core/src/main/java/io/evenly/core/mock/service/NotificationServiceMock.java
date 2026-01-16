@@ -1,8 +1,10 @@
 package io.evenly.core.mock.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.evenly.core.domain.NotificationType;
 import io.evenly.core.features.notifications.NotificationService;
 import io.evenly.core.features.notifications.dto.Notification;
 import io.evenly.core.mock.data.MockDataProvider;
@@ -57,5 +59,28 @@ public class NotificationServiceMock implements NotificationService {
     @Override
     public void markAllAsRead(String userId) {
         findAllForUser(userId).forEach(n -> n.setRead(true));
+    }
+
+    @Override
+    public void notifyExpenseEvent(String workspaceId, String actorUserId, String expenseId,
+                                   List<String> participantUserIds, NotificationType type) {
+    }
+
+    @Override
+    public void notifyPaymentEvent(String workspaceId, String actorUserId, String paymentId, String otherPartyUserId,
+                                   NotificationType type) {
+    }
+
+    @Override
+    public void notifyWorkspaceUpdated(String workspaceId, String actorUserId, String message) {
+    }
+
+    @Override
+    public void notifyMemberJoined(String workspaceId, String actorUserId) {
+    }
+
+    @Override
+    public void checkBudgetThresholds(String workspaceId, String actorUserId, LocalDate effectiveDate,
+                                      java.math.BigDecimal workspaceTotalPaid, java.math.BigDecimal budgetLimit) {
     }
 }

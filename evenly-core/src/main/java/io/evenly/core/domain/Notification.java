@@ -1,6 +1,11 @@
 package io.evenly.core.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,26 +29,36 @@ public class Notification {
     @Column(name = "id", columnDefinition = "UUID")
     private UUID id;
     
-    @Column(name = "user_id", nullable = false, length = 100)
-    private String userId; // Changed to String (username)
-    
-    @Column(name = "type", nullable = false, length = 50)
-    private String type;
-    
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
-    private String content;
-    
     @Column(name = "workspace_id", columnDefinition = "UUID")
-    private UUID workspaceId; // nullable for non-workspace notifications
+    private UUID workspaceId;
     
-    @Column(name = "read", nullable = false)
+    @Column(name = "recipient_user_id", nullable = false, length = 100)
+    private String recipientUserId;
+    
+    @Column(name = "actor_user_id", length = 100)
+    private String actorUserId;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 50)
+    private NotificationType type;
+    
+    @Column(name = "title", nullable = false, length = 255)
+    private String title;
+    
+    @Column(name = "message", nullable = false, columnDefinition = "TEXT")
+    private String message;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entity_type", nullable = false, length = 50)
+    private NotificationEntityType entityType;
+    
+    @Column(name = "entity_id", length = 100)
+    private String entityId;
+    
+    @Column(name = "is_read", nullable = false)
     @Builder.Default
-    private Boolean read = false;
+    private Boolean isRead = false;
     
-    @Column(name = "timestamp", nullable = false)
-    private OffsetDateTime timestamp;
-    
-    @Column(name = "context", nullable = false, length = 50)
-    @Builder.Default
-    private String context = "GENERAL"; // 'PAYMENT', 'EXPENSE', 'WORKSPACE', 'GENERAL'
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
 }

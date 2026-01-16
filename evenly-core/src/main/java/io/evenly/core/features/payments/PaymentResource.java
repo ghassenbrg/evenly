@@ -81,11 +81,14 @@ public class PaymentResource {
     public Response updatePayment(@PathParam("workspaceId") String workspaceId,
                                   @PathParam("paymentId") String paymentId,
                                   @Valid UpdatePaymentRequest request) {
+        String userId = securityContext.getUserId()
+            .orElseThrow(() -> new SecurityException("User not authenticated"));
+
         Optional<Payment> existing = paymentService.findById(paymentId);
         if (existing.isEmpty()) {
             throw new NotFoundException("Payment not found");
         }
-        Payment payment = paymentService.update(paymentId, request);
+        Payment payment = paymentService.update(paymentId, userId, request);
         Map<String, Object> response = new HashMap<>();
         response.put("data", payment);
         return Response.ok(response).build();
@@ -95,11 +98,14 @@ public class PaymentResource {
     @Path("/workspaces/{workspaceId}/payments/{paymentId}")
     public Response deletePayment(@PathParam("workspaceId") String workspaceId,
                                   @PathParam("paymentId") String paymentId) {
+        String userId = securityContext.getUserId()
+            .orElseThrow(() -> new SecurityException("User not authenticated"));
+
         Optional<Payment> existing = paymentService.findById(paymentId);
         if (existing.isEmpty()) {
             throw new NotFoundException("Payment not found");
         }
-        paymentService.delete(paymentId);
+        paymentService.delete(paymentId, userId);
         return Response.noContent().build();
     }
 }

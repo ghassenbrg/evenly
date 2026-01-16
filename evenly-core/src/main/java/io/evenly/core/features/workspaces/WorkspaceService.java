@@ -18,10 +18,10 @@ public interface WorkspaceService {
     List<Workspace> findAllForUser(String userId);
     Optional<Workspace> findById(String workspaceId);
     Workspace create(String userId, CreateWorkspaceRequest request);
-    Workspace update(String workspaceId, UpdateWorkspaceRequest request);
+    Workspace update(String workspaceId, String userId, UpdateWorkspaceRequest request);
     void delete(String workspaceId);
-    Workspace updateSettings(String workspaceId, UpdateWorkspaceSettingsRequest request);
+    Workspace updateSettings(String workspaceId, String userId, UpdateWorkspaceSettingsRequest request);
     List<WorkspaceMember> findMembers(String workspaceId);
-    void updateMemberWeights(String workspaceId, UpdateMemberWeightsRequest request);
+    void updateMemberWeights(String workspaceId, String userId, UpdateMemberWeightsRequest request);
     Workspace createPersonalWorkspace(String userId, String currency);
 }

@@ -10,6 +10,7 @@ import io.evenly.core.features.workspaces.dto.CreateWorkspaceRequest;
 import io.evenly.core.features.workspaces.dto.UpdateWorkspaceRequest;
 import io.evenly.core.features.workspaces.dto.UpdateWorkspaceSettingsRequest;
 import io.evenly.core.features.workspaces.dto.UpdateMemberWeightsRequest;
+import io.evenly.core.features.notifications.NotificationService;
 import io.evenly.core.shared.exception.ConflictException;
 import io.evenly.core.shared.exception.NotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -40,6 +41,9 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
 
     @Inject
     private InviteRepository inviteRepository;
+
+    @Inject
+    private NotificationService notificationService;
 
     @Override
     public List<io.evenly.core.features.workspaces.dto.Workspace> findAllForUser(String userId) { // userId is now username (String)
@@ -107,7 +111,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
 
     @Override
     @Transactional
-    public io.evenly.core.features.workspaces.dto.Workspace update(String workspaceId, UpdateWorkspaceRequest request) {
+    public io.evenly.core.features.workspaces.dto.Workspace update(String workspaceId, String userId, UpdateWorkspaceRequest request) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         Workspace workspace = workspaceRepository.findById(workspaceUuid)
             .orElseThrow(() -> new NotFoundException("Workspace not found"));
@@ -140,6 +144,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
         workspace.setUpdatedAt(OffsetDateTime.now());
 
         workspace = workspaceRepository.save(workspace);
+        notificationService.notifyWorkspaceUpdated(workspaceId, userId, "Workspace settings updated");
         return toDto(workspace);
     }
 
@@ -163,12 +168,12 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
 
     @Override
     @Transactional
-    public io.evenly.core.features.workspaces.dto.Workspace updateSettings(String workspaceId, UpdateWorkspaceSettingsRequest request) {
+    public io.evenly.core.features.workspaces.dto.Workspace updateSettings(String workspaceId, String userId, UpdateWorkspaceSettingsRequest request) {
         UpdateWorkspaceRequest updateRequest = new UpdateWorkspaceRequest();
         updateRequest.setName(request.getName());
         updateRequest.setDefaultSplitMode(request.getDefaultSplitMode());
         updateRequest.setMonthlySharedLimit(request.getMonthlySharedLimit());
-        return update(workspaceId, updateRequest);
+        return update(workspaceId, userId, updateRequest);
     }
 
     @Override
@@ -221,7 +226,7 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
 
     @Override
     @Transactional
-    public void updateMemberWeights(String workspaceId, UpdateMemberWeightsRequest request) {
+    public void updateMemberWeights(String workspaceId, String userId, UpdateMemberWeightsRequest request) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         workspaceRepository.findById(workspaceUuid)
             .orElseThrow(() -> new NotFoundException("Workspace not found"));
@@ -252,6 +257,8 @@ public class WorkspaceServiceImpl implements io.evenly.core.features.workspaces.
 
             workspaceMemberRepository.save(member);
         }
+
+        notificationService.notifyWorkspaceUpdated(workspaceId, userId, "Member weights updated");
     }
 
     private io.evenly.core.features.workspaces.dto.Workspace toDto(Workspace workspace) {

@@ -134,7 +134,7 @@ public class PaymentServiceMock implements PaymentService {
     }
 
     @Override
-    public Payment update(String paymentId, UpdatePaymentRequest request) {
+    public Payment update(String paymentId, String userId, UpdatePaymentRequest request) {
         Optional<Payment> optPayment = findById(paymentId);
         if (optPayment.isEmpty()) {
             throw new RuntimeException("Payment not found");
@@ -166,7 +166,7 @@ public class PaymentServiceMock implements PaymentService {
     }
 
     @Override
-    public void delete(String paymentId) {
+    public void delete(String paymentId, String userId) {
         Optional<Payment> optPayment = findById(paymentId);
         if (optPayment.isEmpty()) {
             throw new RuntimeException("Payment not found");

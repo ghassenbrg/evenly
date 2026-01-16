@@ -11,8 +11,10 @@ import io.evenly.core.domain.repository.CategoryRepository;
 import io.evenly.core.domain.repository.ExpenseParticipantRepository;
 import io.evenly.core.domain.repository.ExpenseRepository;
 import io.evenly.core.domain.repository.UserRepository;
+import io.evenly.core.domain.NotificationType;
 import io.evenly.core.features.expenses.dto.CreateExpenseRequest;
 import io.evenly.core.features.expenses.dto.UpdateExpenseRequest;
+import io.evenly.core.features.notifications.NotificationService;
 import io.evenly.core.shared.common.PageInfo;
 import io.evenly.core.shared.common.PaginatedExpenses;
 import io.evenly.core.shared.exception.NotFoundException;
@@ -40,6 +42,9 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
 
     @Inject
     private io.evenly.core.domain.repository.WorkspaceMemberRepository workspaceMemberRepository;
+
+    @Inject
+    private NotificationService notificationService;
 
     @Override
     @Transactional(Transactional.TxType.SUPPORTS)
@@ -138,12 +143,16 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
             expenseParticipantRepository.save(participant);
         }
 
+        notificationService.notifyExpenseEvent(workspaceId, userId, expense.getId().toString(),
+            participantIds, NotificationType.EXPENSE_CREATED);
+        checkBudgetThresholds(workspaceId, userId, expense.getEffectiveDate());
+
         return toDto(expense);
     }
 
     @Override
     @Transactional
-    public io.evenly.core.features.expenses.dto.Expense update(String expenseId, UpdateExpenseRequest request) {
+    public io.evenly.core.features.expenses.dto.Expense update(String expenseId, String userId, UpdateExpenseRequest request) {
         UUID expenseUuid = UUID.fromString(expenseId);
         io.evenly.core.domain.Expense expense = expenseRepository.findById(expenseUuid)
                 .orElseThrow(() -> new NotFoundException("Expense not found: " + expenseId));
@@ -163,15 +172,54 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         }
 
         expense = expenseRepository.save(expense);
+
+        List<String> participantIds = expenseParticipantRepository.findByExpenseId(expenseUuid).stream()
+            .map(ExpenseParticipant::getUserId)
+            .collect(Collectors.toList());
+
+        notificationService.notifyExpenseEvent(expense.getWorkspaceId().toString(), userId, expenseId,
+            participantIds, NotificationType.EXPENSE_UPDATED);
+        checkBudgetThresholds(expense.getWorkspaceId().toString(), userId, expense.getEffectiveDate());
+
         return toDto(expense);
     }
 
     @Override
     @Transactional
-    public void delete(String expenseId) {
+    public void delete(String expenseId, String userId) {
         UUID expenseUuid = UUID.fromString(expenseId);
+        io.evenly.core.domain.Expense expense = expenseRepository.findById(expenseUuid)
+            .orElseThrow(() -> new NotFoundException("Expense not found: " + expenseId));
+        List<String> participantIds = expenseParticipantRepository.findByExpenseId(expenseUuid).stream()
+            .map(ExpenseParticipant::getUserId)
+            .collect(Collectors.toList());
+
         expenseParticipantRepository.deleteByExpenseId(expenseUuid);
         expenseRepository.delete(expenseUuid);
+
+        notificationService.notifyExpenseEvent(expense.getWorkspaceId().toString(), userId, expenseId,
+            participantIds, NotificationType.EXPENSE_DELETED);
+        checkBudgetThresholds(expense.getWorkspaceId().toString(), userId, expense.getEffectiveDate());
+    }
+
+    private void checkBudgetThresholds(String workspaceId, String userId, LocalDate effectiveDate) {
+        UUID workspaceUuid = UUID.fromString(workspaceId);
+        io.evenly.core.domain.Workspace workspace = workspaceRepository.findById(workspaceUuid)
+            .orElseThrow(() -> new NotFoundException("Workspace not found: " + workspaceId));
+
+        LocalDate date = effectiveDate != null ? effectiveDate : LocalDate.now();
+        java.time.YearMonth month = java.time.YearMonth.from(date);
+        LocalDate startDate = month.atDay(1);
+        LocalDate endDate = month.atEndOfMonth();
+
+        List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(
+            workspaceUuid, startDate, endDate, null, 0, Integer.MAX_VALUE, null);
+        java.math.BigDecimal workspaceTotalPaid = expenses.stream()
+            .map(io.evenly.core.domain.Expense::getAmount)
+            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        notificationService.checkBudgetThresholds(workspaceId, userId, date, workspaceTotalPaid,
+            workspace.getMonthlySharedLimit());
     }
 
     private io.evenly.core.features.expenses.dto.Expense toDto(io.evenly.core.domain.Expense domain) {

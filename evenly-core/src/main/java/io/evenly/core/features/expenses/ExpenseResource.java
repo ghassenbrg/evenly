@@ -148,7 +148,7 @@ public class ExpenseResource {
             throw new SecurityException("Access denied: Expense does not belong to this workspace");
         }
         
-        Expense expense = expenseService.update(expenseId, request);
+        Expense expense = expenseService.update(expenseId, userId, request);
         Map<String, Object> response = new HashMap<>();
         response.put("data", expense);
         return Response.ok(response).build();
@@ -176,7 +176,7 @@ public class ExpenseResource {
             throw new SecurityException("Access denied: Expense does not belong to this workspace");
         }
         
-        expenseService.delete(expenseId);
+        expenseService.delete(expenseId, userId);
         return Response.noContent().build();
     }
 }

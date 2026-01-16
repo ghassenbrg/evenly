@@ -152,7 +152,7 @@ public class ExpenseServiceMock implements ExpenseService {
     }
 
     @Override
-    public Expense update(String expenseId, UpdateExpenseRequest request) {
+    public Expense update(String expenseId, String userId, UpdateExpenseRequest request) {
         Optional<Expense> optExpense = findById(expenseId);
         if (optExpense.isEmpty()) {
             throw new RuntimeException("Expense not found");
@@ -199,7 +199,7 @@ public class ExpenseServiceMock implements ExpenseService {
     }
 
     @Override
-    public void delete(String expenseId) {
+    public void delete(String expenseId, String userId) {
         Optional<Expense> optExpense = findById(expenseId);
         if (optExpense.isEmpty()) {
             throw new RuntimeException("Expense not found");

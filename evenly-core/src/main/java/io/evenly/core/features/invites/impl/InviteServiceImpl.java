@@ -6,6 +6,7 @@ import io.evenly.core.domain.repository.WorkspaceMemberRepository;
 import io.evenly.core.domain.repository.WorkspaceRepository;
 import io.evenly.core.features.invites.dto.CreateInviteRequest;
 import io.evenly.core.features.invites.dto.Invite;
+import io.evenly.core.features.notifications.NotificationService;
 import io.evenly.core.shared.exception.ConflictException;
 import io.evenly.core.shared.exception.NotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,6 +27,9 @@ public class InviteServiceImpl implements io.evenly.core.features.invites.Invite
 
     @Inject
     private WorkspaceMemberRepository workspaceMemberRepository;
+
+    @Inject
+    private NotificationService notificationService;
 
     @Override
     @Transactional
@@ -97,6 +101,8 @@ public class InviteServiceImpl implements io.evenly.core.features.invites.Invite
             .role("MEMBER")
             .build();
         workspaceMemberRepository.save(member);
+
+        notificationService.notifyMemberJoined(domainInvite.getWorkspaceId().toString(), userId);
 
         // Increment used count
         domainInvite.setUsesCount(domainInvite.getUsesCount() + 1);

@@ -846,10 +846,9 @@ public class MockDataProvider {
         
         // Notification types and templates
         String[] notificationTypes = {
-            "EXPENSE_ADDED", "EXPENSE_UPDATED", "EXPENSE_SETTLED", 
-            "PAYMENT_RECEIVED", "PAYMENT_SENT", "SETTLEMENT_CREATED",
-            "MEMBER_ADDED", "MEMBER_REMOVED", "WORKSPACE_UPDATED",
-            "INVITE_ACCEPTED", "BALANCE_REMINDER", "BUDGET_WARNING"
+            "EXPENSE_CREATED", "EXPENSE_UPDATED", "EXPENSE_DELETED",
+            "PAYMENT_CREATED", "PAYMENT_UPDATED", "PAYMENT_DELETED",
+            "WORKSPACE_UPDATED", "BUDGET_THRESHOLD_80", "BUDGET_LIMIT_REACHED"
         };
         
         // Generate 25-35 notifications over the last 60 days
@@ -863,8 +862,10 @@ public class MockDataProvider {
             String type = notificationTypes[random.nextInt(notificationTypes.length)];
             notification.setType(type);
             
-            // Generate content based on type
+            // Generate message based on type
             String content = generateNotificationContent(type, i);
+            notification.setTitle(generateNotificationTitle(type));
+            notification.setMessage(content);
             notification.setContent(content);
             
             // Spread notifications over last 60 days, more recent ones more frequent
@@ -882,7 +883,9 @@ public class MockDataProvider {
             
             int hoursBack = random.nextInt(24);
             int minutesBack = random.nextInt(60);
-            notification.setTimestamp(now.minusDays(daysBack).minusHours(hoursBack).minusMinutes(minutesBack));
+            OffsetDateTime createdAt = now.minusDays(daysBack).minusHours(hoursBack).minusMinutes(minutesBack);
+            notification.setCreatedAt(createdAt);
+            notification.setTimestamp(createdAt);
             
             // Assign to a workspace (prefer ws1)
             String[] workspaceIds = {"ws1", "ws2", "ws3"};
@@ -895,12 +898,16 @@ public class MockDataProvider {
             // Recent notifications more likely to be unread (70% unread if < 7 days, 30% if older)
             boolean isRecent = daysBack < 7;
             notification.setRead(isRecent ? (random.nextDouble() < 0.3) : (random.nextDouble() < 0.7));
+            notification.setRecipientUserId("gbargougui");
+            notification.setActorUserId("user1");
+            notification.setEntityType("WORKSPACE");
+            notification.setEntityId(workspaceId);
             
             gbargouguiNotifications.add(notification);
         }
         
-        // Sort by timestamp descending (most recent first)
-        gbargouguiNotifications.sort((n1, n2) -> n2.getTimestamp().compareTo(n1.getTimestamp()));
+        // Sort by createdAt descending (most recent first)
+        gbargouguiNotifications.sort((n1, n2) -> n2.getCreatedAt().compareTo(n1.getCreatedAt()));
         
         userNotifications.put("gbargougui", gbargouguiNotifications);
         
@@ -910,17 +917,25 @@ public class MockDataProvider {
             Notification notification = new Notification();
             notification.setId("notif-user1-" + (i + 1));
             notification.setType(notificationTypes[random.nextInt(notificationTypes.length)]);
-            notification.setContent(generateNotificationContent(notification.getType(), i));
+            notification.setTitle(generateNotificationTitle(notification.getType()));
+            notification.setMessage(generateNotificationContent(notification.getType(), i));
+            notification.setContent(notification.getMessage());
             
             int daysBack = random.nextInt(30);
             int hoursBack = random.nextInt(24);
-            notification.setTimestamp(now.minusDays(daysBack).minusHours(hoursBack));
+            OffsetDateTime createdAt = now.minusDays(daysBack).minusHours(hoursBack);
+            notification.setCreatedAt(createdAt);
+            notification.setTimestamp(createdAt);
             notification.setWorkspaceId("ws1");
             notification.setRead(random.nextDouble() < 0.5);
+            notification.setRecipientUserId("user1");
+            notification.setActorUserId("gbargougui");
+            notification.setEntityType("WORKSPACE");
+            notification.setEntityId("ws1");
             
             user1Notifications.add(notification);
         }
-        user1Notifications.sort((n1, n2) -> n2.getTimestamp().compareTo(n1.getTimestamp()));
+        user1Notifications.sort((n1, n2) -> n2.getCreatedAt().compareTo(n1.getCreatedAt()));
         userNotifications.put("user1", user1Notifications);
         
         List<Notification> user2Notifications = new ArrayList<>();
@@ -928,23 +943,31 @@ public class MockDataProvider {
             Notification notification = new Notification();
             notification.setId("notif-user2-" + (i + 1));
             notification.setType(notificationTypes[random.nextInt(notificationTypes.length)]);
-            notification.setContent(generateNotificationContent(notification.getType(), i));
+            notification.setTitle(generateNotificationTitle(notification.getType()));
+            notification.setMessage(generateNotificationContent(notification.getType(), i));
+            notification.setContent(notification.getMessage());
             
             int daysBack = random.nextInt(30);
             int hoursBack = random.nextInt(24);
-            notification.setTimestamp(now.minusDays(daysBack).minusHours(hoursBack));
+            OffsetDateTime createdAt = now.minusDays(daysBack).minusHours(hoursBack);
+            notification.setCreatedAt(createdAt);
+            notification.setTimestamp(createdAt);
             notification.setWorkspaceId("ws1");
             notification.setRead(random.nextDouble() < 0.6);
+            notification.setRecipientUserId("user2");
+            notification.setActorUserId("gbargougui");
+            notification.setEntityType("WORKSPACE");
+            notification.setEntityId("ws1");
             
             user2Notifications.add(notification);
         }
-        user2Notifications.sort((n1, n2) -> n2.getTimestamp().compareTo(n1.getTimestamp()));
+        user2Notifications.sort((n1, n2) -> n2.getCreatedAt().compareTo(n1.getCreatedAt()));
         userNotifications.put("user2", user2Notifications);
     }
     
     private String generateNotificationContent(String type, int index) {
         switch (type) {
-            case "EXPENSE_ADDED":
+            case "EXPENSE_CREATED":
                 String[] expenseMessages = {
                     "Alice Johnson added a new expense: $45.50 for Groceries",
                     "Bob Smith added a new expense: $28.90 for Restaurants",
@@ -965,16 +988,10 @@ public class MockDataProvider {
                 };
                 return updateMessages[index % updateMessages.length];
                 
-            case "EXPENSE_SETTLED":
-                String[] settledMessages = {
-                    "Expense settlement completed for Shared Apartment",
-                    "All expenses have been settled in Shared Apartment",
-                    "Settlement processed: $245.50 total",
-                    "Expenses marked as settled"
-                };
-                return settledMessages[index % settledMessages.length];
+            case "EXPENSE_DELETED":
+                return "An expense was deleted.";
                 
-            case "PAYMENT_RECEIVED":
+            case "PAYMENT_CREATED":
                 String[] receivedMessages = {
                     "You received $50.00 from Alice Johnson",
                     "Payment received: $85.25 from Bob Smith",
@@ -983,7 +1000,7 @@ public class MockDataProvider {
                 };
                 return receivedMessages[index % receivedMessages.length];
                 
-            case "PAYMENT_SENT":
+            case "PAYMENT_UPDATED":
                 String[] sentMessages = {
                     "Payment of $50.00 sent to Alice Johnson",
                     "You sent $85.25 to Bob Smith",
@@ -992,26 +1009,8 @@ public class MockDataProvider {
                 };
                 return sentMessages[index % sentMessages.length];
                 
-            case "SETTLEMENT_CREATED":
-                String[] settlementMessages = {
-                    "A new settlement was created in Shared Apartment",
-                    "Settlement created: $245.50 to be distributed",
-                    "New settlement available in Shared Apartment",
-                    "Settlement created by Alice Johnson"
-                };
-                return settlementMessages[index % settlementMessages.length];
-                
-            case "MEMBER_ADDED":
-                String[] memberAddedMessages = {
-                    "Alice Johnson joined Shared Apartment",
-                    "New member added to Shared Apartment workspace",
-                    "Bob Smith joined your workspace",
-                    "A new member was added to Shared Apartment"
-                };
-                return memberAddedMessages[index % memberAddedMessages.length];
-                
-            case "MEMBER_REMOVED":
-                return "A member was removed from Shared Apartment";
+            case "PAYMENT_DELETED":
+                return "A payment was deleted.";
                 
             case "WORKSPACE_UPDATED":
                 String[] workspaceMessages = {
@@ -1022,35 +1021,39 @@ public class MockDataProvider {
                 };
                 return workspaceMessages[index % workspaceMessages.length];
                 
-            case "INVITE_ACCEPTED":
-                String[] inviteMessages = {
-                    "Alice Johnson accepted your workspace invitation",
-                    "Invitation accepted: Bob Smith joined Shared Apartment",
-                    "Your invite was accepted",
-                    "New member joined via invitation"
-                };
-                return inviteMessages[index % inviteMessages.length];
-                
-            case "BALANCE_REMINDER":
-                String[] balanceMessages = {
-                    "Reminder: You owe $45.50 in Shared Apartment",
-                    "Balance reminder: $120.00 outstanding",
-                    "You have an outstanding balance of $67.80",
-                    "Balance update: $95.40 owed"
-                };
-                return balanceMessages[index % balanceMessages.length];
-                
-            case "BUDGET_WARNING":
-                String[] budgetMessages = {
-                    "Budget warning: Shared Apartment is at 85% of monthly limit",
-                    "You're approaching your budget limit in Shared Apartment",
-                    "Budget alert: 90% of monthly limit reached",
-                    "Budget warning: $1,800 of $2,000 spent"
-                };
-                return budgetMessages[index % budgetMessages.length];
+            case "BUDGET_THRESHOLD_80":
+                return "Budget usage has reached 80% for this month.";
+
+            case "BUDGET_LIMIT_REACHED":
+                return "Budget limit reached for this month.";
                 
             default:
                 return "New notification";
+        }
+    }
+
+    private String generateNotificationTitle(String type) {
+        switch (type) {
+            case "EXPENSE_CREATED":
+                return "Expense created";
+            case "EXPENSE_UPDATED":
+                return "Expense updated";
+            case "EXPENSE_DELETED":
+                return "Expense deleted";
+            case "PAYMENT_CREATED":
+                return "Payment created";
+            case "PAYMENT_UPDATED":
+                return "Payment updated";
+            case "PAYMENT_DELETED":
+                return "Payment deleted";
+            case "WORKSPACE_UPDATED":
+                return "Workspace updated";
+            case "BUDGET_THRESHOLD_80":
+                return "Budget at 80%";
+            case "BUDGET_LIMIT_REACHED":
+                return "Budget limit reached";
+            default:
+                return "Notification";
         }
     }
 }
