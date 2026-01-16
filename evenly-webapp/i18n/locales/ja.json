@@ -233,7 +233,7 @@
   },
   "dashboard": {
     "totalBalance": "残高",
-    "totalPaid": "支払い総額",
+    "totalPaid": "合計拠出額",
     "youOwe": "あなたが借りている",
     "youAreOwed": "あなたに借りている",
     "budget": "予算",
@@ -593,4 +593,3 @@
     "AUD": "オーストラリア・ドル"
   }
 }
-

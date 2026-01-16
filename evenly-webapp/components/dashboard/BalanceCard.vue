@@ -63,6 +63,9 @@
           <span class="text-xs text-gray-400">
             {{ formatCurrency(balanceSummary?.workspaceTotalPaidAmount || 0, balanceSummary?.currency) }} / {{ formatCurrency(balanceSummary?.budgetLimit || 0, balanceSummary?.currency) }}
           </span>
+          <span class="text-xs text-gray-500 ml-2">
+            ({{ budgetUsedPercent.toFixed(0) }}%)
+          </span>
         </div>
       </div>
 
@@ -138,6 +141,12 @@ const progressBarWidth = computed(() => {
   return Math.min(percentage, 100)
 })
 
+const budgetUsedPercent = computed(() => {
+  if (!props.balanceSummary?.budgetLimit || props.balanceSummary.budgetLimit <= 0) return 0
+  const percentage = (props.balanceSummary.workspaceTotalPaidAmount / props.balanceSummary.budgetLimit) * 100
+  return Math.max(percentage, 0)
+})
+
 // Progress bar color based on workspaceTotalPaidAmount vs budgetLimit
 const progressBarColorClass = computed(() => {
   if (!props.balanceSummary?.budgetLimit || props.balanceSummary.budgetLimit <= 0) {
@@ -170,9 +179,9 @@ const balanceDifference = computed(() => {
 const balanceDifferenceText = computed(() => {
   const diff = balanceDifference.value
   if (diff > 0) {
-    return `${t('dashboard.youAreOwed')}: ${formatCurrency(Math.abs(diff), props.balanceSummary?.currency)}`
+    return `${t('dashboard.youAreOwed')}: ${formatCurrency(Math.abs(diff), props.balanceSummary?.currency || 'USD')}`
   } else if (diff < 0) {
-    return `${t('dashboard.youOwe')}: ${formatCurrency(Math.abs(diff), props.balanceSummary?.currency)}`
+    return `${t('dashboard.youOwe')}: ${formatCurrency(Math.abs(diff), props.balanceSummary?.currency || 'USD')}`
   }
   return ''
 })
@@ -187,4 +196,3 @@ const balanceDifferenceClass = computed(() => {
   return 'text-gray-400'
 })
 </script>
-

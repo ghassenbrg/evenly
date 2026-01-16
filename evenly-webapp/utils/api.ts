@@ -49,6 +49,14 @@ const refreshKeycloakToken = async (config: any, refreshToken: string): Promise<
   }
 }
 
+const parseJsonResponse = async (res: Response) => {
+  const text = await res.text()
+  if (!text || text.trim().length === 0) {
+    return null
+  }
+  return JSON.parse(text)
+}
+
 export const useApi = (baseOverride?: string) => {
   const config = useRuntimeConfig()
   const token = useCookie<string | null>('token', { default: () => null })
@@ -97,7 +105,7 @@ export const useApi = (baseOverride?: string) => {
               if (retryRes.status === 204) {
                 return null as T
               }
-              const json = await retryRes.json()
+              const json = await parseJsonResponse(retryRes)
               // Handle response extraction (same logic as below)
               if (json && typeof json === 'object') {
                 if (path === '/api/notifications/unread-count' && 'data' in json && typeof json.data === 'object' && 'count' in json.data) {
@@ -143,7 +151,7 @@ export const useApi = (baseOverride?: string) => {
         return null as T
       }
       
-      const json = await res.json()
+      const json = await parseJsonResponse(res)
       
       // Extract 'data' property if present (matches endpoints.json structure)
       // Also handle 'workspace' property for PUT /api/workspaces/{id}

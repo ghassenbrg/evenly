@@ -233,7 +233,7 @@
   },
   "dashboard": {
     "totalBalance": "Total Balance",
-    "totalPaid": "Total Paid",
+    "totalPaid": "Total Contributions",
     "youOwe": "You owe",
     "youAreOwed": "You are owed",
     "budget": "Budget",
@@ -592,4 +592,3 @@
     "AUD": "Australian Dollar"
   }
 }
-

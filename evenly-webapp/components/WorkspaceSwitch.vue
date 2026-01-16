@@ -57,7 +57,16 @@
             </button>
           </div>
           
-          <div class="px-4 py-2 border-t border-slate-700">
+          <div class="px-4 py-2 border-t border-slate-700 space-y-1">
+            <button
+              @click="handleJoinWorkspace"
+              class="w-full text-left px-4 py-2 text-slate-200 hover:bg-slate-700 rounded-lg transition-colors flex items-center space-x-2"
+            >
+              <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+              <span>{{ t('join.title') }}</span>
+            </button>
             <button
               @click="showCreateSheet = true"
               class="w-full text-left px-4 py-2 text-emerald-500 hover:bg-slate-700 rounded-lg transition-colors flex items-center space-x-2"
@@ -94,6 +103,11 @@ const showCreateSheet = ref(false)
 const selectWorkspace = (id: string) => {
   workspacesStore.setActiveWorkspace(id)
   showMenu.value = false
+}
+
+const handleJoinWorkspace = async () => {
+  showMenu.value = false
+  await navigateTo('/join')
 }
 
 const handleWorkspaceCreated = () => {
