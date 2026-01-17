@@ -1,6 +1,7 @@
 package io.evenly.core.features.payments;
 
 import io.evenly.core.shared.common.PaginatedPayments;
+import io.evenly.core.shared.common.SettlementScope;
 import io.evenly.core.shared.exception.NotFoundException;
 import io.evenly.core.shared.security.Authenticated;
 import io.evenly.core.shared.security.SecurityContextProvider;
@@ -40,11 +41,12 @@ public class PaymentResource {
                                   @QueryParam("startDate") LocalDate startDate,
                                   @QueryParam("endDate") LocalDate endDate,
                                   @QueryParam("status") String status,
+                                  @QueryParam("settlementScope") SettlementScope settlementScope,
                                   @QueryParam("page") @DefaultValue("0") int page,
                                   @QueryParam("size") @DefaultValue("20") int size,
                                   @QueryParam("sort") String sort) {
         PaginatedPayments paginated = paymentService.findForWorkspace(workspaceId, startDate, endDate, 
-                                                                      status, page, size, sort);
+                                                                      status, settlementScope, page, size, sort);
         return Response.ok(paginated).build();
     }
 

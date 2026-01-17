@@ -10,6 +10,7 @@ import io.evenly.core.features.analytics.dto.ExpenseSnapshotResponse;
 import io.evenly.core.features.analytics.dto.ExpenseSummary;
 import io.evenly.core.features.analytics.dto.LinearChartDataPoint;
 import io.evenly.core.features.balance.BalanceService;
+import io.evenly.core.shared.common.SettlementScope;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -40,12 +41,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public ExpenseSnapshotResponse getExpensesSnapshot(String workspaceId, LocalDate startDate, LocalDate endDate, int size) {
+    public ExpenseSnapshotResponse getExpensesSnapshot(String workspaceId, LocalDate startDate, LocalDate endDate, int size,
+                                                       SettlementScope settlementScope) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
+        SettlementScope resolvedScope = resolveSettlementScope(settlementScope, SettlementScope.UNSETTLED);
         
         // Get expenses in date range
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(
-                workspaceUuid, startDate, endDate, null, false, 0, Integer.MAX_VALUE, null);
+                workspaceUuid, startDate, endDate, null, resolvedScope, 0, Integer.MAX_VALUE, null);
         
         // Group by category - use String key to handle null categoryId
         Map<String, ExpenseSnapshotItem> categoryMap = new HashMap<>();
@@ -122,8 +125,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public ExpenseSummary getExpensesSummary(String workspaceId, LocalDate startDate, LocalDate endDate) {
+    public ExpenseSummary getExpensesSummary(String workspaceId, LocalDate startDate, LocalDate endDate,
+                                             SettlementScope settlementScope) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
+        SettlementScope resolvedScope = resolveSettlementScope(settlementScope, SettlementScope.ALL);
         
         // Get workspace for currency
         io.evenly.core.domain.Workspace workspace = workspaceRepository.findById(workspaceUuid)
@@ -133,7 +138,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         
         // Get expenses in date range
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(
-                workspaceUuid, startDate, endDate, null, false, 0, Integer.MAX_VALUE, null);
+                workspaceUuid, startDate, endDate, null, resolvedScope, 0, Integer.MAX_VALUE, null);
         
         // Calculate totals
         BigDecimal totalAmount = expenses.stream()
@@ -238,5 +243,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         summary.setLinearChartData(linearChartData);
         
         return summary;
+    }
+
+    private SettlementScope resolveSettlementScope(SettlementScope settlementScope, SettlementScope defaultScope) {
+        return settlementScope != null ? settlementScope : defaultScope;
     }
 }

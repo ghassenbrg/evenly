@@ -342,6 +342,12 @@
     "settlementCreated": "期間を精算済みにしました",
     "settlementFailed": "この期間の精算に失敗しました"
   },
+  "settlementScope": {
+    "label": "精算",
+    "all": "すべて",
+    "unsettled": "未精算",
+    "settled": "精算済み"
+  },
   "payments": {
     "payment": "支払い",
     "paymentReceivedFrom": "{name}から支払いを受領",

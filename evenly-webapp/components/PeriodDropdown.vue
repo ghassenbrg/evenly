@@ -5,7 +5,12 @@
       @click="toggleDropdown"
       class="px-3 py-1.5 bg-slate-800/80 ring-1 ring-white/10 rounded-xl text-sm text-gray-200 font-medium flex items-center gap-1.5 hover:bg-slate-800 transition-colors"
     >
-      <span>{{ selectedLabel }}</span>
+      <span class="flex flex-col items-start leading-tight">
+        <span>{{ selectedLabel }}</span>
+        <span class="text-[10px] font-semibold uppercase tracking-wide text-emerald-200/80">
+          {{ settlementLabel }}
+        </span>
+      </span>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
@@ -37,6 +42,24 @@
         </button>
       </div>
 
+      <div class="border-t border-white/10 bg-slate-900/60 p-3">
+        <p class="text-[10px] font-semibold uppercase tracking-wide text-white/50">
+          {{ t('settlementScope.label') }}
+        </p>
+        <div class="mt-2 flex rounded-lg bg-slate-900/70 ring-1 ring-white/10 overflow-hidden">
+          <button
+            v-for="option in settlementOptions"
+            :key="option.value"
+            type="button"
+            @click="selectSettlement(option.value)"
+            class="flex-1 px-2.5 py-1.5 text-[11px] font-semibold transition-colors"
+            :class="option.value === settlementScope ? 'bg-emerald-500/20 text-emerald-200' : 'text-white/60 hover:bg-white/5'"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
+
       <div v-if="modelValue === 'custom'" class="border-t border-white/10 bg-slate-900/60 p-3">
         <DateRangePicker
           :model-value="{ start: internalRange.start, end: internalRange.end }"
@@ -50,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+import type { SettlementScope } from '~/types/api'
 import { formatDateOnly, toDateOnly } from '~/utils/date'
 
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
@@ -58,18 +82,22 @@ interface Props {
   modelValue?: PeriodType
   range?: { start: string | null; end: string | null }
   maxDate?: string
+  settlementScope?: SettlementScope
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: 'month',
   range: () => ({ start: null, end: null }),
-  maxDate: () => toDateOnly(new Date())
+  maxDate: () => toDateOnly(new Date()),
+  settlementScope: 'ALL'
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: PeriodType]
   'update:range': [{ start: string | null; end: string | null }]
+  'update:settlementScope': [value: SettlementScope]
   'period-change': [period: PeriodType, range?: { start: string | null; end: string | null }]
+  'settlement-change': [scope: SettlementScope]
 }>()
 
 const { t } = useI18n()
@@ -93,6 +121,12 @@ const periodOptions = computed(() => [
   { value: 'custom' as PeriodType, label: t('expenses.custom') }
 ])
 
+const settlementOptions = computed(() => [
+  { value: 'ALL' as SettlementScope, label: t('settlementScope.all') },
+  { value: 'UNSETTLED' as SettlementScope, label: t('settlementScope.unsettled') },
+  { value: 'SETTLED' as SettlementScope, label: t('settlementScope.settled') }
+])
+
 const selectedLabel = computed(() => {
   if (props.modelValue === 'custom') {
     const start = internalRange.start ? formatDateOnly(internalRange.start) : '...'
@@ -100,6 +134,12 @@ const selectedLabel = computed(() => {
     return `${start} - ${end}`
   }
   return periodOptions.value.find(opt => opt.value === props.modelValue)?.label || t('expenses.thisMonth')
+})
+
+const settlementScope = computed(() => props.settlementScope)
+
+const settlementLabel = computed(() => {
+  return settlementOptions.value.find(opt => opt.value === props.settlementScope)?.label || t('settlementScope.all')
 })
 
 const toggleDropdown = () => {
@@ -127,6 +167,11 @@ const applyCustomRange = (range: { start: string | null; end: string | null }) =
   emit('update:range', { ...range })
   emit('period-change', 'custom', range)
   closeDropdown()
+}
+
+const selectSettlement = (scope: SettlementScope) => {
+  emit('update:settlementScope', scope)
+  emit('settlement-change', scope)
 }
 
 if (process.client) {

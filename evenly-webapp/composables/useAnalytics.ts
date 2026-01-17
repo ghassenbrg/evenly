@@ -1,4 +1,4 @@
-import type { BalanceSummary, ExpenseSnapshotResponse, ExpenseSnapshotItem, Expense } from '~/types/api'
+import type { BalanceSummary, ExpenseSnapshotResponse, ExpenseSnapshotItem, Expense, SettlementScope } from '~/types/api'
 import { useApi } from '~/utils/api'
 
 // Shared state - singleton pattern (like useToast)
@@ -65,7 +65,13 @@ export const useAnalytics = () => {
     }
   }
 
-  const fetchCategoryAnalytics = async (workspaceId: string, startDate?: string, endDate?: string, size?: number) => {
+  const fetchCategoryAnalytics = async (
+    workspaceId: string,
+    startDate?: string,
+    endDate?: string,
+    size?: number,
+    settlementScope?: SettlementScope
+  ) => {
     loading.value = true
     error.value = null
     try {
@@ -73,6 +79,7 @@ export const useAnalytics = () => {
       const queryParams = new URLSearchParams()
       if (startDate) queryParams.append('startDate', startDate)
       if (endDate) queryParams.append('endDate', endDate)
+      if (settlementScope) queryParams.append('settlementScope', settlementScope)
       // If size is 0 or undefined, don't add it (return all)
       // If size is > 0, add it as a query parameter
       if (size !== undefined && size > 0) {
@@ -126,4 +133,3 @@ export const useAnalytics = () => {
     clear
   }
 }
-

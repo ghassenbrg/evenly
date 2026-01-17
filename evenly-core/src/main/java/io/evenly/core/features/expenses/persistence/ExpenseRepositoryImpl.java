@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import io.evenly.core.shared.common.SettlementScope;
 
 /**
  * JPA-based implementation of ExpenseRepository.
@@ -38,7 +39,7 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
 
     @Override
     public List<Expense> findByWorkspaceId(UUID workspaceId, LocalDate startDate, LocalDate endDate,
-                                           UUID categoryId, Boolean settled, int page, int size, String sort) {
+                                           UUID categoryId, SettlementScope settlementScope, int page, int size, String sort) {
         StringBuilder jpql = new StringBuilder("SELECT e FROM Expense e WHERE e.workspaceId = :workspaceId");
         
         if (startDate != null) {
@@ -50,9 +51,7 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
         if (categoryId != null) {
             jpql.append(" AND e.categoryId = :categoryId");
         }
-        if (settled != null) {
-            jpql.append(settled ? " AND e.settlementId IS NOT NULL" : " AND e.settlementId IS NULL");
-        }
+        appendSettlementFilter(jpql, settlementScope, "e");
         
         // Default sort
         String orderBy = " ORDER BY e.effectiveDate DESC";
@@ -155,7 +154,7 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
 
     @Override
     public long countByWorkspaceIdAndDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate,
-                                               Boolean settled) {
+                                               SettlementScope settlementScope) {
         StringBuilder jpql = new StringBuilder("SELECT COUNT(e) FROM Expense e WHERE e.workspaceId = :workspaceId");
         
         if (startDate != null) {
@@ -164,9 +163,7 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
         if (endDate != null) {
             jpql.append(" AND e.effectiveDate <= :endDate");
         }
-        if (settled != null) {
-            jpql.append(settled ? " AND e.settlementId IS NOT NULL" : " AND e.settlementId IS NULL");
-        }
+        appendSettlementFilter(jpql, settlementScope, "e");
         
         TypedQuery<Long> query = entityManager.createQuery(jpql.toString(), Long.class)
             .setParameter("workspaceId", workspaceId);
@@ -179,5 +176,16 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
         }
         
         return query.getSingleResult();
+    }
+
+    private void appendSettlementFilter(StringBuilder jpql, SettlementScope settlementScope, String alias) {
+        if (settlementScope == null || settlementScope == SettlementScope.ALL) {
+            return;
+        }
+        if (settlementScope == SettlementScope.UNSETTLED) {
+            jpql.append(" AND ").append(alias).append(".settlementId IS NULL");
+        } else if (settlementScope == SettlementScope.SETTLED) {
+            jpql.append(" AND ").append(alias).append(".settlementId IS NOT NULL");
+        }
     }
 }

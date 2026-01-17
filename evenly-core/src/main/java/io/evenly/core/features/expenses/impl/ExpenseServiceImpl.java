@@ -17,6 +17,7 @@ import io.evenly.core.features.expenses.dto.UpdateExpenseRequest;
 import io.evenly.core.features.notifications.NotificationService;
 import io.evenly.core.shared.common.PageInfo;
 import io.evenly.core.shared.common.PaginatedExpenses;
+import io.evenly.core.shared.common.SettlementScope;
 import io.evenly.core.shared.exception.NotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -49,15 +50,15 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     @Override
     @Transactional(Transactional.TxType.SUPPORTS)
     public PaginatedExpenses findForWorkspace(String workspaceId, LocalDate startDate, LocalDate endDate,
-            String categoryId, String status, int page, int size, String sort) {
+            String categoryId, SettlementScope settlementScope, int page, int size, String sort) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         UUID categoryUuid = categoryId != null ? UUID.fromString(categoryId) : null;
-        Boolean settledFilter = resolveSettledFilter(status);
+        SettlementScope resolvedScope = resolveSettlementScope(settlementScope, SettlementScope.ALL);
 
         List<io.evenly.core.domain.Expense> domainExpenses = expenseRepository.findByWorkspaceId(
-                workspaceUuid, startDate, endDate, categoryUuid, settledFilter, page, size, sort);
+                workspaceUuid, startDate, endDate, categoryUuid, resolvedScope, page, size, sort);
 
-        long total = expenseRepository.countByWorkspaceIdAndDateRange(workspaceUuid, startDate, endDate, settledFilter);
+        long total = expenseRepository.countByWorkspaceIdAndDateRange(workspaceUuid, startDate, endDate, resolvedScope);
 
         List<io.evenly.core.features.expenses.dto.Expense> expenseDtos = domainExpenses.stream()
                 .map(this::toDto)
@@ -86,7 +87,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     public List<io.evenly.core.features.expenses.dto.Expense> findRecentForWorkspace(String workspaceId, int size) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         List<io.evenly.core.domain.Expense> domainExpenses = expenseRepository.findByWorkspaceId(
-                workspaceUuid, null, null, null, false, 0, size, "effectiveDate,DESC");
+                workspaceUuid, null, null, null, SettlementScope.ALL, 0, size, "effectiveDate,DESC");
 
         return domainExpenses.stream()
                 .limit(size)
@@ -217,7 +218,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         LocalDate endDate = month.atEndOfMonth();
 
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(
-            workspaceUuid, startDate, endDate, null, false, 0, Integer.MAX_VALUE, null);
+            workspaceUuid, startDate, endDate, null, SettlementScope.ALL, 0, Integer.MAX_VALUE, null);
         java.math.BigDecimal workspaceTotalPaid = expenses.stream()
             .map(io.evenly.core.domain.Expense::getAmount)
             .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
@@ -284,16 +285,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         }
     }
 
-    private Boolean resolveSettledFilter(String status) {
-        if (status == null || status.isEmpty()) {
-            return null;
-        }
-        if ("ACTIVE".equalsIgnoreCase(status)) {
-            return Boolean.FALSE;
-        }
-        if ("SETTLED".equalsIgnoreCase(status)) {
-            return Boolean.TRUE;
-        }
-        return null;
+    private SettlementScope resolveSettlementScope(SettlementScope settlementScope, SettlementScope defaultScope) {
+        return settlementScope != null ? settlementScope : defaultScope;
     }
 }

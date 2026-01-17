@@ -22,6 +22,7 @@ import io.evenly.core.features.analytics.dto.BalanceSummary;
 import io.evenly.core.features.auth.UserService;
 import io.evenly.core.features.balance.dto.Balance;
 import io.evenly.core.features.balance.dto.SettleUpResponse;
+import io.evenly.core.shared.common.SettlementScope;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -277,11 +278,11 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
 
         // Get expenses in date range
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid, startDate,
-                endDate, null, false, 0, Integer.MAX_VALUE, null);
+                endDate, null, SettlementScope.UNSETTLED, 0, Integer.MAX_VALUE, null);
 
         // Get payments in date range (only COMPLETED payments)
         List<Payment> payments = paymentRepository.findByWorkspaceId(workspaceUuid, startDate, endDate,
-                "COMPLETED", false, 0, Integer.MAX_VALUE, null);
+                "COMPLETED", SettlementScope.UNSETTLED, 0, Integer.MAX_VALUE, null);
 
         BigDecimal userTotalPaid = expenses.stream()
                 .filter(e -> e.getPaidByUserId().equals(userId)) // userId is now String

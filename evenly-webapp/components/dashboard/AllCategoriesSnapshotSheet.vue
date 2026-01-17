@@ -80,6 +80,7 @@ import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useFontAwesome } from '~/composables/useFontAwesome'
 import { useCategoryColor } from '~/composables/useCategoryColor'
+import type { SettlementScope } from '~/types/api'
 
 interface CategoryItem {
   id: string | null
@@ -96,6 +97,7 @@ interface Props {
   workspaceId?: string
   startDate?: string
   endDate?: string
+  settlementScope?: SettlementScope
 }
 
 const props = defineProps<Props>()
@@ -153,17 +155,17 @@ watch(isOpen, async (newValue) => {
     const workspaceId = props.workspaceId || activeWorkspaceId.value
     if (workspaceId) {
       // Fetch all categories (size = 0 means all)
-      await fetchCategoryAnalytics(workspaceId, props.startDate, props.endDate, 0)
+      await fetchCategoryAnalytics(workspaceId, props.startDate, props.endDate, 0, props.settlementScope)
     }
   }
 })
 
 // Also watch for date changes when sheet is open
-watch([() => props.startDate, () => props.endDate], async () => {
+watch([() => props.startDate, () => props.endDate, () => props.settlementScope], async () => {
   if (isOpen.value) {
     const workspaceId = props.workspaceId || activeWorkspaceId.value
     if (workspaceId) {
-      await fetchCategoryAnalytics(workspaceId, props.startDate, props.endDate, 0)
+      await fetchCategoryAnalytics(workspaceId, props.startDate, props.endDate, 0, props.settlementScope)
     }
   }
 })

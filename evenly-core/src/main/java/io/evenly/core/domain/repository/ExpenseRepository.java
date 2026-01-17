@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import io.evenly.core.shared.common.SettlementScope;
 
 /**
  * Repository interface for Expense domain entities.
@@ -15,7 +16,7 @@ public interface ExpenseRepository {
     Optional<Expense> findById(UUID id);
     List<Expense> findByWorkspaceId(UUID workspaceId);
     List<Expense> findByWorkspaceId(UUID workspaceId, LocalDate startDate, LocalDate endDate,
-                                    UUID categoryId, Boolean settled, int page, int size, String sort);
+                                    UUID categoryId, SettlementScope settlementScope, int page, int size, String sort);
     List<Expense> findByPaidByUserId(String userId); // userId is now String (username)
     List<Expense> findByCategoryId(UUID categoryId);
     List<Expense> findBySettlementId(UUID settlementId);
@@ -23,5 +24,6 @@ public interface ExpenseRepository {
     void delete(UUID id);
     boolean existsById(UUID id);
     long countByWorkspaceId(UUID workspaceId);
-    long countByWorkspaceIdAndDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate, Boolean settled);
+    long countByWorkspaceIdAndDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate,
+                                        SettlementScope settlementScope);
 }

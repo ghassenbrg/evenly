@@ -90,6 +90,7 @@
         :workspace-id="activeWorkspaceId"
         :start-date="allCategoriesStartDate"
         :end-date="allCategoriesEndDate"
+        :settlement-scope="allCategoriesSettlementScope"
       />
       
       <DashboardRecentExpensesCard
@@ -128,7 +129,7 @@ import { useSettlements } from '~/composables/useSettlements'
 import { useToast } from '~/composables/useToast'
 import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
 import ExpensesEditExpenseSheet from '~/components/expenses/EditExpenseSheet.vue'
-import type { Expense, Balance, SettlementStatus } from '~/types/api'
+import type { Expense, Balance, SettlementScope, SettlementStatus } from '~/types/api'
 
 definePageMeta({
   middleware: 'auth',
@@ -165,13 +166,15 @@ const settlementSuggestionKey = computed(() => {
   return activeWorkspaceId.value ? `settlement-suggestion-${activeWorkspaceId.value}` : null
 })
 
-// Track date range for the all categories sheet (from the card's period selector)
+// Track date range and settlement scope for the all categories sheet (from the card's period selector)
 const allCategoriesStartDate = ref<string | undefined>(undefined)
 const allCategoriesEndDate = ref<string | undefined>(undefined)
+const allCategoriesSettlementScope = ref<SettlementScope>('UNSETTLED')
 
-const handleOpenAllCategories = (startDate?: string, endDate?: string) => {
+const handleOpenAllCategories = (startDate?: string, endDate?: string, settlementScope?: SettlementScope) => {
   allCategoriesStartDate.value = startDate
   allCategoriesEndDate.value = endDate
+  allCategoriesSettlementScope.value = settlementScope || 'UNSETTLED'
   showAllCategoriesSheet.value = true
 }
 
@@ -212,8 +215,8 @@ const handleExpenseDeleted = () => {
 
 const getDateRange = (period: 'month' | 'week' | 'all' | 'custom', customRange?: { start: string | null; end: string | null }) => {
   const now = new Date()
-  let start: Date
-  let end: Date = endOfLocalDay(now)
+  let start: Date | undefined
+  let end: Date | undefined
 
   switch (period) {
     case 'month':
@@ -227,16 +230,13 @@ const getDateRange = (period: 'month' | 'week' | 'all' | 'custom', customRange?:
       end = endOfLocalDay(now)
       break
     case 'all':
-      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth() - 2, 1))
-      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
-      break
+      return { start: undefined, end: undefined }
     case 'custom':
       if (customRange?.start && customRange?.end) {
         start = startOfLocalDay(customRange.start)
         end = endOfLocalDay(customRange.end)
       } else {
-        start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
-        end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+        return { start: undefined, end: undefined }
       }
       break
     default:
@@ -245,8 +245,8 @@ const getDateRange = (period: 'month' | 'week' | 'all' | 'custom', customRange?:
   }
 
   return {
-    start: toDateOnly(start),
-    end: toDateOnly(end)
+    start: start ? toDateOnly(start) : undefined,
+    end: end ? toDateOnly(end) : undefined
   }
 }
 
@@ -254,6 +254,7 @@ const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'mont
   if (!activeWorkspaceId.value) return
   
   const { start, end } = getDateRange(period, customRange)
+  const snapshotRange = getDateRange('all')
   
   // Load data with individual loading states
   balanceLoading.value = true
@@ -263,7 +264,7 @@ const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'mont
   try {
     await Promise.all([
       fetchSummary(activeWorkspaceId.value, start, end).finally(() => { balanceLoading.value = false }),
-      fetchCategoryAnalytics(activeWorkspaceId.value, start, end, 4).finally(() => { expenseSnapshotLoading.value = false }),
+      fetchCategoryAnalytics(activeWorkspaceId.value, snapshotRange.start, snapshotRange.end, 4, 'UNSETTLED').finally(() => { expenseSnapshotLoading.value = false }),
       fetchRecentExpenses(activeWorkspaceId.value, 5).finally(() => { recentExpensesLoading.value = false }),
       fetchCategories()
     ])

@@ -4,6 +4,7 @@ import io.evenly.core.shared.dto.Expense;
 import io.evenly.core.shared.dto.PaginatedExpenses;
 import io.evenly.core.shared.dto.request.CreateExpenseRequest;
 import io.evenly.core.shared.dto.request.UpdateExpenseRequest;
+import io.evenly.core.shared.common.SettlementScope;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.Optional;
  */
 public interface ExpenseService {
     PaginatedExpenses findForWorkspace(String workspaceId, LocalDate startDate, LocalDate endDate,
-                                       String categoryId, String status, int page, int size, String sort);
+                                       String categoryId, SettlementScope settlementScope, int page, int size, String sort);
     List<Expense> findRecentForWorkspace(String workspaceId, int size);
     Optional<Expense> findById(String expenseId);
     Expense create(String workspaceId, String userId, CreateExpenseRequest request);

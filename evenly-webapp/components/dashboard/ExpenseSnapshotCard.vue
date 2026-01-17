@@ -7,7 +7,9 @@
         v-if="!isLoading"
         v-model="selectedPeriod"
         v-model:range="customRange"
+        v-model:settlement-scope="settlementScope"
         @period-change="handlePeriodChange"
+        @settlement-change="handleSettlementChange"
       />
       <div v-else class="h-8 w-24 bg-slate-700/50 rounded-lg animate-pulse"></div>
     </div>
@@ -140,7 +142,7 @@
 
 <script setup lang="ts">
 import { endOfLocalDay, startOfLocalDay, toDateOnly } from '~/utils/date'
-import type { ExpenseSnapshotResponse } from '~/types/api'
+import type { ExpenseSnapshotResponse, SettlementScope } from '~/types/api'
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useApi } from '~/utils/api'
@@ -180,19 +182,21 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 const emit = defineEmits<{
   'period-change': [period: PeriodType, range?: { start: string | null; end: string | null }]
-  openAllCategories: [startDate?: string, endDate?: string]
+  openAllCategories: [startDate?: string, endDate?: string, settlementScope?: SettlementScope]
 }>()
 
 const workspacesStore = useWorkspacesStore()
 const { activeWorkspaceId } = storeToRefs(workspacesStore)
 // Use shared analytics composable to access data (fetched by parent dashboard page)
-const { categoryAnalytics, expenseSnapshot: sharedExpenseSnapshot, loading: analyticsLoading, fetchCategoryAnalytics } = useAnalytics()
+const { expenseSnapshot: sharedExpenseSnapshot, loading: analyticsLoading } = useAnalytics()
 const { parseIconClass } = useFontAwesome()
 const { colorToGradient } = useCategoryColor()
 
 // Local snapshot state - this component maintains its own snapshot independent of CategoriesBreakdownCard
 const localExpenseSnapshot = ref<ExpenseSnapshotResponse | null>(null)
 
+// Track whether user has fetched a local snapshot, even if it's empty
+const hasLocalSnapshot = computed(() => localExpenseSnapshot.value !== null)
 // Use local snapshot if available, otherwise fall back to shared snapshot (from parent initial load)
 const expenseSnapshot = computed(() => localExpenseSnapshot.value || sharedExpenseSnapshot.value)
 
@@ -259,13 +263,14 @@ watch([containerRef, leftColumnRef], () => {
   }
 })
 
-const selectedPeriod = ref<PeriodType>('month')
+const selectedPeriod = ref<PeriodType>('all')
 const customRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
+const settlementScope = ref<SettlementScope>('UNSETTLED')
 
 const getDateRange = (period: PeriodType, customRange?: { start: string | null; end: string | null }) => {
   const now = new Date()
-  let start: Date
-  let end: Date = endOfLocalDay(now)
+  let start: Date | undefined
+  let end: Date | undefined
 
   switch (period) {
     case 'month':
@@ -279,16 +284,14 @@ const getDateRange = (period: PeriodType, customRange?: { start: string | null; 
       end = endOfLocalDay(now)
       break
     case 'all':
-      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth() - 2, 1))
-      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+      return { start: undefined, end: undefined }
       break
     case 'custom':
       if (customRange?.start && customRange?.end) {
         start = startOfLocalDay(customRange.start)
         end = endOfLocalDay(customRange.end)
       } else {
-        start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
-        end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+        return { start: undefined, end: undefined }
       }
       break
     default:
@@ -297,48 +300,49 @@ const getDateRange = (period: PeriodType, customRange?: { start: string | null; 
   }
 
   return {
-    start: toDateOnly(start),
-    end: toDateOnly(end)
+    start: start ? toDateOnly(start) : undefined,
+    end: end ? toDateOnly(end) : undefined
   }
+}
+
+const loadSnapshot = async (period: PeriodType, range?: { start: string | null; end: string | null }) => {
+  if (!activeWorkspaceId.value) return
+  const { start, end } = getDateRange(period, range)
+  if (period === 'custom' && (!start || !end)) return
+  const api = useApi()
+  const queryParams = new URLSearchParams()
+  if (start) queryParams.append('startDate', start)
+  if (end) queryParams.append('endDate', end)
+  queryParams.append('settlementScope', settlementScope.value)
+  queryParams.append('size', '4')
+  const query = queryParams.toString()
+  const path = `/api/workspaces/${activeWorkspaceId.value}/analytics/expenses-snapshot${query ? `?${query}` : ''}`
+  localExpenseSnapshot.value = await api.get<ExpenseSnapshotResponse>(path)
 }
 
 const handlePeriodChange = async (period: PeriodType, range?: { start: string | null; end: string | null }) => {
   selectedPeriod.value = period
-  
-  // For custom period, only proceed if we have a valid range with both start and end
+
   if (period === 'custom') {
     if (range && range.start && range.end) {
       customRange.value = range
-      // Fetch data for this card only
-      if (activeWorkspaceId.value) {
-        const { start, end } = getDateRange(period, range)
-        await fetchCategoryAnalytics(activeWorkspaceId.value, start, end, 4)
-      }
+      await loadSnapshot(period, range)
       emit('period-change', period, range)
     }
-    // If no valid range, just update the selected period but don't fetch data
     return
   }
-  
-  // For non-custom periods, proceed immediately
+
   if (range) {
     customRange.value = range
   }
-  
-  // Fetch data for this card only and store in local state
-  if (activeWorkspaceId.value) {
-    const { start, end } = getDateRange(period, range)
-    const api = useApi()
-    const queryParams = new URLSearchParams()
-    if (start) queryParams.append('startDate', start)
-    if (end) queryParams.append('endDate', end)
-    queryParams.append('size', '4')
-    const query = queryParams.toString()
-    const path = `/api/workspaces/${activeWorkspaceId.value}/analytics/expenses-snapshot${query ? `?${query}` : ''}`
-    localExpenseSnapshot.value = await api.get<ExpenseSnapshotResponse>(path)
-  }
-  
+
+  await loadSnapshot(period, range)
   emit('period-change', period, range)
+}
+
+const handleSettlementChange = async (scope: SettlementScope) => {
+  settlementScope.value = scope
+  await loadSnapshot(selectedPeriod.value, customRange.value)
 }
 
 // Compute items from fetched expenseSnapshot - use real API data
@@ -410,11 +414,31 @@ const computedOthersColor = computed(() => {
   return props.othersColor
 })
 
-// Use computed values from API if available, otherwise fall back to props
-const displayItems = computed(() => computedItems.value.length > 0 ? computedItems.value : props.items)
-const displayOthersCount = computed(() => computedItems.value.length > 0 ? computedOthersCount.value : props.othersCount)
-const displayOthersPercent = computed(() => computedItems.value.length > 0 ? computedOthersPercent.value : props.othersPercent)
-const displayOthersColor = computed(() => computedItems.value.length > 0 ? computedOthersColor.value : props.othersColor)
+// Use local snapshot data if fetched; otherwise fall back to props
+const displayItems = computed(() => {
+  if (hasLocalSnapshot.value) {
+    return computedItems.value
+  }
+  return computedItems.value.length > 0 ? computedItems.value : props.items
+})
+const displayOthersCount = computed(() => {
+  if (hasLocalSnapshot.value) {
+    return computedOthersCount.value
+  }
+  return computedItems.value.length > 0 ? computedOthersCount.value : props.othersCount
+})
+const displayOthersPercent = computed(() => {
+  if (hasLocalSnapshot.value) {
+    return computedOthersPercent.value
+  }
+  return computedItems.value.length > 0 ? computedOthersPercent.value : props.othersPercent
+})
+const displayOthersColor = computed(() => {
+  if (hasLocalSnapshot.value) {
+    return computedOthersColor.value
+  }
+  return computedItems.value.length > 0 ? computedOthersColor.value : props.othersColor
+})
 
 // Update dimensions when data changes (items might change width)
 watch([displayItems, isLoading], () => {
@@ -481,7 +505,7 @@ watch(activeWorkspaceId, () => {
 
 const handleOpenOthers = () => {
   const { start, end } = getDateRange(selectedPeriod.value, customRange.value)
-  emit('openAllCategories', start, end)
+  emit('openAllCategories', start, end, settlementScope.value)
 }
 
 const gradients = computed(() => {

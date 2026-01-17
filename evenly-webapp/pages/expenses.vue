@@ -8,7 +8,9 @@
         :summary-loading="true"
         v-model="selectedPeriod"
         v-model:range="customDateRange"
+        v-model:settlement-scope="settlementScope"
         @period-change="handlePeriodChange"
+        @settlement-change="handleSettlementChange"
       />
       <div class="space-y-2">
         <Skeleton v-for="i in 5" :key="i" variant="expense-item" />
@@ -33,18 +35,12 @@
         :summary-loading="summaryLoading"
         v-model="selectedPeriod"
         v-model:range="customDateRange"
+        v-model:settlement-scope="settlementScope"
         @period-change="handlePeriodChange"
+        @settlement-change="handleSettlementChange"
       />
 
-      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-900/40 px-3 py-2">
-        <label class="flex items-center gap-2 text-xs font-medium text-white/70">
-          <input
-            v-model="includeSettled"
-            type="checkbox"
-            class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500"
-          />
-          {{ t('expenses.includeSettled') }}
-        </label>
+      <div class="flex flex-wrap items-center justify-end gap-3 rounded-xl border border-white/10 bg-slate-900/40 px-3 py-2">
         <button
           type="button"
           @click="handleSettlePeriod"
@@ -139,10 +135,10 @@
 import { endOfLocalDay, startOfLocalDay, toDateOnly } from '~/utils/date'
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useExpenses, type ExpenseFilters } from '~/composables/useExpenses'
-import { useExpensesSummary, type ExpenseSummaryFilters } from '~/composables/useExpensesSummary'
+import { useExpensesSummary } from '~/composables/useExpensesSummary'
 import Skeleton from '~/components/Skeleton.vue'
 import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
-import type { Expense } from '~/types/api'
+import type { Expense, SettlementScope } from '~/types/api'
 import { useSettlements } from '~/composables/useSettlements'
 import { useToast } from '~/composables/useToast'
 
@@ -161,14 +157,14 @@ const { success, error: showError } = useToast()
 
 const selectedPeriod = ref<'month' | 'week' | 'all' | 'custom'>('month')
 const customDateRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
-const includeSettled = ref(false)
+const settlementScope = ref<SettlementScope>('ALL')
 
 const pageSize = 10
 
 const getDateRange = () => {
   const now = new Date()
-  let start: Date
-  let end: Date = endOfLocalDay(now)
+  let start: Date | undefined
+  let end: Date | undefined
 
   switch (selectedPeriod.value) {
     case 'month':
@@ -182,16 +178,13 @@ const getDateRange = () => {
       end = endOfLocalDay(now)
       break
     case 'all':
-      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth() - 2, 1))
-      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
-      break
+      return { start: undefined, end: undefined }
     case 'custom':
       if (customDateRange.value.start && customDateRange.value.end) {
         start = startOfLocalDay(customDateRange.value.start)
         end = endOfLocalDay(customDateRange.value.end)
       } else {
-        start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
-        end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+        return { start: undefined, end: undefined }
       }
       break
     default:
@@ -200,8 +193,8 @@ const getDateRange = () => {
   }
 
   return {
-    start: toDateOnly(start),
-    end: toDateOnly(end)
+    start: start ? toDateOnly(start) : undefined,
+    end: end ? toDateOnly(end) : undefined
   }
 }
 
@@ -214,19 +207,22 @@ const loadExpenses = async (reset = true) => {
   }
   
   const { start, end } = getDateRange()
+  if (selectedPeriod.value === 'custom' && (!start || !end)) {
+    return
+  }
   const filters: ExpenseFilters = {
     page: reset ? 0 : (pageInfo.value?.number ?? 0),
     size: pageSize,
     sort: 'effectiveDate,DESC',
     startDate: start,
     endDate: end,
-    status: includeSettled.value ? undefined : 'ACTIVE'
+    settlementScope: settlementScope.value
   }
   
   // Load expenses and summary in parallel
   await Promise.all([
     fetchExpenses(activeWorkspaceId.value, filters, !reset),
-    fetchExpensesSummary(activeWorkspaceId.value, { startDate: start, endDate: end })
+    fetchExpensesSummary(activeWorkspaceId.value, { startDate: start, endDate: end, settlementScope: settlementScope.value })
   ])
 }
 
@@ -235,6 +231,11 @@ const handlePeriodChange = (period: 'month' | 'week' | 'all' | 'custom', dateRan
   if (dateRange) {
     customDateRange.value = dateRange
   }
+  loadExpenses(true)
+}
+
+const handleSettlementChange = (scope: SettlementScope) => {
+  settlementScope.value = scope
   loadExpenses(true)
 }
 
@@ -308,13 +309,16 @@ const loadMore = async () => {
   if (!activeWorkspaceId.value || !hasMore.value || loading.value) return
   
   const { start, end } = getDateRange()
+  if (selectedPeriod.value === 'custom' && (!start || !end)) {
+    return
+  }
   const filters: ExpenseFilters = {
     page: (pageInfo.value?.number ?? 0) + 1,
     size: pageSize,
     sort: 'effectiveDate,DESC',
     startDate: start,
     endDate: end,
-    status: includeSettled.value ? undefined : 'ACTIVE'
+    settlementScope: settlementScope.value
   }
   
   await loadMoreExpenses(activeWorkspaceId.value, filters)
@@ -410,12 +414,6 @@ const handleSettlePeriod = async () => {
 
 watch(activeWorkspaceId, (newId) => {
   if (newId) {
-    loadExpenses(true)
-  }
-})
-
-watch(includeSettled, () => {
-  if (activeWorkspaceId.value) {
     loadExpenses(true)
   }
 })

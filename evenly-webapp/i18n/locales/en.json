@@ -341,6 +341,12 @@
     "settlementCreated": "Period settled successfully",
     "settlementFailed": "Failed to settle this period"
   },
+  "settlementScope": {
+    "label": "Settlement",
+    "all": "All",
+    "unsettled": "Unsettled",
+    "settled": "Settled"
+  },
   "payments": {
     "payment": "Payment",
     "paymentReceivedFrom": "Payment received from {name}",

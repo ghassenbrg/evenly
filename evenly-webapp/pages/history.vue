@@ -10,7 +10,9 @@
       <PeriodDropdown
         v-model="selectedPeriod"
         v-model:range="customDateRange"
+        v-model:settlement-scope="settlementScope"
         @period-change="handlePeriodChange"
+        @settlement-change="handleSettlementChange"
       />
     </div>
 
@@ -100,7 +102,7 @@
 import { endOfLocalDay, startOfLocalDay, toDateOnly } from '~/utils/date'
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { usePayments, type PaymentFilters } from '~/composables/usePayments'
-import type { Payment } from '~/types/api'
+import type { Payment, SettlementScope } from '~/types/api'
 
 definePageMeta({
   middleware: 'auth',
@@ -115,6 +117,7 @@ const { payments, pageInfo, loading, error, fetchPayments, loadMorePayments, cle
 // Period dropdown state - default to "all"
 const selectedPeriod = ref<'month' | 'week' | 'all' | 'custom'>('all')
 const customDateRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
+const settlementScope = ref<SettlementScope>('ALL')
 
 // Sort dropdown state
 const sortBy = ref<'effectiveDate' | 'amount'>('effectiveDate')
@@ -124,8 +127,8 @@ const pageSize = 10
 
 const getDateRange = () => {
   const now = new Date()
-  let start: Date
-  let end: Date = endOfLocalDay(now)
+  let start: Date | undefined
+  let end: Date | undefined
 
   switch (selectedPeriod.value) {
     case 'month':
@@ -146,9 +149,7 @@ const getDateRange = () => {
         start = startOfLocalDay(customDateRange.value.start)
         end = endOfLocalDay(customDateRange.value.end)
       } else {
-        // Default to current month if not set
-        start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
-        end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+        return { start: undefined, end: undefined }
       }
       break
     default:
@@ -156,8 +157,8 @@ const getDateRange = () => {
   }
 
   return {
-    start: toDateOnly(start),
-    end: toDateOnly(end)
+    start: start ? toDateOnly(start) : undefined,
+    end: end ? toDateOnly(end) : undefined
   }
 }
 
@@ -169,12 +170,16 @@ const loadPayments = async (reset = true) => {
   }
   
   const { start, end } = getDateRange()
+  if (selectedPeriod.value === 'custom' && (!start || !end)) {
+    return
+  }
   const filters: PaymentFilters = {
     page: reset ? 0 : (pageInfo.value?.number ?? 0),
     size: pageSize,
     sort: `${sortBy.value},${sortDirection.value}`,
     startDate: start,
-    endDate: end
+    endDate: end,
+    settlementScope: settlementScope.value
   }
   
   await fetchPayments(activeWorkspaceId.value, filters, !reset)
@@ -203,6 +208,11 @@ const handlePeriodChange = (period: 'month' | 'week' | 'all' | 'custom', dateRan
   if (dateRange) {
     customDateRange.value = dateRange
   }
+  loadPayments(true)
+}
+
+const handleSettlementChange = (scope: SettlementScope) => {
+  settlementScope.value = scope
   loadPayments(true)
 }
 
@@ -277,12 +287,16 @@ const loadMore = async () => {
   if (!activeWorkspaceId.value || !hasMore.value || loading.value) return
   
   const { start, end } = getDateRange()
+  if (selectedPeriod.value === 'custom' && (!start || !end)) {
+    return
+  }
   const filters: PaymentFilters = {
     page: (pageInfo.value?.number ?? 0) + 1,
     size: pageSize,
     sort: `${sortBy.value},${sortDirection.value}`,
     startDate: start,
-    endDate: end
+    endDate: end,
+    settlementScope: settlementScope.value
   }
   
   await loadMorePayments(activeWorkspaceId.value, filters)

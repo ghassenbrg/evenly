@@ -5,6 +5,7 @@ import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.expenses.ExpenseService;
 import io.evenly.core.shared.security.Authenticated;
 import io.evenly.core.shared.security.SecurityContextProvider;
+import io.evenly.core.shared.common.SettlementScope;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -60,7 +61,8 @@ public class AnalyticsResource {
     public Response getExpensesSnapshot(@PathParam("workspaceId") String workspaceId,
                                         @QueryParam("startDate") LocalDate startDate,
                                         @QueryParam("endDate") LocalDate endDate,
-                                        @QueryParam("size") @DefaultValue("0") int size) {
+                                        @QueryParam("size") @DefaultValue("0") int size,
+                                        @QueryParam("settlementScope") SettlementScope settlementScope) {
         String userId = securityContext.getUserId()
                 .orElseThrow(() -> new SecurityException("User not authenticated"));
         
@@ -70,7 +72,7 @@ public class AnalyticsResource {
             throw new SecurityException("Access denied: User is not a member of this workspace");
         }
         
-        ExpenseSnapshotResponse snapshot = analyticsService.getExpensesSnapshot(workspaceId, startDate, endDate, size);
+        ExpenseSnapshotResponse snapshot = analyticsService.getExpensesSnapshot(workspaceId, startDate, endDate, size, settlementScope);
         return Response.ok(snapshot).build();
     }
 
@@ -97,7 +99,8 @@ public class AnalyticsResource {
     @Path("/workspaces/{workspaceId}/analytics/expenses-summary")
     public Response getExpensesSummary(@PathParam("workspaceId") String workspaceId,
                                         @QueryParam("startDate") LocalDate startDate,
-                                        @QueryParam("endDate") LocalDate endDate) {
+                                        @QueryParam("endDate") LocalDate endDate,
+                                        @QueryParam("settlementScope") SettlementScope settlementScope) {
         String userId = securityContext.getUserId()
             .orElseThrow(() -> new SecurityException("User not authenticated"));
         
@@ -107,7 +110,7 @@ public class AnalyticsResource {
             throw new SecurityException("Access denied: User is not a member of this workspace");
         }
         
-        ExpenseSummary summary = analyticsService.getExpensesSummary(workspaceId, startDate, endDate);
+        ExpenseSummary summary = analyticsService.getExpensesSummary(workspaceId, startDate, endDate, settlementScope);
         Map<String, Object> response = new HashMap<>();
         response.put("data", summary);
         return Response.ok(response).build();

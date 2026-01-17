@@ -1,11 +1,11 @@
-import type { Expense, CreateExpenseRequest, UpdateExpenseRequest, PaginatedResponse } from '~/types/api'
+import type { Expense, CreateExpenseRequest, UpdateExpenseRequest, PaginatedResponse, SettlementScope } from '~/types/api'
 import { useApi } from '~/utils/api'
 
 export interface ExpenseFilters {
   startDate?: string
   endDate?: string
   categoryId?: string
-  status?: 'ACTIVE' | 'SETTLED' | 'PENDING' | 'COMPLETED'
+  settlementScope?: SettlementScope
   page?: number
   size?: number
   sort?: string // Format: "property,DIRECTION" e.g. "effectiveDate,DESC"
@@ -27,7 +27,7 @@ export const useExpenses = () => {
       if (filters?.startDate) queryParams.append('startDate', filters.startDate)
       if (filters?.endDate) queryParams.append('endDate', filters.endDate)
       if (filters?.categoryId) queryParams.append('categoryId', filters.categoryId)
-      if (filters?.status) queryParams.append('status', filters.status)
+      if (filters?.settlementScope) queryParams.append('settlementScope', filters.settlementScope)
       if (filters?.page !== undefined) queryParams.append('page', String(filters.page))
       if (filters?.size !== undefined) queryParams.append('size', String(filters.size))
       if (filters?.sort) queryParams.append('sort', filters.sort)
@@ -148,4 +148,3 @@ export const useExpenses = () => {
     clearExpenses
   }
 }
-

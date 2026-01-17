@@ -11,6 +11,7 @@ import io.evenly.core.features.payments.dto.Payment;
 import io.evenly.core.features.payments.dto.UpdatePaymentRequest;
 import io.evenly.core.shared.common.PageInfo;
 import io.evenly.core.shared.common.PaginatedPayments;
+import io.evenly.core.shared.common.SettlementScope;
 import io.evenly.core.shared.exception.NotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -40,13 +41,14 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(Transactional.TxType.SUPPORTS)
     public PaginatedPayments findForWorkspace(String workspaceId, LocalDate startDate, LocalDate endDate,
-                                             String status, int page, int size, String sort) {
+                                             String status, SettlementScope settlementScope, int page, int size, String sort) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
+        SettlementScope resolvedScope = resolveSettlementScope(settlementScope, SettlementScope.ALL);
 
         List<io.evenly.core.domain.Payment> domainPayments = paymentRepository.findByWorkspaceId(
-            workspaceUuid, startDate, endDate, status, null, page, size, sort);
+            workspaceUuid, startDate, endDate, status, resolvedScope, page, size, sort);
 
-        long total = paymentRepository.countByWorkspaceId(workspaceUuid, null);
+        long total = paymentRepository.countByWorkspaceId(workspaceUuid, resolvedScope);
 
         List<io.evenly.core.features.payments.dto.Payment> paymentDtos = domainPayments.stream()
             .map(this::toDto)
@@ -222,5 +224,9 @@ public class PaymentServiceImpl implements PaymentService {
         if (payment.getSettlementId() != null) {
             throw new io.evenly.core.shared.exception.ConflictException("Payment is settled and cannot be modified");
         }
+    }
+
+    private SettlementScope resolveSettlementScope(SettlementScope settlementScope, SettlementScope defaultScope) {
+        return settlementScope != null ? settlementScope : defaultScope;
     }
 }

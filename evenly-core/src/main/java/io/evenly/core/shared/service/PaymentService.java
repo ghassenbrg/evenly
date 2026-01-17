@@ -4,6 +4,7 @@ import io.evenly.core.shared.dto.PaginatedPayments;
 import io.evenly.core.shared.dto.Payment;
 import io.evenly.core.shared.dto.request.CreatePaymentRequest;
 import io.evenly.core.shared.dto.request.UpdatePaymentRequest;
+import io.evenly.core.shared.common.SettlementScope;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -14,7 +15,7 @@ import java.util.Optional;
  */
 public interface PaymentService {
     PaginatedPayments findForWorkspace(String workspaceId, LocalDate startDate, LocalDate endDate,
-                                       String status, int page, int size, String sort);
+                                       String status, SettlementScope settlementScope, int page, int size, String sort);
     Optional<Payment> findById(String paymentId);
     Payment create(String workspaceId, String userId, CreatePaymentRequest request);
     Payment update(String paymentId, UpdatePaymentRequest request);

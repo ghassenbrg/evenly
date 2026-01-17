@@ -11,6 +11,7 @@ import io.evenly.core.features.expenses.dto.CreateExpenseRequest;
 import io.evenly.core.features.expenses.dto.Expense;
 import io.evenly.core.features.expenses.dto.UpdateExpenseRequest;
 import io.evenly.core.shared.common.PaginatedExpenses;
+import io.evenly.core.shared.common.SettlementScope;
 import io.evenly.core.shared.exception.NotFoundException;
 import io.evenly.core.shared.security.Authenticated;
 import io.evenly.core.shared.security.SecurityContextProvider;
@@ -58,7 +59,7 @@ public class ExpenseResource {
             @QueryParam("startDate") LocalDate startDate,
             @QueryParam("endDate") LocalDate endDate,
             @QueryParam("categoryId") String categoryId,
-            @QueryParam("status") String status,
+            @QueryParam("settlementScope") SettlementScope settlementScope,
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size,
             @QueryParam("sort") String sort) {
@@ -72,7 +73,7 @@ public class ExpenseResource {
         }
         
         PaginatedExpenses paginated = expenseService.findForWorkspace(workspaceId, startDate, endDate,
-                categoryId, status, page, size, sort);
+                categoryId, settlementScope, page, size, sort);
         return Response.ok(paginated).build();
     }
 

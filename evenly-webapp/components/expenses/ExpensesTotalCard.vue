@@ -6,9 +6,12 @@
       <PeriodDropdown
         :model-value="selectedPeriod"
         :range="customRange"
+        :settlement-scope="settlementScope"
         @update:model-value="(value) => emit('update:modelValue', value)"
         @update:range="(value) => emit('update:range', value)"
+        @update:settlement-scope="(value) => emit('update:settlementScope', value)"
         @period-change="handlePeriodChange"
+        @settlement-change="handleSettlementChange"
       />
     </div>
     
@@ -88,7 +91,7 @@ import { endOfLocalDay, startOfLocalDay } from '~/utils/date'
 import PeriodDropdown from '~/components/PeriodDropdown.vue'
 import Skeleton from '~/components/Skeleton.vue'
 
-import type { ExpenseSummary } from '~/types/api'
+import type { ExpenseSummary, SettlementScope } from '~/types/api'
 
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
@@ -99,6 +102,7 @@ interface Props {
   monthISO?: string
   modelValue?: PeriodType
   range?: { start: string | null; end: string | null }
+  settlementScope?: SettlementScope
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -107,7 +111,8 @@ const props = withDefaults(defineProps<Props>(), {
   workspaceId: undefined,
   monthISO: undefined,
   modelValue: 'month',
-  range: () => ({ start: null, end: null })
+  range: () => ({ start: null, end: null }),
+  settlementScope: 'ALL'
 })
 
 const { formatCurrency } = useFormatting()
@@ -121,7 +126,9 @@ const componentId = Math.random().toString(36).substring(7)
 const emit = defineEmits<{
   'update:modelValue': [value: PeriodType]
   'update:range': [{ start: string | null; end: string | null }]
+  'update:settlementScope': [value: SettlementScope]
   'period-change': [period: PeriodType, dateRange?: { start: string | null; end: string | null }]
+  'settlement-change': [scope: SettlementScope]
 }>()
 
 const { t } = useI18n()
@@ -136,6 +143,8 @@ const customRange = computed({
   get: () => props.range,
   set: (value) => emit('update:range', value)
 })
+
+const settlementScope = computed(() => props.settlementScope)
 
 const periodLabel = computed(() => {
   switch (selectedPeriod.value) {
@@ -171,6 +180,11 @@ const handlePeriodChange = (period: PeriodType, range?: { start: string | null; 
     emit('update:range', range)
   }
   emit('period-change', period, range)
+}
+
+const handleSettlementChange = (scope: SettlementScope) => {
+  emit('update:settlementScope', scope)
+  emit('settlement-change', scope)
 }
 
 // Get date range based on selected period

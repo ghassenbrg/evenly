@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import io.evenly.core.shared.common.SettlementScope;
 
 /**
  * JPA-based implementation of PaymentRepository.
@@ -38,7 +39,7 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
 
     @Override
     public List<Payment> findByWorkspaceId(UUID workspaceId, LocalDate startDate, LocalDate endDate,
-                                           String status, Boolean settled, int page, int size, String sort) {
+                                           String status, SettlementScope settlementScope, int page, int size, String sort) {
         StringBuilder jpql = new StringBuilder("SELECT p FROM Payment p WHERE p.workspaceId = :workspaceId");
         
         if (startDate != null) {
@@ -50,9 +51,7 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
         if (status != null) {
             jpql.append(" AND p.status = :status");
         }
-        if (settled != null) {
-            jpql.append(settled ? " AND p.settlementId IS NOT NULL" : " AND p.settlementId IS NULL");
-        }
+        appendSettlementFilter(jpql, settlementScope, "p");
         
         String orderBy = " ORDER BY p.effectiveDate DESC";
         if (sort != null && !sort.isEmpty()) {
@@ -145,13 +144,22 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
     }
 
     @Override
-    public long countByWorkspaceId(UUID workspaceId, Boolean settled) {
+    public long countByWorkspaceId(UUID workspaceId, SettlementScope settlementScope) {
         StringBuilder jpql = new StringBuilder("SELECT COUNT(p) FROM Payment p WHERE p.workspaceId = :workspaceId");
-        if (settled != null) {
-            jpql.append(settled ? " AND p.settlementId IS NOT NULL" : " AND p.settlementId IS NULL");
-        }
+        appendSettlementFilter(jpql, settlementScope, "p");
         return entityManager.createQuery(jpql.toString(), Long.class)
             .setParameter("workspaceId", workspaceId)
             .getSingleResult();
+    }
+
+    private void appendSettlementFilter(StringBuilder jpql, SettlementScope settlementScope, String alias) {
+        if (settlementScope == null || settlementScope == SettlementScope.ALL) {
+            return;
+        }
+        if (settlementScope == SettlementScope.UNSETTLED) {
+            jpql.append(" AND ").append(alias).append(".settlementId IS NULL");
+        } else if (settlementScope == SettlementScope.SETTLED) {
+            jpql.append(" AND ").append(alias).append(".settlementId IS NOT NULL");
+        }
     }
 }

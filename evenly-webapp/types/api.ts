@@ -5,6 +5,7 @@ export type MemberRole = 'OWNER' | 'MEMBER'
 export type ExpenseStatus = 'ACTIVE' | 'SETTLED'
 export type PaymentType = 'EXPENSE_SETTLEMENT' | 'REIMBURSEMENT' | 'MANUAL_TRANSFER' | 'SETTLEMENT'
 export type PaymentStatus = 'COMPLETED' | 'PENDING' | 'FAILED'
+export type SettlementScope = 'ALL' | 'UNSETTLED' | 'SETTLED'
 
 export interface Currency {
   code: string

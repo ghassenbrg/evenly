@@ -1,10 +1,11 @@
-import type { Payment, PaymentStatus, PaginatedResponse, CreatePaymentRequest } from '~/types/api'
+import type { Payment, PaymentStatus, PaginatedResponse, CreatePaymentRequest, SettlementScope } from '~/types/api'
 import { useApi } from '~/utils/api'
 
 export interface PaymentFilters {
   startDate?: string
   endDate?: string
   status?: PaymentStatus
+  settlementScope?: SettlementScope
   page?: number
   size?: number
   sort?: string // Format: "property,DIRECTION" e.g. "effectiveDate,DESC"
@@ -26,6 +27,7 @@ export const usePayments = () => {
       if (filters?.startDate) queryParams.append('startDate', filters.startDate)
       if (filters?.endDate) queryParams.append('endDate', filters.endDate)
       if (filters?.status) queryParams.append('status', filters.status)
+      if (filters?.settlementScope) queryParams.append('settlementScope', filters.settlementScope)
       if (filters?.page !== undefined) queryParams.append('page', String(filters.page))
       if (filters?.size !== undefined) queryParams.append('size', String(filters.size))
       if (filters?.sort) queryParams.append('sort', filters.sort)
@@ -142,4 +144,3 @@ export const usePayments = () => {
     clearPayments
   }
 }
-

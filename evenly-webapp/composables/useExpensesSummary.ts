@@ -1,9 +1,10 @@
-import type { ExpenseSummary } from '~/types/api'
+import type { ExpenseSummary, SettlementScope } from '~/types/api'
 import { useApi } from '~/utils/api'
 
 export interface ExpenseSummaryFilters {
   startDate?: string
   endDate?: string
+  settlementScope?: SettlementScope
 }
 
 export const useExpensesSummary = () => {
@@ -19,6 +20,7 @@ export const useExpensesSummary = () => {
       const queryParams = new URLSearchParams()
       if (filters?.startDate) queryParams.append('startDate', filters.startDate)
       if (filters?.endDate) queryParams.append('endDate', filters.endDate)
+      if (filters?.settlementScope) queryParams.append('settlementScope', filters.settlementScope)
 
       const query = queryParams.toString()
       const path = `/api/workspaces/${workspaceId}/analytics/expenses-summary${query ? `?${query}` : ''}`
@@ -45,4 +47,3 @@ export const useExpensesSummary = () => {
     clearSummary
   }
 }
-
