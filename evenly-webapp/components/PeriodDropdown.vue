@@ -50,6 +50,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateOnly, toDateOnly } from '~/utils/date'
+
 type PeriodType = 'month' | 'week' | 'all' | 'custom'
 
 interface Props {
@@ -61,7 +63,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   modelValue: 'month',
   range: () => ({ start: null, end: null }),
-  maxDate: () => new Date().toISOString().split('T')[0]
+  maxDate: () => toDateOnly(new Date())
 })
 
 const emit = defineEmits<{
@@ -93,8 +95,8 @@ const periodOptions = computed(() => [
 
 const selectedLabel = computed(() => {
   if (props.modelValue === 'custom') {
-    const start = internalRange.start ? new Date(internalRange.start).toLocaleDateString() : '...'
-    const end = internalRange.end ? new Date(internalRange.end).toLocaleDateString() : '...'
+    const start = internalRange.start ? formatDateOnly(internalRange.start) : '...'
+    const end = internalRange.end ? formatDateOnly(internalRange.end) : '...'
     return `${start} - ${end}`
   }
   return periodOptions.value.find(opt => opt.value === props.modelValue)?.label || t('expenses.thisMonth')

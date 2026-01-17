@@ -118,6 +118,8 @@
 </template>
 
 <script setup lang="ts">
+import { endOfLocalDay, formatDateOnly, startOfLocalDay, toDateOnly } from '~/utils/date'
+
 interface Props {
   modelValue?: { start: string | null; end: string | null }
   inline?: boolean
@@ -152,17 +154,18 @@ const weekDays = computed(() => [
 ])
 
 const showCalendar = ref(false)
+
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
-const startDate = ref<Date | null>(null)
-const endDate = ref<Date | null>(null)
+const startDate = ref<string | null>(null)
+const endDate = ref<string | null>(null)
 const selectingStart = ref(true)
 
 // Initialize from modelValue
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
-    startDate.value = newVal.start ? new Date(newVal.start) : null
-    endDate.value = newVal.end ? new Date(newVal.end) : null
+    startDate.value = newVal.start ?? null
+    endDate.value = newVal.end ?? null
   }
 }, { immediate: true })
 
@@ -192,9 +195,10 @@ const calendarDays = computed(() => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   
-  const minDateObj = props.minDate ? new Date(props.minDate) : null
-  const maxDateObj = props.maxDate ? new Date(props.maxDate) : new Date()
-  maxDateObj.setHours(23, 59, 59, 999)
+  const minDateObj = props.minDate ? startOfLocalDay(props.minDate) : null
+  const maxDateObj = props.maxDate ? endOfLocalDay(props.maxDate) : endOfLocalDay(new Date())
+  const startDateObj = startDate.value ? startOfLocalDay(startDate.value) : null
+  const endDateObj = endDate.value ? startOfLocalDay(endDate.value) : null
   
   for (let i = 0; i < 42; i++) {
     const date = new Date(startDateOfWeek)
@@ -202,10 +206,9 @@ const calendarDays = computed(() => {
     date.setHours(0, 0, 0, 0)
     
     const isCurrentMonth = date.getMonth() === currentMonth.value
-    const isStart = !!(startDate.value && date.getTime() === startDate.value.getTime())
-    const isEnd = !!(endDate.value && date.getTime() === endDate.value.getTime())
-    const isInRange = !!(startDate.value && endDate.value && 
-      date > startDate.value && date < endDate.value)
+    const isStart = !!(startDateObj && date.getTime() === startDateObj.getTime())
+    const isEnd = !!(endDateObj && date.getTime() === endDateObj.getTime())
+    const isInRange = !!(startDateObj && endDateObj && date > startDateObj && date < endDateObj)
     const isSelected = isStart || isEnd || isInRange
     const isDisabled = !!(minDateObj && date < minDateObj) || !!(maxDateObj && date > maxDateObj)
     
@@ -224,12 +227,11 @@ const calendarDays = computed(() => {
 })
 
 const selectDate = (date: Date) => {
-  const dateObj = new Date(date)
-  dateObj.setHours(0, 0, 0, 0)
+  const dateKey = toDateOnly(date)
+  const dateObj = startOfLocalDay(dateKey)
   
-  const minDateObj = props.minDate ? new Date(props.minDate) : null
-  const maxDateObj = props.maxDate ? new Date(props.maxDate) : new Date()
-  maxDateObj.setHours(23, 59, 59, 999)
+  const minDateObj = props.minDate ? startOfLocalDay(props.minDate) : null
+  const maxDateObj = props.maxDate ? endOfLocalDay(props.maxDate) : endOfLocalDay(new Date())
   
   if ((minDateObj && dateObj < minDateObj) || (maxDateObj && dateObj > maxDateObj)) {
     return
@@ -237,24 +239,25 @@ const selectDate = (date: Date) => {
   
   if (selectingStart.value || !startDate.value) {
     // Start selecting
-    startDate.value = dateObj
+    startDate.value = dateKey
     endDate.value = null
     selectingStart.value = false
   } else {
     // End selecting
-    if (dateObj < startDate.value!) {
+    const startDateObj = startDate.value ? startOfLocalDay(startDate.value) : null
+    if (startDateObj && dateObj < startDateObj) {
       // If selected date is before start, make it the new start
       endDate.value = startDate.value
-      startDate.value = dateObj
+      startDate.value = dateKey
     } else {
-      endDate.value = dateObj
+      endDate.value = dateKey
     }
     selectingStart.value = true
   }
   
   emit('update:modelValue', {
-    start: startDate.value ? startDate.value.toISOString().split('T')[0] : null,
-    end: endDate.value ? endDate.value.toISOString().split('T')[0] : null
+    start: startDate.value,
+    end: endDate.value
   })
 }
 
@@ -286,15 +289,15 @@ const clearSelection = () => {
 const applySelection = () => {
   if (startDate.value && endDate.value) {
     emit('apply', {
-      start: startDate.value.toISOString().split('T')[0],
-      end: endDate.value.toISOString().split('T')[0]
+      start: startDate.value,
+      end: endDate.value
     })
     showCalendar.value = false
   }
 }
 
-const formatDate = (date: Date) => {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+const formatDate = (date: string) => {
+  return formatDateOnly(date, 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 const displayText = computed(() => {

@@ -84,6 +84,7 @@
 </template>
 
 <script setup lang="ts">
+import { endOfLocalDay, startOfLocalDay } from '~/utils/date'
 import PeriodDropdown from '~/components/PeriodDropdown.vue'
 import Skeleton from '~/components/Skeleton.vue'
 
@@ -176,41 +177,37 @@ const handlePeriodChange = (period: PeriodType, range?: { start: string | null; 
 const dateRange = computed(() => {
   const now = new Date()
   let start: Date
-  let end: Date = new Date(now)
+  let end: Date = endOfLocalDay(now)
 
   switch (selectedPeriod.value) {
     case 'month':
-      start = new Date(now.getFullYear(), now.getMonth(), 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       break
     case 'week':
       const dayOfWeek = now.getDay()
       const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1) // Monday
-      start = new Date(now.getFullYear(), now.getMonth(), diff)
-      start.setHours(0, 0, 0, 0)
-      end = new Date(now)
-      end.setHours(23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), diff))
+      end = endOfLocalDay(now)
       break
     case 'all':
       // Go back 2 months from now for reasonable chart display
-      start = new Date(now.getFullYear(), now.getMonth() - 2, 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth() - 2, 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       break
     case 'custom':
       if (customRange.value.start && customRange.value.end) {
-        start = new Date(customRange.value.start)
-        start.setHours(0, 0, 0, 0)
-        end = new Date(customRange.value.end)
-        end.setHours(23, 59, 59, 999)
+        start = startOfLocalDay(customRange.value.start)
+        end = endOfLocalDay(customRange.value.end)
       } else {
         // Default to current month if not set
-        start = new Date(now.getFullYear(), now.getMonth(), 1)
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+        start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+        end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       }
       break
     default:
-      start = new Date(now.getFullYear(), now.getMonth(), 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
   }
 
   return { start, end }

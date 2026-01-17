@@ -90,12 +90,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: 'auth',
-  scrollToTop: false,
-  isMainPage: true
-})
-
+import { endOfLocalDay, startOfLocalDay, toDateOnly } from '~/utils/date'
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useCategories } from '~/composables/useCategories'
@@ -104,6 +99,12 @@ import { useCategoryColor } from '~/composables/useCategoryColor'
 import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
 import ExpensesEditExpenseSheet from '~/components/expenses/EditExpenseSheet.vue'
 import type { Expense, Balance } from '~/types/api'
+
+definePageMeta({
+  middleware: 'auth',
+  scrollToTop: false,
+  isMainPage: true
+})
 
 const { t } = useI18n()
 const workspacesStore = useWorkspacesStore()
@@ -176,44 +177,40 @@ const handleExpenseDeleted = () => {
 const getDateRange = (period: 'month' | 'week' | 'all' | 'custom', customRange?: { start: string | null; end: string | null }) => {
   const now = new Date()
   let start: Date
-  let end: Date = new Date(now)
+  let end: Date = endOfLocalDay(now)
 
   switch (period) {
     case 'month':
-      start = new Date(now.getFullYear(), now.getMonth(), 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       break
     case 'week':
       const dayOfWeek = now.getDay()
       const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
-      start = new Date(now.getFullYear(), now.getMonth(), diff)
-      start.setHours(0, 0, 0, 0)
-      end = new Date(now)
-      end.setHours(23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), diff))
+      end = endOfLocalDay(now)
       break
     case 'all':
-      start = new Date(now.getFullYear(), now.getMonth() - 2, 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth() - 2, 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       break
     case 'custom':
       if (customRange?.start && customRange?.end) {
-        start = new Date(customRange.start)
-        start.setHours(0, 0, 0, 0)
-        end = new Date(customRange.end)
-        end.setHours(23, 59, 59, 999)
+        start = startOfLocalDay(customRange.start)
+        end = endOfLocalDay(customRange.end)
       } else {
-        start = new Date(now.getFullYear(), now.getMonth(), 1)
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+        start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+        end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       }
       break
     default:
-      start = new Date(now.getFullYear(), now.getMonth(), 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
   }
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0]
+    start: toDateOnly(start),
+    end: toDateOnly(end)
   }
 }
 

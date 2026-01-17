@@ -114,17 +114,18 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: 'auth',
-  isMainPage: true
-})
-
+import { endOfLocalDay, startOfLocalDay, toDateOnly } from '~/utils/date'
 import { useWorkspacesStore } from '~/stores/workspaces'
 import { useExpenses, type ExpenseFilters } from '~/composables/useExpenses'
 import { useExpensesSummary, type ExpenseSummaryFilters } from '~/composables/useExpensesSummary'
 import Skeleton from '~/components/Skeleton.vue'
 import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
 import type { Expense } from '~/types/api'
+
+definePageMeta({
+  middleware: 'auth',
+  isMainPage: true
+})
 
 const { t, locale } = useI18n()
 const workspacesStore = useWorkspacesStore()
@@ -140,44 +141,40 @@ const pageSize = 10
 const getDateRange = () => {
   const now = new Date()
   let start: Date
-  let end: Date = new Date(now)
+  let end: Date = endOfLocalDay(now)
 
   switch (selectedPeriod.value) {
     case 'month':
-      start = new Date(now.getFullYear(), now.getMonth(), 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       break
     case 'week':
       const dayOfWeek = now.getDay()
       const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
-      start = new Date(now.getFullYear(), now.getMonth(), diff)
-      start.setHours(0, 0, 0, 0)
-      end = new Date(now)
-      end.setHours(23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), diff))
+      end = endOfLocalDay(now)
       break
     case 'all':
-      start = new Date(now.getFullYear(), now.getMonth() - 2, 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth() - 2, 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       break
     case 'custom':
       if (customDateRange.value.start && customDateRange.value.end) {
-        start = new Date(customDateRange.value.start)
-        start.setHours(0, 0, 0, 0)
-        end = new Date(customDateRange.value.end)
-        end.setHours(23, 59, 59, 999)
+        start = startOfLocalDay(customDateRange.value.start)
+        end = endOfLocalDay(customDateRange.value.end)
       } else {
-        start = new Date(now.getFullYear(), now.getMonth(), 1)
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+        start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+        end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
       }
       break
     default:
-      start = new Date(now.getFullYear(), now.getMonth(), 1)
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      start = startOfLocalDay(new Date(now.getFullYear(), now.getMonth(), 1))
+      end = endOfLocalDay(new Date(now.getFullYear(), now.getMonth() + 1, 0))
   }
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0]
+    start: toDateOnly(start),
+    end: toDateOnly(end)
   }
 }
 
@@ -224,8 +221,7 @@ const groupedExpenses = computed(() => {
   const groups: Record<string, Expense[]> = {}
   
   sortedExpenses.value.forEach(expense => {
-    const date = new Date(expense.effectiveDate)
-    const dateKey = date.toISOString().split('T')[0]
+    const dateKey = toDateOnly(expense.effectiveDate)
     
     if (!groups[dateKey]) {
       groups[dateKey] = []
@@ -239,14 +235,10 @@ const groupedExpenses = computed(() => {
 
 // Format day label (Today, Yesterday, or date)
 const formatDayLabel = (dateISO: string): string => {
-  const date = new Date(dateISO)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const date = startOfLocalDay(dateISO)
+  const today = startOfLocalDay(new Date())
   
-  const expenseDate = new Date(date)
-  expenseDate.setHours(0, 0, 0, 0)
-  
-  const diffTime = today.getTime() - expenseDate.getTime()
+  const diffTime = today.getTime() - date.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
   
   const currentLocale = locale.value === 'ja' ? 'ja-JP' : 'en-US'
