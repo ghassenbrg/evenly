@@ -9,12 +9,12 @@
     <button
       type="button"
       @click="toggleDropdown"
-      :disabled="loading"
+      :disabled="loading || props.disabled"
       class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[56px] touch-manipulation text-base flex items-center justify-between transition-colors"
       :class="{
         'border-red-500': showError && required && !modelValue,
-        'hover:border-slate-600': !loading,
-        'opacity-50 cursor-not-allowed': loading
+        'hover:border-slate-600': !loading && !props.disabled,
+        'opacity-50 cursor-not-allowed': loading || props.disabled
       }"
     >
       <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -131,6 +131,7 @@ interface Props {
   errorMessage?: string
   autoLoad?: boolean
   placeholder?: string
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -198,7 +199,7 @@ const getFontAwesomeIcon = (iconClass: string | null | undefined) => {
 }
 
 const toggleDropdown = () => {
-  if (loading.value) return
+  if (loading.value || props.disabled) return
   open.value = !open.value
   if (open.value) {
     searchQuery.value = ''

@@ -14,7 +14,8 @@
         inputmode="decimal"
         pattern="[0-9]*\.?[0-9]*"
         :placeholder="placeholder"
-        :class="[cleanedInputClass, inputPaddingClass]"
+        :class="[cleanedInputClass, inputPaddingClass, disabled ? 'opacity-60 cursor-not-allowed' : '']"
+        :disabled="disabled"
         @input="handleInput"
         @blur="handleBlur"
         @focus="handleFocus"
@@ -37,6 +38,7 @@ interface Props {
   hint?: string
   placeholder?: string
   inputClass?: string
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -45,7 +47,8 @@ const props = withDefaults(defineProps<Props>(), {
   label: undefined,
   hint: undefined,
   placeholder: undefined,
-  inputClass: 'w-full pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg font-semibold'
+  inputClass: 'w-full pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg font-semibold',
+  disabled: false
 })
 
 const emit = defineEmits<{
@@ -204,4 +207,3 @@ const handleBlur = () => {
   rawValue.value = ''
 }
 </script>
-

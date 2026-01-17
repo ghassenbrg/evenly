@@ -68,6 +68,8 @@ export interface Expense {
   effectiveDate: string
   note?: string
   status: ExpenseStatus
+  settlementId?: string | null
+  settledAt?: string | null
   paidByUserId: string
   paidByUserName: string
 }
@@ -108,9 +110,19 @@ export interface Transfer {
 export interface Settlement {
   id: string
   workspaceId: string
+  startDate?: string | null
+  endDate?: string | null
+  note?: string | null
   createdByUserId: string
   createdAt: string
+  revertedAt?: string | null
+  revertedByUserId?: string | null
   createdBy?: User
+}
+
+export interface SettlementStatus {
+  canSuggest: boolean
+  hasUnsettled: boolean
 }
 
 // Analytics summary - keeping for backward compatibility but API uses balance-summary
@@ -263,6 +275,10 @@ export interface UpdateExpenseRequest {
 }
 
 export interface CreateSettlementRequest {
+  startDate?: string
+  endDate?: string
+  expenseIds?: string[]
+  paymentIds?: string[]
   note?: string
 }
 
@@ -272,6 +288,7 @@ export interface SettleUpMember {
   userFullName: string
   paidAmount: number
   expectedAmount: number
+  balance?: number
 }
 
 export interface SettleUpResponse {
@@ -298,6 +315,8 @@ export interface Payment {
   effectiveDate: string
   note?: string
   status: PaymentStatus
+  settlementId?: string | null
+  settledAt?: string | null
   paidByUserId: string
   paidByUserName: string
 }

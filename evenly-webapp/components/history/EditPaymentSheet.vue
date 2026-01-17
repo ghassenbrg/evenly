@@ -6,7 +6,7 @@
         <div class="flex items-center gap-2">
           <button
             @click="handleDelete"
-            :disabled="deleting"
+            :disabled="deleting || isSettled"
             class="p-2 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
             :title="t('common.delete')"
           >
@@ -33,6 +33,12 @@
 
     <!-- Content -->
     <div v-else-if="payment" class="space-y-6">
+      <div
+        v-if="isSettled"
+        class="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90"
+      >
+        {{ t('payments.settledLocked') }}
+      </div>
       <!-- Payment Info (Read-only) -->
       <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
         <p class="text-sm text-gray-400 mb-1">{{ isReceived ? t('payments.receivedFrom') : t('payments.paidTo') }}</p>
@@ -54,6 +60,7 @@
         :label="t('payments.amount')"
         :currency="payment.currency"
         :placeholder="'0'"
+        :disabled="isSettled"
       />
 
       <!-- Effective Date -->
@@ -65,7 +72,8 @@
           <input
             v-model="effectiveDate"
             type="date"
-            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isSettled"
           />
         </div>
       </div>
@@ -78,8 +86,9 @@
         <textarea
           v-model="paymentNote"
           rows="3"
-          class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+          class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none disabled:opacity-60 disabled:cursor-not-allowed"
           :placeholder="t('payments.notePlaceholder')"
+          :disabled="isSettled"
         />
       </div>
     </div>
@@ -94,7 +103,7 @@
         </button>
         <button
           @click="handleSubmit"
-          :disabled="!canSubmit || submitting"
+          :disabled="!canSubmit || submitting || isSettled"
           class="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:text-gray-500 text-white font-medium py-3 rounded-xl transition-colors"
         >
           <span v-if="!submitting">{{ t('common.save') }}</span>
@@ -137,6 +146,7 @@ const deleting = ref(false)
 const paymentAmount = ref(0)
 const effectiveDate = ref('')
 const paymentNote = ref('')
+const isSettled = computed(() => !!props.payment?.settlementId)
 
 // Determine if current user received money (is payee) or paid money (is payer)
 const isReceived = computed(() => {
@@ -215,7 +225,7 @@ const getStatusClass = (status: string) => {
 }
 
 const handleSubmit = async () => {
-  if (!canSubmit.value || !props.workspaceId || !props.payment) return
+  if (!canSubmit.value || !props.workspaceId || !props.payment || isSettled.value) return
   
   try {
     await updatePayment(props.workspaceId, props.payment.id, {
@@ -232,7 +242,7 @@ const handleSubmit = async () => {
 }
 
 const handleDelete = async () => {
-  if (!props.workspaceId || !props.payment) return
+  if (!props.workspaceId || !props.payment || isSettled.value) return
   
   if (!confirm(t('payments.confirmDelete'))) return
   

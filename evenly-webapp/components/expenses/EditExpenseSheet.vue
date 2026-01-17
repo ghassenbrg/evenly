@@ -6,7 +6,7 @@
         <div class="flex items-center gap-2">
           <button
             @click="handleDelete"
-            :disabled="deleting"
+            :disabled="deleting || isSettled"
             class="p-2 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
             :title="t('common.delete')"
           >
@@ -33,11 +33,18 @@
 
     <!-- Content -->
     <div v-else-if="expense" class="space-y-6">
+      <div
+        v-if="isSettled"
+        class="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90"
+      >
+        {{ t('expenses.settledLocked') }}
+      </div>
       <!-- Category Selection -->
       <CategoryPicker
         v-model="selectedCategoryId"
         :label="t('expenses.category')"
         :required="true"
+        :disabled="isSettled"
       />
 
       <!-- Paid By Info (Read-only) -->
@@ -54,6 +61,7 @@
         :label="t('expenses.amount')"
         :currency="expense.currency"
         :placeholder="'0'"
+        :disabled="isSettled"
       />
 
       <!-- Effective Date -->
@@ -65,7 +73,8 @@
           <input
             v-model="effectiveDate"
             type="date"
-            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isSettled"
           />
         </div>
       </div>
@@ -78,8 +87,9 @@
         <textarea
           v-model="expenseNote"
           rows="3"
-          class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+          class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none disabled:opacity-60 disabled:cursor-not-allowed"
           :placeholder="t('expenses.notePlaceholder')"
+          :disabled="isSettled"
         />
       </div>
     </div>
@@ -94,7 +104,7 @@
         </button>
         <button
           @click="handleSubmit"
-          :disabled="!canSubmit || submitting"
+          :disabled="!canSubmit || submitting || isSettled"
           class="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:text-gray-500 text-white font-medium py-3 rounded-xl transition-colors"
         >
           <span v-if="!submitting">{{ t('common.save') }}</span>
@@ -135,6 +145,7 @@ const expenseAmount = ref(0)
 const effectiveDate = ref('')
 const expenseNote = ref('')
 const selectedCategoryId = ref<string | null>(null)
+const isSettled = computed(() => props.expense?.status === 'SETTLED' || !!props.expense?.settlementId)
 
 // Load expense details when sheet opens
 watch(() => props.modelValue, async (isOpen) => {
@@ -172,7 +183,7 @@ const canSubmit = computed(() => {
 })
 
 const handleSubmit = async () => {
-  if (!canSubmit.value || !props.workspaceId || !props.expense) return
+  if (!canSubmit.value || !props.workspaceId || !props.expense || isSettled.value) return
   
   try {
     await updateExpense(props.workspaceId, props.expense.id, {
@@ -190,7 +201,7 @@ const handleSubmit = async () => {
 }
 
 const handleDelete = async () => {
-  if (!props.workspaceId || !props.expense) return
+  if (!props.workspaceId || !props.expense || isSettled.value) return
   
   if (!confirm(t('expenses.confirmDelete'))) return
   

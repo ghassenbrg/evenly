@@ -12,4 +12,8 @@ import java.util.List;
 public interface SettlementService {
     List<Settlement> findForWorkspace(String workspaceId);
     Settlement create(String workspaceId, String userId, CreateSettlementRequest request);
+    Settlement settleAll(String workspaceId, String userId);
+    boolean canSuggestSettlement(String workspaceId);
+    boolean hasUnsettledRecords(String workspaceId);
+    Settlement revert(String workspaceId, String settlementId, String userId);
 }

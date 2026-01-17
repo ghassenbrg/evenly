@@ -17,6 +17,8 @@ public class Payment {
     private String status; // COMPLETED, PENDING, FAILED
     private String paidByUserId;
     private String paidByUserName;
+    private String settlementId;
+    private java.time.OffsetDateTime settledAt;
 
     public Payment() {
     }
@@ -107,5 +109,21 @@ public class Payment {
 
     public void setPaidByUserName(String paidByUserName) {
         this.paidByUserName = paidByUserName;
+    }
+
+    public String getSettlementId() {
+        return settlementId;
+    }
+
+    public void setSettlementId(String settlementId) {
+        this.settlementId = settlementId;
+    }
+
+    public java.time.OffsetDateTime getSettledAt() {
+        return settledAt;
+    }
+
+    public void setSettledAt(java.time.OffsetDateTime settledAt) {
+        this.settledAt = settledAt;
     }
 }

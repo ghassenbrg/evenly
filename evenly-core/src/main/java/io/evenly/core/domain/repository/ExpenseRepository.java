@@ -14,13 +14,14 @@ import java.util.UUID;
 public interface ExpenseRepository {
     Optional<Expense> findById(UUID id);
     List<Expense> findByWorkspaceId(UUID workspaceId);
-    List<Expense> findByWorkspaceId(UUID workspaceId, LocalDate startDate, LocalDate endDate, 
-                                    UUID categoryId, int page, int size, String sort);
+    List<Expense> findByWorkspaceId(UUID workspaceId, LocalDate startDate, LocalDate endDate,
+                                    UUID categoryId, Boolean settled, int page, int size, String sort);
     List<Expense> findByPaidByUserId(String userId); // userId is now String (username)
     List<Expense> findByCategoryId(UUID categoryId);
+    List<Expense> findBySettlementId(UUID settlementId);
     Expense save(Expense expense);
     void delete(UUID id);
     boolean existsById(UUID id);
     long countByWorkspaceId(UUID workspaceId);
-    long countByWorkspaceIdAndDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate);
+    long countByWorkspaceIdAndDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate, Boolean settled);
 }

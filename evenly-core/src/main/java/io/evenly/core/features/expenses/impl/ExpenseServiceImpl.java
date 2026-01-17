@@ -52,11 +52,12 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
             String categoryId, String status, int page, int size, String sort) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         UUID categoryUuid = categoryId != null ? UUID.fromString(categoryId) : null;
+        Boolean settledFilter = resolveSettledFilter(status);
 
         List<io.evenly.core.domain.Expense> domainExpenses = expenseRepository.findByWorkspaceId(
-                workspaceUuid, startDate, endDate, categoryUuid, page, size, sort);
+                workspaceUuid, startDate, endDate, categoryUuid, settledFilter, page, size, sort);
 
-        long total = expenseRepository.countByWorkspaceIdAndDateRange(workspaceUuid, startDate, endDate);
+        long total = expenseRepository.countByWorkspaceIdAndDateRange(workspaceUuid, startDate, endDate, settledFilter);
 
         List<io.evenly.core.features.expenses.dto.Expense> expenseDtos = domainExpenses.stream()
                 .map(this::toDto)
@@ -84,7 +85,8 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
     @Transactional(Transactional.TxType.SUPPORTS)
     public List<io.evenly.core.features.expenses.dto.Expense> findRecentForWorkspace(String workspaceId, int size) {
         UUID workspaceUuid = UUID.fromString(workspaceId);
-        List<io.evenly.core.domain.Expense> domainExpenses = expenseRepository.findByWorkspaceId(workspaceUuid);
+        List<io.evenly.core.domain.Expense> domainExpenses = expenseRepository.findByWorkspaceId(
+                workspaceUuid, null, null, null, false, 0, size, "effectiveDate,DESC");
 
         return domainExpenses.stream()
                 .limit(size)
@@ -156,6 +158,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         UUID expenseUuid = UUID.fromString(expenseId);
         io.evenly.core.domain.Expense expense = expenseRepository.findById(expenseUuid)
                 .orElseThrow(() -> new NotFoundException("Expense not found: " + expenseId));
+        ensureNotSettled(expense);
 
         if (request.getCategoryId() != null) {
             expense.setCategoryId(UUID.fromString(request.getCategoryId()));
@@ -190,6 +193,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         UUID expenseUuid = UUID.fromString(expenseId);
         io.evenly.core.domain.Expense expense = expenseRepository.findById(expenseUuid)
             .orElseThrow(() -> new NotFoundException("Expense not found: " + expenseId));
+        ensureNotSettled(expense);
         List<String> participantIds = expenseParticipantRepository.findByExpenseId(expenseUuid).stream()
             .map(ExpenseParticipant::getUserId)
             .collect(Collectors.toList());
@@ -213,7 +217,7 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         LocalDate endDate = month.atEndOfMonth();
 
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(
-            workspaceUuid, startDate, endDate, null, 0, Integer.MAX_VALUE, null);
+            workspaceUuid, startDate, endDate, null, false, 0, Integer.MAX_VALUE, null);
         java.math.BigDecimal workspaceTotalPaid = expenses.stream()
             .map(io.evenly.core.domain.Expense::getAmount)
             .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
@@ -254,7 +258,9 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         dto.setEffectiveDate(domain.getEffectiveDate());
         dto.setNote(domain.getNote());
         dto.setPaidByUserId(domain.getPaidByUserId()); // userId is now String, no need to convert
-        // Status field removed from schema
+        dto.setStatus(domain.getSettlementId() == null ? "ACTIVE" : "SETTLED");
+        dto.setSettlementId(domain.getSettlementId() != null ? domain.getSettlementId().toString() : null);
+        dto.setSettledAt(domain.getSettledAt());
 
         if (domain.getCategoryId() != null) {
             dto.setCategoryId(domain.getCategoryId().toString());
@@ -270,5 +276,24 @@ public class ExpenseServiceImpl implements io.evenly.core.features.expenses.Expe
         });
 
         return dto;
+    }
+
+    private void ensureNotSettled(io.evenly.core.domain.Expense expense) {
+        if (expense.getSettlementId() != null) {
+            throw new io.evenly.core.shared.exception.ConflictException("Expense is settled and cannot be modified");
+        }
+    }
+
+    private Boolean resolveSettledFilter(String status) {
+        if (status == null || status.isEmpty()) {
+            return null;
+        }
+        if ("ACTIVE".equalsIgnoreCase(status)) {
+            return Boolean.FALSE;
+        }
+        if ("SETTLED".equalsIgnoreCase(status)) {
+            return Boolean.TRUE;
+        }
+        return null;
     }
 }

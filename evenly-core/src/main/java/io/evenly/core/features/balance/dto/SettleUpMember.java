@@ -10,6 +10,7 @@ public class SettleUpMember {
     private String userFullName;
     private BigDecimal paidAmount;
     private BigDecimal expectedAmount;
+    private BigDecimal balance;
 
     public SettleUpMember() {
     }
@@ -52,5 +53,13 @@ public class SettleUpMember {
 
     public void setExpectedAmount(BigDecimal expectedAmount) {
         this.expectedAmount = expectedAmount;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
     }
 }

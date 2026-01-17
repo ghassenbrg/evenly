@@ -1,4 +1,4 @@
-import type { Settlement, CreateSettlementRequest } from '~/types/api'
+import type { Settlement, CreateSettlementRequest, SettlementStatus } from '~/types/api'
 import { useApi } from '~/utils/api'
 
 export const useSettlements = () => {
@@ -34,11 +34,40 @@ export const useSettlements = () => {
     }
   }
 
+  const fetchSettlementStatus = async (workspaceId: string) => {
+    loading.value = true
+    error.value = null
+    try {
+      const status = await api.get<SettlementStatus>(`/api/workspaces/${workspaceId}/settlements/status`)
+      return status
+    } catch (err) {
+      error.value = err as Error
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const settleAll = async (workspaceId: string) => {
+    loading.value = true
+    error.value = null
+    try {
+      const settlement = await api.post<Settlement | null>(`/api/workspaces/${workspaceId}/settlements/settle-all`)
+      return settlement
+    } catch (err) {
+      error.value = err as Error
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading: readonly(loading),
     error: readonly(error),
     createSettlement,
-    fetchSettlements
+    fetchSettlements,
+    fetchSettlementStatus,
+    settleAll
   }
 }
-

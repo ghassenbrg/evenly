@@ -45,6 +45,12 @@ public class Expense {
     
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
+
+    @Column(name = "settlement_id", columnDefinition = "UUID")
+    private UUID settlementId;
+
+    @Column(name = "settled_at")
+    private OffsetDateTime settledAt;
     
     @Column(name = "paid_by_user_id", nullable = false, length = 100)
     private String paidByUserId; // Changed to String (username)

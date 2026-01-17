@@ -48,6 +48,12 @@ public class Payment {
     
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
+
+    @Column(name = "settlement_id", columnDefinition = "UUID")
+    private UUID settlementId;
+
+    @Column(name = "settled_at")
+    private OffsetDateTime settledAt;
     
     @Column(name = "status", nullable = false, length = 20)
     private String status; // 'COMPLETED', 'PENDING', or 'FAILED'

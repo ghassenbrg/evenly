@@ -45,6 +45,15 @@
         >
           {{ getStatusLabel(payment.status) }}
         </span>
+        <span
+          v-if="isSettled"
+          class="px-2 py-0.5 rounded-full text-xs font-medium text-amber-200/90 bg-amber-500/15 inline-flex items-center gap-1"
+        >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11V7a4 4 0 00-8 0v4m1 0h14a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z" />
+          </svg>
+          <span>{{ t('dashboard.settled') }}</span>
+        </span>
       </div>
       <div class="text-sm text-white/55 mt-0.5">
         {{ formatDate(payment.effectiveDate) }}
@@ -161,6 +170,8 @@ const formattedAmount = computed(() => {
   }
 })
 
+const isSettled = computed(() => !!props.payment.settlementId)
+
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
     COMPLETED: t('payments.status.completed'),
@@ -179,4 +190,3 @@ const getStatusClass = (status: string) => {
   return classes[status] || 'bg-slate-500/20 text-slate-400'
 }
 </script>
-

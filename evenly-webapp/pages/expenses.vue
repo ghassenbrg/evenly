@@ -35,6 +35,28 @@
         v-model:range="customDateRange"
         @period-change="handlePeriodChange"
       />
+
+      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-900/40 px-3 py-2">
+        <label class="flex items-center gap-2 text-xs font-medium text-white/70">
+          <input
+            v-model="includeSettled"
+            type="checkbox"
+            class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500"
+          />
+          {{ t('expenses.includeSettled') }}
+        </label>
+        <button
+          type="button"
+          @click="handleSettlePeriod"
+          :disabled="!canSettlePeriod || settling"
+          class="inline-flex items-center gap-2 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11V7a4 4 0 00-8 0v4m1 0h14a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z" />
+          </svg>
+          <span>{{ t('expenses.markSettled') }}</span>
+        </button>
+      </div>
       
       <!-- Expenses List by Day -->
       <div v-if="displayedGroups.length > 0" class="space-y-6">
@@ -121,6 +143,8 @@ import { useExpensesSummary, type ExpenseSummaryFilters } from '~/composables/us
 import Skeleton from '~/components/Skeleton.vue'
 import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
 import type { Expense } from '~/types/api'
+import { useSettlements } from '~/composables/useSettlements'
+import { useToast } from '~/composables/useToast'
 
 definePageMeta({
   middleware: 'auth',
@@ -132,9 +156,12 @@ const workspacesStore = useWorkspacesStore()
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspacesStore)
 const { expenses, pageInfo, loading, error, fetchExpenses, loadMoreExpenses, clearExpenses } = useExpenses()
 const { summary: expensesSummary, loading: summaryLoading, fetchExpensesSummary, clearSummary } = useExpensesSummary()
+const { createSettlement, loading: settling } = useSettlements()
+const { success, error: showError } = useToast()
 
 const selectedPeriod = ref<'month' | 'week' | 'all' | 'custom'>('month')
 const customDateRange = ref<{ start: string | null; end: string | null }>({ start: null, end: null })
+const includeSettled = ref(false)
 
 const pageSize = 10
 
@@ -193,7 +220,7 @@ const loadExpenses = async (reset = true) => {
     sort: 'effectiveDate,DESC',
     startDate: start,
     endDate: end,
-    status: 'ACTIVE'
+    status: includeSettled.value ? undefined : 'ACTIVE'
   }
   
   // Load expenses and summary in parallel
@@ -287,7 +314,7 @@ const loadMore = async () => {
     sort: 'effectiveDate,DESC',
     startDate: start,
     endDate: end,
-    status: 'ACTIVE'
+    status: includeSettled.value ? undefined : 'ACTIVE'
   }
   
   await loadMoreExpenses(activeWorkspaceId.value, filters)
@@ -349,8 +376,46 @@ const handleExpenseCreated = () => {
   loadExpenses(true)
 }
 
+const canSettlePeriod = computed(() => {
+  if (!activeWorkspaceId.value) return false
+  if (selectedPeriod.value === 'all') return false
+  const { start, end } = getDateRange()
+  return Boolean(start && end)
+})
+
+const handleSettlePeriod = async () => {
+  if (!activeWorkspaceId.value) return
+  if (selectedPeriod.value === 'all') {
+    showError(t('expenses.settlementPeriodRequired'))
+    return
+  }
+  const { start, end } = getDateRange()
+  if (!start || !end) {
+    showError(t('expenses.settlementPeriodRequired'))
+    return
+  }
+  if (!confirm(t('expenses.settlementConfirm'))) return
+
+  try {
+    await createSettlement(activeWorkspaceId.value, {
+      startDate: start,
+      endDate: end
+    })
+    success(t('expenses.settlementCreated'))
+    loadExpenses(true)
+  } catch (err: any) {
+    showError(err.message || t('expenses.settlementFailed'))
+  }
+}
+
 watch(activeWorkspaceId, (newId) => {
   if (newId) {
+    loadExpenses(true)
+  }
+})
+
+watch(includeSettled, () => {
+  if (activeWorkspaceId.value) {
     loadExpenses(true)
   }
 })

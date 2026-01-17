@@ -44,9 +44,9 @@ public class PaymentServiceImpl implements PaymentService {
         UUID workspaceUuid = UUID.fromString(workspaceId);
 
         List<io.evenly.core.domain.Payment> domainPayments = paymentRepository.findByWorkspaceId(
-            workspaceUuid, startDate, endDate, status, page, size, sort);
+            workspaceUuid, startDate, endDate, status, null, page, size, sort);
 
-        long total = paymentRepository.countByWorkspaceId(workspaceUuid);
+        long total = paymentRepository.countByWorkspaceId(workspaceUuid, null);
 
         List<io.evenly.core.features.payments.dto.Payment> paymentDtos = domainPayments.stream()
             .map(this::toDto)
@@ -112,6 +112,7 @@ public class PaymentServiceImpl implements PaymentService {
         UUID paymentUuid = UUID.fromString(paymentId);
         io.evenly.core.domain.Payment payment = paymentRepository.findById(paymentUuid)
             .orElseThrow(() -> new NotFoundException("Payment not found: " + paymentId));
+        ensureNotSettled(payment);
 
         if (request.getAmount() != null) {
             payment.setAmount(request.getAmount());
@@ -140,6 +141,7 @@ public class PaymentServiceImpl implements PaymentService {
         UUID paymentUuid = UUID.fromString(paymentId);
         io.evenly.core.domain.Payment payment = paymentRepository.findById(paymentUuid)
             .orElseThrow(() -> new NotFoundException("Payment not found: " + paymentId));
+        ensureNotSettled(payment);
         paymentRepository.delete(paymentUuid);
 
         String otherParty = resolveOtherParty(payment, userId);
@@ -202,6 +204,8 @@ public class PaymentServiceImpl implements PaymentService {
         dto.setStatus(domain.getStatus());
         dto.setPaidByUserId(domain.getPaidByUserId()); // userId is now String, no need to convert
         dto.setPayeeUserId(domain.getPayeeUserId()); // userId is now String, no need to convert
+        dto.setSettlementId(domain.getSettlementId() != null ? domain.getSettlementId().toString() : null);
+        dto.setSettledAt(domain.getSettledAt());
 
         userRepository.findById(domain.getPaidByUserId()).ifPresent((io.evenly.core.domain.User user) -> { // userId is now String
             dto.setPaidByUserName(user.getDisplayName());
@@ -212,5 +216,11 @@ public class PaymentServiceImpl implements PaymentService {
         });
 
         return dto;
+    }
+
+    private void ensureNotSettled(io.evenly.core.domain.Payment payment) {
+        if (payment.getSettlementId() != null) {
+            throw new io.evenly.core.shared.exception.ConflictException("Payment is settled and cannot be modified");
+        }
     }
 }

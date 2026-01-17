@@ -257,6 +257,14 @@
     "settled": "Settled",
     "pay": "Pay",
     "settleAll": "Settle All",
+    "settleAllUnsettled": "Settle all unsettled expenses",
+    "settleAllUnsettledDescription": "Lock all currently unsettled expenses and payments in this workspace.",
+    "settlementConfirmAll": "Mark all unsettled expenses and payments as settled? This will lock them.",
+    "settlementAllCreated": "All unsettled items are now settled",
+    "settlementSuggestion": "All balances are settled. Do you want to mark everything as settled?",
+    "settlementSuggestionAction": "Settle all",
+    "settlementSuggestionDismiss": "Not now",
+    "nothingToSettle": "Nothing left to settle",
     "settling": "Settling...",
     "paymentCreated": "Payment created successfully",
     "paymentFailed": "Failed to create payment",
@@ -324,7 +332,14 @@
     "updateFailed": "Failed to update expense",
     "deleted": "Expense deleted successfully",
     "deleteFailed": "Failed to delete expense",
-    "confirmDelete": "Are you sure you want to delete this expense?"
+    "confirmDelete": "Are you sure you want to delete this expense?",
+    "settledLocked": "This expense is settled and cannot be edited or deleted.",
+    "includeSettled": "Include settled",
+    "markSettled": "Mark as Settled",
+    "settlementConfirm": "Mark this period as settled? This will lock all expenses and payments in the selected range.",
+    "settlementPeriodRequired": "Select a specific period to settle.",
+    "settlementCreated": "Period settled successfully",
+    "settlementFailed": "Failed to settle this period"
   },
   "payments": {
     "payment": "Payment",
@@ -361,7 +376,8 @@
     "updateFailed": "Failed to update payment",
     "deleted": "Payment deleted successfully",
     "deleteFailed": "Failed to delete payment",
-    "confirmDelete": "Are you sure you want to delete this payment?"
+    "confirmDelete": "Are you sure you want to delete this payment?",
+    "settledLocked": "This payment is settled and cannot be edited or deleted."
   },
   "categories": {
     "selectCategory": "Select a category",

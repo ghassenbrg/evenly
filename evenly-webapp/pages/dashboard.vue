@@ -21,6 +21,34 @@
         @settle-up="showSettleUp = true"
         @add-expense="showCreateExpenseSheet = true"
       />
+
+      <div
+        v-if="showSettlementSuggestion"
+        class="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-emerald-50 shadow-lg shadow-emerald-900/20"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p class="text-sm font-semibold">
+            {{ t('dashboard.settlementSuggestion') }}
+          </p>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="handleSettlementSuggestionDismiss"
+              class="rounded-lg border border-emerald-300/40 px-3 py-1.5 text-xs font-semibold text-emerald-100/80 transition-colors hover:text-emerald-50"
+            >
+              {{ t('dashboard.settlementSuggestionDismiss') }}
+            </button>
+            <button
+              type="button"
+              @click="handleSettlementSuggestionAccept"
+              :disabled="settlementLoading"
+              class="rounded-lg bg-emerald-400 px-3 py-1.5 text-xs font-semibold text-slate-900 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {{ t('dashboard.settlementSuggestionAction') }}
+            </button>
+          </div>
+        </div>
+      </div>
       
       <DashboardSettleUpSheet
         v-if="activeWorkspaceId"
@@ -96,9 +124,11 @@ import { useAnalytics } from '~/composables/useAnalytics'
 import { useCategories } from '~/composables/useCategories'
 import { useFormatting } from '~/composables/useFormatting'
 import { useCategoryColor } from '~/composables/useCategoryColor'
+import { useSettlements } from '~/composables/useSettlements'
+import { useToast } from '~/composables/useToast'
 import ExpensesCreateExpenseSheet from '~/components/expenses/CreateExpenseSheet.vue'
 import ExpensesEditExpenseSheet from '~/components/expenses/EditExpenseSheet.vue'
-import type { Expense, Balance } from '~/types/api'
+import type { Expense, Balance, SettlementStatus } from '~/types/api'
 
 definePageMeta({
   middleware: 'auth',
@@ -113,6 +143,8 @@ const { summary, balanceSummary, categoryAnalytics, expenseSnapshot, recentExpen
 const { categories, loading: categoriesLoading, fetchCategories } = useCategories()
 const { formatCurrency } = useFormatting()
 const { colorToGradient } = useCategoryColor()
+const { fetchSettlementStatus, settleAll, loading: settlementLoading } = useSettlements()
+const { success, error: showError } = useToast()
 
 // Track individual loading states - initialize as true for initial load
 const balanceLoading = ref(true)
@@ -127,6 +159,11 @@ const showEditExpenseSheet = ref(false)
 const selectedBalance = ref<Balance | null>(null)
 const selectedCurrentUserBalance = ref<Balance | null>(null)
 const selectedExpense = ref<Expense | null>(null)
+const showSettlementSuggestion = ref(false)
+
+const settlementSuggestionKey = computed(() => {
+  return activeWorkspaceId.value ? `settlement-suggestion-${activeWorkspaceId.value}` : null
+})
 
 // Track date range for the all categories sheet (from the card's period selector)
 const allCategoriesStartDate = ref<string | undefined>(undefined)
@@ -144,11 +181,10 @@ const handleOpenPayment = (balance: Balance, currentUserBalance?: Balance | null
   showPaymentSheet.value = true
 }
 
-const handlePaymentCompleted = () => {
+const handlePaymentCompleted = async () => {
   // Reload dashboard data after payment
-  loadDashboard()
-  // Emit settled event to SettleUpSheet if it's open
-  // (The @settled listener will also call loadDashboard, but that's fine - it's idempotent)
+  await loadDashboard()
+  await checkSettlementSuggestion()
 }
 
 const handleExpenseCreated = () => {
@@ -235,6 +271,68 @@ const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'mont
     balanceLoading.value = false
     expenseSnapshotLoading.value = false
     recentExpensesLoading.value = false
+  }
+}
+
+const shouldSuggestSettlement = (status: SettlementStatus | null) => {
+  return Boolean(status?.canSuggest && status?.hasUnsettled)
+}
+
+const markSettlementSuggestionShown = () => {
+  if (!process.client || !settlementSuggestionKey.value) return
+  localStorage.setItem(settlementSuggestionKey.value, '1')
+}
+
+const clearSettlementSuggestionShown = () => {
+  if (!process.client || !settlementSuggestionKey.value) return
+  localStorage.removeItem(settlementSuggestionKey.value)
+}
+
+const checkSettlementSuggestion = async () => {
+  if (!activeWorkspaceId.value) return
+  try {
+    const status = await fetchSettlementStatus(activeWorkspaceId.value)
+    if (!shouldSuggestSettlement(status)) {
+      showSettlementSuggestion.value = false
+      clearSettlementSuggestionShown()
+      return
+    }
+
+    if (!process.client || !settlementSuggestionKey.value) {
+      showSettlementSuggestion.value = true
+      return
+    }
+
+    const alreadyShown = localStorage.getItem(settlementSuggestionKey.value)
+    if (!alreadyShown) {
+      showSettlementSuggestion.value = true
+      markSettlementSuggestionShown()
+    }
+  } catch {
+    return
+  }
+}
+
+const handleSettlementSuggestionDismiss = () => {
+  showSettlementSuggestion.value = false
+  markSettlementSuggestionShown()
+}
+
+const handleSettlementSuggestionAccept = async () => {
+  if (!activeWorkspaceId.value) return
+  try {
+    const settlement = await settleAll(activeWorkspaceId.value)
+    if (!settlement) {
+      showSettlementSuggestion.value = false
+      clearSettlementSuggestionShown()
+      return
+    }
+    success(t('dashboard.settlementAllCreated'))
+    showSettlementSuggestion.value = false
+    await loadDashboard()
+    await checkSettlementSuggestion()
+  } catch (err: any) {
+    showError(err.message || t('dashboard.settlementFailed'))
   }
 }
 
@@ -338,6 +436,7 @@ watch(activeWorkspaceId, (newWorkspaceId, oldWorkspaceId) => {
   balanceLoading.value = true
   expenseSnapshotLoading.value = true
   recentExpensesLoading.value = true
+  showSettlementSuggestion.value = false
   clear()
   loadDashboard()
 }, { immediate: false })

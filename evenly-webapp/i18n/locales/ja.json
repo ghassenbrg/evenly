@@ -257,6 +257,14 @@
     "settled": "精算済み",
     "pay": "支払う",
     "settleAll": "すべて精算",
+    "settleAllUnsettled": "未精算の支出をすべて精算",
+    "settleAllUnsettledDescription": "このワークスペースの未精算の支出と支払いをすべてロックします。",
+    "settlementConfirmAll": "未精算の支出と支払いをすべて精算済みにしますか？ロックされます。",
+    "settlementAllCreated": "未精算の項目をすべて精算済みにしました",
+    "settlementSuggestion": "すべての残高が精算済みです。すべて精算済みにしますか？",
+    "settlementSuggestionAction": "すべて精算",
+    "settlementSuggestionDismiss": "後で",
+    "nothingToSettle": "精算する項目はありません",
     "settling": "精算中...",
     "paymentCreated": "支払いが正常に作成されました",
     "paymentFailed": "支払いの作成に失敗しました",
@@ -325,7 +333,14 @@
     "updateFailed": "支出の更新に失敗しました",
     "deleted": "支出を正常に削除しました",
     "deleteFailed": "支出の削除に失敗しました",
-    "confirmDelete": "この支出を削除してもよろしいですか？"
+    "confirmDelete": "この支出を削除してもよろしいですか？",
+    "settledLocked": "この支出は精算済みのため編集や削除はできません。",
+    "includeSettled": "精算済みを含める",
+    "markSettled": "精算済みにする",
+    "settlementConfirm": "この期間を精算済みにしますか？対象の支出と支払いはロックされます。",
+    "settlementPeriodRequired": "精算する期間を選択してください。",
+    "settlementCreated": "期間を精算済みにしました",
+    "settlementFailed": "この期間の精算に失敗しました"
   },
   "payments": {
     "payment": "支払い",
@@ -362,7 +377,8 @@
     "updateFailed": "支払いの更新に失敗しました",
     "deleted": "支払いを正常に削除しました",
     "deleteFailed": "支払いの削除に失敗しました",
-    "confirmDelete": "この支払いを削除してもよろしいですか？"
+    "confirmDelete": "この支払いを削除してもよろしいですか？",
+    "settledLocked": "この支払いは精算済みのため編集や削除はできません。"
   },
   "categories": {
     "selectCategory": "カテゴリを選択",

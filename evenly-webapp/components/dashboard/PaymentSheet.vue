@@ -187,7 +187,7 @@ const currentUserBalance = computed(() => {
   // Priority 3: Get from settle-up data
   if (settleUpData.value) {
     const currentUser = settleUpData.value.currentUser
-    const balance = currentUser.paidAmount - currentUser.expectedAmount
+    const balance = currentUser.balance ?? (currentUser.paidAmount - currentUser.expectedAmount)
     return {
       userId: currentUser.userId,
       paid: currentUser.paidAmount,
@@ -258,4 +258,3 @@ const handleSubmit = async () => {
   }
 }
 </script>
-

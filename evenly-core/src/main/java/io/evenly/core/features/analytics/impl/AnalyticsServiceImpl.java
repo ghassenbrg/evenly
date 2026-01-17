@@ -44,7 +44,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         UUID workspaceUuid = UUID.fromString(workspaceId);
         
         // Get expenses in date range
-        List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid, startDate, endDate, null, 0, Integer.MAX_VALUE, null);
+        List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(
+                workspaceUuid, startDate, endDate, null, false, 0, Integer.MAX_VALUE, null);
         
         // Group by category - use String key to handle null categoryId
         Map<String, ExpenseSnapshotItem> categoryMap = new HashMap<>();
@@ -131,7 +132,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         String currency = workspace.getCurrency() != null ? workspace.getCurrency().getCode() : "USD";
         
         // Get expenses in date range
-        List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid, startDate, endDate, null, 0, Integer.MAX_VALUE, null);
+        List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(
+                workspaceUuid, startDate, endDate, null, false, 0, Integer.MAX_VALUE, null);
         
         // Calculate totals
         BigDecimal totalAmount = expenses.stream()

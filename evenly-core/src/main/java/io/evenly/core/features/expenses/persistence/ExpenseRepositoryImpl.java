@@ -38,7 +38,7 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
 
     @Override
     public List<Expense> findByWorkspaceId(UUID workspaceId, LocalDate startDate, LocalDate endDate,
-                                           UUID categoryId, int page, int size, String sort) {
+                                           UUID categoryId, Boolean settled, int page, int size, String sort) {
         StringBuilder jpql = new StringBuilder("SELECT e FROM Expense e WHERE e.workspaceId = :workspaceId");
         
         if (startDate != null) {
@@ -49,6 +49,9 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
         }
         if (categoryId != null) {
             jpql.append(" AND e.categoryId = :categoryId");
+        }
+        if (settled != null) {
+            jpql.append(settled ? " AND e.settlementId IS NOT NULL" : " AND e.settlementId IS NULL");
         }
         
         // Default sort
@@ -100,6 +103,14 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
     }
 
     @Override
+    public List<Expense> findBySettlementId(UUID settlementId) {
+        return entityManager.createQuery(
+            "SELECT e FROM Expense e WHERE e.settlementId = :settlementId", Expense.class)
+            .setParameter("settlementId", settlementId)
+            .getResultList();
+    }
+
+    @Override
     public Expense save(Expense expense) {
         if (expense.getId() == null) {
             expense.setId(UUID.randomUUID());
@@ -143,7 +154,8 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
     }
 
     @Override
-    public long countByWorkspaceIdAndDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate) {
+    public long countByWorkspaceIdAndDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate,
+                                               Boolean settled) {
         StringBuilder jpql = new StringBuilder("SELECT COUNT(e) FROM Expense e WHERE e.workspaceId = :workspaceId");
         
         if (startDate != null) {
@@ -151,6 +163,9 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
         }
         if (endDate != null) {
             jpql.append(" AND e.effectiveDate <= :endDate");
+        }
+        if (settled != null) {
+            jpql.append(settled ? " AND e.settlementId IS NOT NULL" : " AND e.settlementId IS NULL");
         }
         
         TypedQuery<Long> query = entityManager.createQuery(jpql.toString(), Long.class)

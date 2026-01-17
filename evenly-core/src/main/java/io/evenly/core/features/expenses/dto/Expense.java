@@ -19,6 +19,8 @@ public class Expense {
     private String status; // ACTIVE, SETTLED
     private String paidByUserId;
     private String paidByUserName;
+    private String settlementId;
+    private java.time.OffsetDateTime settledAt;
 
     public Expense() {
     }
@@ -125,5 +127,21 @@ public class Expense {
 
     public void setPaidByUserName(String paidByUserName) {
         this.paidByUserName = paidByUserName;
+    }
+
+    public String getSettlementId() {
+        return settlementId;
+    }
+
+    public void setSettlementId(String settlementId) {
+        this.settlementId = settlementId;
+    }
+
+    public java.time.OffsetDateTime getSettledAt() {
+        return settledAt;
+    }
+
+    public void setSettledAt(java.time.OffsetDateTime settledAt) {
+        this.settledAt = settledAt;
     }
 }

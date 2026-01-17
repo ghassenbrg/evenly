@@ -59,6 +59,27 @@
           <p class="text-gray-400">{{ t('dashboard.noBalancesToSettle') }}</p>
         </div>
       </div>
+
+      <div class="rounded-xl border border-slate-700/50 bg-slate-900/40 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="text-sm font-semibold text-white">{{ t('dashboard.settleAllUnsettled') }}</p>
+            <p class="text-xs text-slate-400">{{ t('dashboard.settleAllUnsettledDescription') }}</p>
+          </div>
+          <button
+            type="button"
+            @click="handleSettleAll"
+            :disabled="settleAllDisabled"
+            class="inline-flex items-center gap-2 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span v-if="!settlingAll">{{ t('dashboard.settleAll') }}</span>
+            <span v-else>{{ t('dashboard.settling') }}</span>
+          </button>
+        </div>
+        <p v-if="!settlementStatus?.hasUnsettled && !statusLoading" class="mt-3 text-xs text-slate-500">
+          {{ t('dashboard.nothingToSettle') }}
+        </p>
+      </div>
     </div>
   </BottomSheet>
 </template>
@@ -67,7 +88,10 @@
 import { useSettleUp } from '~/composables/useSettleUp'
 import { useAuth } from '~/composables/useAuth'
 import { useFormatting } from '~/composables/useFormatting'
+import { useSettlements } from '~/composables/useSettlements'
+import { useToast } from '~/composables/useToast'
 import type { Balance } from '~/types/api'
+import type { SettlementStatus } from '~/types/api'
 
 interface Props {
   modelValue: boolean
@@ -85,6 +109,12 @@ const { t } = useI18n()
 const { formatCurrency } = useFormatting()
 const { user, getCurrentUserId } = useAuth()
 const { settleUpData, loading, error, fetchSettleUp } = useSettleUp()
+const { settleAll, fetchSettlementStatus } = useSettlements()
+const { success, error: showError } = useToast()
+
+const settlementStatus = ref<SettlementStatus | null>(null)
+const statusLoading = ref(false)
+const settleAllInFlight = ref(false)
 
 // Load settle-up data when sheet opens
 watch(() => props.modelValue, (isOpen) => {
@@ -95,16 +125,37 @@ watch(() => props.modelValue, (isOpen) => {
 
 const loadSettleUp = async () => {
   if (props.workspaceId) {
-    await fetchSettleUp(props.workspaceId)
+    await Promise.all([
+      fetchSettleUp(props.workspaceId),
+      loadSettlementStatus()
+    ])
   }
 }
+
+const loadSettlementStatus = async () => {
+  if (!props.workspaceId) return
+  statusLoading.value = true
+  try {
+    settlementStatus.value = await fetchSettlementStatus(props.workspaceId)
+  } catch (err) {
+    settlementStatus.value = null
+  } finally {
+    statusLoading.value = false
+  }
+}
+
+const settleAllDisabled = computed(() => {
+  return statusLoading.value || settleAllInFlight.value || !settlementStatus.value?.hasUnsettled
+})
+
+const settlingAll = computed(() => settleAllInFlight.value)
 
 // Get current user's balance from settle-up data
 const currentUserBalance = computed(() => {
   if (!settleUpData.value) return null
   
   const currentUser = settleUpData.value.currentUser
-  const balance = currentUser.paidAmount - currentUser.expectedAmount
+  const balance = currentUser.balance ?? (currentUser.paidAmount - currentUser.expectedAmount)
   
   return {
     userId: currentUser.userId,
@@ -125,7 +176,7 @@ const otherMemberBalances = computed(() => {
   if (!settleUpData.value) return []
   
   return settleUpData.value.otherMembers.map(member => {
-    const balance = member.paidAmount - member.expectedAmount
+    const balance = member.balance ?? (member.paidAmount - member.expectedAmount)
     return {
       userId: member.userId,
       paid: member.paidAmount,
@@ -149,5 +200,26 @@ const handlePay = (balance: Balance) => {
   // Emit event to parent to open payment sheet with both balances
   emit('open-payment', balance, currentUserBal)
 }
-</script>
 
+const handleSettleAll = async () => {
+  if (settleAllDisabled.value || !props.workspaceId) return
+  if (!confirm(t('dashboard.settlementConfirmAll'))) return
+
+  try {
+    settleAllInFlight.value = true
+    const settlement = await settleAll(props.workspaceId)
+    if (!settlement) {
+      settlementStatus.value = { canSuggest: false, hasUnsettled: false }
+      success(t('dashboard.nothingToSettle'))
+      return
+    }
+    success(t('dashboard.settlementAllCreated'))
+    await loadSettleUp()
+    emit('settled')
+  } catch (err: any) {
+    showError(err.message || t('dashboard.settlementFailed'))
+  } finally {
+    settleAllInFlight.value = false
+  }
+}
+</script>

@@ -27,8 +27,17 @@
       </div>
 
       <!-- Right Amount -->
-      <div class="text-base font-semibold text-white/85 flex-shrink-0">
-        {{ formatCurrency(expense.amount) }}
+      <div class="text-base font-semibold text-white/85 flex-shrink-0 text-right">
+        <div>{{ formatCurrency(expense.amount) }}</div>
+        <div
+          v-if="isSettled"
+          class="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-amber-200/90 bg-amber-500/15 px-2 py-0.5 rounded-full"
+        >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11V7a4 4 0 00-8 0v4m1 0h14a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z" />
+          </svg>
+          <span>{{ t('dashboard.settled') }}</span>
+        </div>
       </div>
   </button>
 </template>
@@ -55,6 +64,7 @@ const { colorToGradient } = useCategoryColor()
 const categoryName = computed(() => props.expense.categoryName || t('common.other'))
 const paidByName = computed(() => props.expense.paidByUserName || props.expense.paidByUserId)
 const expenseDate = computed(() => props.expense.effectiveDate)
+const isSettled = computed(() => props.expense.status === 'SETTLED' || !!props.expense.settlementId)
 
 // Use categoryColor from API, fallback to default
 const categoryGradient = computed(() => {
@@ -71,4 +81,3 @@ const getFontAwesomeIcon = (iconClass: string | null | undefined) => {
   return [parsed.prefix, parsed.icon]
 }
 </script>
-

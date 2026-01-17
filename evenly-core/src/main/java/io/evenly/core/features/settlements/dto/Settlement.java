@@ -9,8 +9,13 @@ import java.time.OffsetDateTime;
 public class Settlement {
     private String id;
     private String workspaceId;
+    private java.time.LocalDate startDate;
+    private java.time.LocalDate endDate;
+    private String note;
     private String createdByUserId;
     private OffsetDateTime createdAt;
+    private OffsetDateTime revertedAt;
+    private String revertedByUserId;
     private User createdBy;
 
     public Settlement() {
@@ -47,12 +52,52 @@ public class Settlement {
         this.createdByUserId = createdByUserId;
     }
 
+    public java.time.LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(java.time.LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public java.time.LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(java.time.LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public OffsetDateTime getRevertedAt() {
+        return revertedAt;
+    }
+
+    public void setRevertedAt(OffsetDateTime revertedAt) {
+        this.revertedAt = revertedAt;
+    }
+
+    public String getRevertedByUserId() {
+        return revertedByUserId;
+    }
+
+    public void setRevertedByUserId(String revertedByUserId) {
+        this.revertedByUserId = revertedByUserId;
     }
 
     public User getCreatedBy() {

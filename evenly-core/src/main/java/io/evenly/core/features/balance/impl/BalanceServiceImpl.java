@@ -55,21 +55,25 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
                 .orElseThrow(() -> new RuntimeException("Workspace not found: " + workspaceId));
         
         boolean isWeighted = "WEIGHTED".equals(workspace.getDefaultSplitMode());
-        
+
+        List<WorkspaceMember> members = workspaceMemberRepository.findByWorkspaceId(workspaceUuid);
         // Get workspace members with weights (needed for weighted splits)
         Map<String, BigDecimal> memberWeights = new HashMap<>();
         if (isWeighted) {
-            List<WorkspaceMember> members = workspaceMemberRepository.findByWorkspaceId(workspaceUuid);
             for (WorkspaceMember member : members) {
                 memberWeights.put(member.getUserId(), member.getWeightPercent());
             }
         }
 
         // Get all expenses for workspace
-        List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid);
+        List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid).stream()
+                .filter(expense -> expense.getSettlementId() == null)
+                .collect(Collectors.toList());
 
         // Get all payments for workspace
-        List<Payment> payments = paymentRepository.findByWorkspaceId(workspaceUuid);
+        List<Payment> payments = paymentRepository.findByWorkspaceId(workspaceUuid).stream()
+                .filter(payment -> payment.getSettlementId() == null)
+                .collect(Collectors.toList());
 
         // Calculate balances per user
         Map<String, BigDecimal> balances = new HashMap<>(); // userId is now String (username)
@@ -119,13 +123,19 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
             }
         }
 
-        // Process payments: paidBy gets -amount, payee gets +amount
+        // Process payments: paidBy gets +amount, payee gets -amount
         for (Payment payment : payments) {
             if ("COMPLETED".equals(payment.getStatus())) {
-                balances.merge(payment.getPaidByUserId(), payment.getAmount().negate(), BigDecimal::add); // userId is
+                BigDecimal amount = payment.getAmount() != null ? payment.getAmount().abs() : BigDecimal.ZERO;
+                balances.merge(payment.getPaidByUserId(), amount, BigDecimal::add); // userId is
                                                                                                           // now String
-                balances.merge(payment.getPayeeUserId(), payment.getAmount(), BigDecimal::add); // userId is now String
+                balances.merge(payment.getPayeeUserId(), amount.negate(), BigDecimal::add); // userId is now String
             }
+        }
+
+        // Ensure all workspace members appear, even if they have zero activity.
+        for (WorkspaceMember member : members) {
+            balances.putIfAbsent(member.getUserId(), BigDecimal.ZERO);
         }
 
         // Calculate paid and expected amounts separately
@@ -175,6 +185,15 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
             }
         }
 
+        // Apply payments to paid amounts (net contributions)
+        for (Payment payment : payments) {
+            if ("COMPLETED".equals(payment.getStatus())) {
+                BigDecimal amount = payment.getAmount() != null ? payment.getAmount().abs() : BigDecimal.ZERO;
+                paidAmounts.merge(payment.getPaidByUserId(), amount, BigDecimal::add);
+                paidAmounts.merge(payment.getPayeeUserId(), amount.negate(), BigDecimal::add);
+            }
+        }
+
         // Convert to Balance DTOs with user information
         return balances.entrySet().stream()
                 .map(entry -> {
@@ -218,6 +237,7 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
         });
         currentUserMember.setPaidAmount(currentUserBalance.getPaid());
         currentUserMember.setExpectedAmount(currentUserBalance.getExpected());
+        currentUserMember.setBalance(currentUserBalance.getBalance());
 
         // Create SettleUpMember list for other members
         List<io.evenly.core.features.balance.dto.SettleUpMember> otherMembers = balances.stream()
@@ -230,6 +250,7 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
                     }
                     member.setPaidAmount(balance.getPaid());
                     member.setExpectedAmount(balance.getExpected());
+                    member.setBalance(balance.getBalance());
                     return member;
                 })
                 .collect(Collectors.toList());
@@ -256,10 +277,11 @@ public class BalanceServiceImpl implements io.evenly.core.features.balance.Balan
 
         // Get expenses in date range
         List<io.evenly.core.domain.Expense> expenses = expenseRepository.findByWorkspaceId(workspaceUuid, startDate,
-                endDate, null, 0, Integer.MAX_VALUE, null);
+                endDate, null, false, 0, Integer.MAX_VALUE, null);
 
         // Get payments in date range (only COMPLETED payments)
-        List<Payment> payments = paymentRepository.findByWorkspaceId(workspaceUuid, startDate, endDate, "COMPLETED", 0, Integer.MAX_VALUE, null);
+        List<Payment> payments = paymentRepository.findByWorkspaceId(workspaceUuid, startDate, endDate,
+                "COMPLETED", false, 0, Integer.MAX_VALUE, null);
 
         BigDecimal userTotalPaid = expenses.stream()
                 .filter(e -> e.getPaidByUserId().equals(userId)) // userId is now String

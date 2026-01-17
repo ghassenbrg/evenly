@@ -38,7 +38,7 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
 
     @Override
     public List<Payment> findByWorkspaceId(UUID workspaceId, LocalDate startDate, LocalDate endDate,
-                                           String status, int page, int size, String sort) {
+                                           String status, Boolean settled, int page, int size, String sort) {
         StringBuilder jpql = new StringBuilder("SELECT p FROM Payment p WHERE p.workspaceId = :workspaceId");
         
         if (startDate != null) {
@@ -49,6 +49,9 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
         }
         if (status != null) {
             jpql.append(" AND p.status = :status");
+        }
+        if (settled != null) {
+            jpql.append(settled ? " AND p.settlementId IS NOT NULL" : " AND p.settlementId IS NULL");
         }
         
         String orderBy = " ORDER BY p.effectiveDate DESC";
@@ -99,6 +102,14 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
     }
 
     @Override
+    public List<Payment> findBySettlementId(UUID settlementId) {
+        return entityManager.createQuery(
+            "SELECT p FROM Payment p WHERE p.settlementId = :settlementId", Payment.class)
+            .setParameter("settlementId", settlementId)
+            .getResultList();
+    }
+
+    @Override
     public Payment save(Payment payment) {
         if (payment.getId() == null) {
             payment.setId(UUID.randomUUID());
@@ -134,9 +145,12 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
     }
 
     @Override
-    public long countByWorkspaceId(UUID workspaceId) {
-        return entityManager.createQuery(
-            "SELECT COUNT(p) FROM Payment p WHERE p.workspaceId = :workspaceId", Long.class)
+    public long countByWorkspaceId(UUID workspaceId, Boolean settled) {
+        StringBuilder jpql = new StringBuilder("SELECT COUNT(p) FROM Payment p WHERE p.workspaceId = :workspaceId");
+        if (settled != null) {
+            jpql.append(settled ? " AND p.settlementId IS NOT NULL" : " AND p.settlementId IS NULL");
+        }
+        return entityManager.createQuery(jpql.toString(), Long.class)
             .setParameter("workspaceId", workspaceId)
             .getSingleResult();
     }
