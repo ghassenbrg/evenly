@@ -46,16 +46,12 @@ export const useAnalytics = () => {
     }))
   })
 
-  const fetchSummary = async (workspaceId: string, startDate?: string, endDate?: string) => {
+  const fetchSummary = async (workspaceId: string) => {
     loading.value = true
     error.value = null
     try {
       // endpoints.json: GET /api/workspaces/{id}/analytics/balance-summary
-      const queryParams = new URLSearchParams()
-      if (startDate) queryParams.append('startDate', startDate)
-      if (endDate) queryParams.append('endDate', endDate)
-      const query = queryParams.toString()
-      const path = `/api/workspaces/${workspaceId}/analytics/balance-summary${query ? `?${query}` : ''}`
+      const path = `/api/workspaces/${workspaceId}/analytics/balance-summary`
       balanceSummary.value = await api.get<BalanceSummary>(path)
     } catch (err) {
       error.value = err as Error

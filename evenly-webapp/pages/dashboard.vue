@@ -253,7 +253,6 @@ const getDateRange = (period: 'month' | 'week' | 'all' | 'custom', customRange?:
 const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'month', customRange?: { start: string | null; end: string | null }) => {
   if (!activeWorkspaceId.value) return
   
-  const { start, end } = getDateRange(period, customRange)
   const snapshotRange = getDateRange('all')
   
   // Load data with individual loading states
@@ -263,7 +262,7 @@ const loadDashboard = async (period: 'month' | 'week' | 'all' | 'custom' = 'mont
   
   try {
     await Promise.all([
-      fetchSummary(activeWorkspaceId.value, start, end).finally(() => { balanceLoading.value = false }),
+      fetchSummary(activeWorkspaceId.value).finally(() => { balanceLoading.value = false }),
       fetchCategoryAnalytics(activeWorkspaceId.value, snapshotRange.start, snapshotRange.end, 4, 'UNSETTLED').finally(() => { expenseSnapshotLoading.value = false }),
       fetchRecentExpenses(activeWorkspaceId.value, 5).finally(() => { recentExpensesLoading.value = false }),
       fetchCategories()
