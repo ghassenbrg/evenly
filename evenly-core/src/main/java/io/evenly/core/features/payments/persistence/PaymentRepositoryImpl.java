@@ -31,7 +31,7 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
     @Override
     public List<Payment> findByWorkspaceId(UUID workspaceId) {
         return entityManager.createQuery(
-            "SELECT p FROM Payment p WHERE p.workspaceId = :workspaceId ORDER BY p.effectiveDate DESC", 
+            "SELECT p FROM Payment p WHERE p.workspaceId = :workspaceId ORDER BY p.effectiveDate DESC, p.createdAt DESC, p.id DESC",
             Payment.class)
             .setParameter("workspaceId", workspaceId)
             .getResultList();
@@ -53,16 +53,7 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
         }
         appendSettlementFilter(jpql, settlementScope, "p");
         
-        String orderBy = " ORDER BY p.effectiveDate DESC";
-        if (sort != null && !sort.isEmpty()) {
-            String[] parts = sort.split(",");
-            if (parts.length == 2) {
-                String field = parts[0].trim();
-                String direction = parts[1].trim().toUpperCase();
-                orderBy = " ORDER BY p." + field + " " + direction;
-            }
-        }
-        jpql.append(orderBy);
+        jpql.append(buildOrderByClause("p", sort));
         
         TypedQuery<Payment> query = entityManager.createQuery(jpql.toString(), Payment.class)
             .setParameter("workspaceId", workspaceId);
@@ -85,7 +76,7 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
     @Override
     public List<Payment> findByPayeeUserId(String userId) { // userId is now String (username)
         return entityManager.createQuery(
-            "SELECT p FROM Payment p WHERE p.payeeUserId = :userId ORDER BY p.effectiveDate DESC", 
+            "SELECT p FROM Payment p WHERE p.payeeUserId = :userId ORDER BY p.effectiveDate DESC, p.createdAt DESC, p.id DESC",
             Payment.class)
             .setParameter("userId", userId)
             .getResultList();
@@ -94,7 +85,7 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
     @Override
     public List<Payment> findByPaidByUserId(String userId) { // userId is now String (username)
         return entityManager.createQuery(
-            "SELECT p FROM Payment p WHERE p.paidByUserId = :userId ORDER BY p.effectiveDate DESC", 
+            "SELECT p FROM Payment p WHERE p.paidByUserId = :userId ORDER BY p.effectiveDate DESC, p.createdAt DESC, p.id DESC",
             Payment.class)
             .setParameter("userId", userId)
             .getResultList();
@@ -161,5 +152,30 @@ public class PaymentRepositoryImpl implements io.evenly.core.domain.repository.P
         } else if (settlementScope == SettlementScope.SETTLED) {
             jpql.append(" AND ").append(alias).append(".settlementId IS NOT NULL");
         }
+    }
+
+    private String buildOrderByClause(String alias, String sort) {
+        String primaryField = "effectiveDate";
+        String direction = "DESC";
+
+        if (sort != null && !sort.isEmpty()) {
+            String[] parts = sort.split(",");
+            if (parts.length == 2) {
+                primaryField = parts[0].trim();
+                direction = parts[1].trim().toUpperCase();
+            }
+        }
+
+        StringBuilder orderBy = new StringBuilder(" ORDER BY ")
+            .append(alias).append('.').append(primaryField).append(' ').append(direction);
+
+        if (!"createdAt".equals(primaryField)) {
+            orderBy.append(", ").append(alias).append(".createdAt ").append(direction);
+        }
+        if (!"id".equals(primaryField)) {
+            orderBy.append(", ").append(alias).append(".id ").append(direction);
+        }
+
+        return orderBy.toString();
     }
 }

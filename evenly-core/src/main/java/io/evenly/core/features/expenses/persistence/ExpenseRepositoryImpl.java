@@ -31,7 +31,7 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
     @Override
     public List<Expense> findByWorkspaceId(UUID workspaceId) {
         return entityManager.createQuery(
-            "SELECT e FROM Expense e WHERE e.workspaceId = :workspaceId ORDER BY e.effectiveDate DESC", 
+            "SELECT e FROM Expense e WHERE e.workspaceId = :workspaceId ORDER BY e.effectiveDate DESC, e.createdAt DESC, e.id DESC",
             Expense.class)
             .setParameter("workspaceId", workspaceId)
             .getResultList();
@@ -53,17 +53,7 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
         }
         appendSettlementFilter(jpql, settlementScope, "e");
         
-        // Default sort
-        String orderBy = " ORDER BY e.effectiveDate DESC";
-        if (sort != null && !sort.isEmpty()) {
-            String[] parts = sort.split(",");
-            if (parts.length == 2) {
-                String field = parts[0].trim();
-                String direction = parts[1].trim().toUpperCase();
-                orderBy = " ORDER BY e." + field + " " + direction;
-            }
-        }
-        jpql.append(orderBy);
+        jpql.append(buildOrderByClause("e", sort));
         
         TypedQuery<Expense> query = entityManager.createQuery(jpql.toString(), Expense.class)
             .setParameter("workspaceId", workspaceId);
@@ -86,7 +76,7 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
     @Override
     public List<Expense> findByPaidByUserId(String userId) { // userId is now String (username)
         return entityManager.createQuery(
-            "SELECT e FROM Expense e WHERE e.paidByUserId = :userId ORDER BY e.effectiveDate DESC", 
+            "SELECT e FROM Expense e WHERE e.paidByUserId = :userId ORDER BY e.effectiveDate DESC, e.createdAt DESC, e.id DESC",
             Expense.class)
             .setParameter("userId", userId)
             .getResultList();
@@ -187,5 +177,30 @@ public class ExpenseRepositoryImpl implements io.evenly.core.domain.repository.E
         } else if (settlementScope == SettlementScope.SETTLED) {
             jpql.append(" AND ").append(alias).append(".settlementId IS NOT NULL");
         }
+    }
+
+    private String buildOrderByClause(String alias, String sort) {
+        String primaryField = "effectiveDate";
+        String direction = "DESC";
+
+        if (sort != null && !sort.isEmpty()) {
+            String[] parts = sort.split(",");
+            if (parts.length == 2) {
+                primaryField = parts[0].trim();
+                direction = parts[1].trim().toUpperCase();
+            }
+        }
+
+        StringBuilder orderBy = new StringBuilder(" ORDER BY ")
+            .append(alias).append('.').append(primaryField).append(' ').append(direction);
+
+        if (!"createdAt".equals(primaryField)) {
+            orderBy.append(", ").append(alias).append(".createdAt ").append(direction);
+        }
+        if (!"id".equals(primaryField)) {
+            orderBy.append(", ").append(alias).append(".id ").append(direction);
+        }
+
+        return orderBy.toString();
     }
 }
